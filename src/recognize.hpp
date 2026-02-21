@@ -45,9 +45,8 @@ AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, s
         Symbol X = st.top().name;
         Token a = tokens[i];
         int actionId = st.top().actionId;
-        //cout<<"Top of parse stack: "<<X<<endl;
-        //cout<<"Next token: <"<<tokenStr[a.getSymbol()]<<", "<<a.getString()<<">"<<endl;
-        //cout<<"ActionId: "<<actionId<<endl;
+        cout<<"("<<i<<")parse stack: "<<X<<", "<<"input token: <"<<tokenStr[a.getSymbol()]<<", "<<a.getString()<<">"<<endl;
+        cout<<"("<<i<<")ActionId: "<<actionId<<endl;
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
             cout<<"Accepted."<<endl;
@@ -60,13 +59,13 @@ AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, s
         // Terminal or end marker
             if (X == tokenStr[a.getSymbol()]) {
                 if (X == "TK_NUM") {
-                    cout<<"\t \t PUSH("<<a.getString()<<")"<<endl;
+                    cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
                     semStack.push(new Number(a.getString()));
                 } else if (X == "TK_ID") {
-                    cout<<"\t \t PUSH("<<a.getString()<<")"<<endl;
+                    cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
                     semStack.push(new Identifier(a.getString()));
                 } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV") {
-                    cout<<"\t \t PUSH("<<a.getString()<<")"<<endl;
+                    cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
                     opStack.push(a.getString());
                 }
                 st.pop();
@@ -78,7 +77,6 @@ AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, s
                 return nullptr;
             }
         } else {
-
             if (table[X].find(tokenStr[a.getSymbol()]) == table[X].end()) {
                 std::cerr << "Error: no rule for M["
                           << X << "," << tokenStr[a.getSymbol()] << "]\n";
@@ -86,9 +84,7 @@ AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, s
             }
 
             Production p = table[X][tokenStr[a.getSymbol()]];
-
             st.pop();
-            
             //Push Action symbol for this production before RHS
             st.push(StackSymbol(ACTION, "", p.pid));
 
