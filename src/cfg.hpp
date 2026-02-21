@@ -101,23 +101,24 @@ struct ParseState {
     }
 };
 
-const string EPS = "#";
-const string GOAL = "TK_EOI";
-
-
+const Symbol EPS = "#";
+const Symbol GOAL = "TK_EOI";
 
 struct Grammar {
-    vector<Symbol> terminals;
-    vector<Symbol> nonterminals;
+    set<Symbol> terminals;
+    set<Symbol> nonterminals;
     map<Symbol, ProductionSet> productions;
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
     map<ParseState, SymbolString> predict;
+    Grammar() {
+        
+    }
     bool isNonTerminal(Symbol s) {
-        return find(nonterminals.begin(), nonterminals.end(), s) != nonterminals.end();
+        return nonterminals.find(s) != nonterminals.end();
     }
     bool isTerminal(Symbol s) {
-        return find(terminals.begin(), terminals.end(), s) != terminals.end();
+        return terminals.find(s) != terminals.end();
     }
     bool isNullable(Symbol nt) {
         for (auto prod : productions[nt]) {

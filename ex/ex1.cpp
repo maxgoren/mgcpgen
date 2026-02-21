@@ -4,6 +4,13 @@
 #include "build_table.hpp"
 #include "recognize.hpp"
 
+ParseTable createFromGrammar(Grammar& G, Symbol start) {
+    calcFirstSets(G);
+    calcFollowSets(G, start);
+    printFirsts(G);
+    printFollows(G);
+    return makeParseTable(G);
+}
 
 //LL(1) Expression Grammar - Taken from Louden - Compiler Construction Principles and Practice
 void expGram() {

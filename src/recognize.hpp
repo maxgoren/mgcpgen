@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 #include "ast.hpp"
+#include "ast_actions.hpp"
 #include "lexer.hpp"
 #include "cfg.hpp"
 using namespace std; 
@@ -25,20 +26,15 @@ struct StackSymbol {
     StackSymbol() { }
 };
 
-string tokenStr[] = { "TK_NUM",
- "TK_PLUS", "TK_MINUS", "TK_MUL", "TK_DIV", "TK_LPAREN",
- "TK_RPAREN", "TK_PRINT", "TK_ID", "TK_EOI"};
-bool recognize(
-    const std::vector<Token>& tokens, Grammar& G,
-     std::map<Symbol, std::map<Symbol, Production>>& table, 
-     const Symbol& startSymbol) {
+string tokenStr[] = { "TK_NUM", "TK_PLUS", "TK_MINUS", "TK_MUL", "TK_DIV", "TK_LPAREN", "TK_RPAREN", "TK_SEMI", "TK_PRINT", "TK_ID", "TK_EOI"};
+
+AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, std::map<Symbol, Production>>& table, const Symbol& startSymbol) {
     
     std::stack<StackSymbol> st;
     std::stack<AST*> semStack;
     std::stack<std::string> opStack;
     // Push end marker
     st.push({NONTERMINAL, GOAL, 0});
-
     // Push start symbol
     st.push({NONTERMINAL, startSymbol, 0});
 
@@ -53,10 +49,12 @@ bool recognize(
         //cout<<"Next token: <"<<tokenStr[a.getSymbol()]<<", "<<a.getString()<<">"<<endl;
         //cout<<"ActionId: "<<actionId<<endl;
         // Accept
-        if (X == GOAL && a.getSymbol() == TK_EOI)
-            break;
+        if (X == GOAL && a.getSymbol() == TK_EOI) {
+            cout<<"Accepted."<<endl;
+            return semStack.top();
+        }
         if (st.top().kind == ACTION) {
-            execute(actionId, semStack, opStack);
+            actionDispatch(actionId, semStack, opStack);
             st.pop();
         } else if (find(G.terminals.begin(), G.terminals.end(), X) != G.terminals.end() || X == GOAL) {
         // Terminal or end marker
@@ -77,20 +75,21 @@ bool recognize(
                 std::cerr << "Error: expected "
                           << X << " got "
                           << tokenStr[a.getSymbol()] << "\n";
-                return false;
+                return nullptr;
             }
         } else {
 
             if (table[X].find(tokenStr[a.getSymbol()]) == table[X].end()) {
                 std::cerr << "Error: no rule for M["
                           << X << "," << tokenStr[a.getSymbol()] << "]\n";
-                return false;
+                return nullptr;
             }
 
             Production p = table[X][tokenStr[a.getSymbol()]];
 
             st.pop();
-            cout<<p.pid<<endl;
+            
+            //Push Action symbol for this production before RHS
             st.push(StackSymbol(ACTION, "", p.pid));
 
             // push RHS in reverse order
@@ -101,18 +100,7 @@ bool recognize(
             }
         }
     }
-    cout<<semStack.size()<<endl;
-    while (!semStack.empty()) {
-        semStack.top()->print();
-        cout<<semStack.top()->eval()<<endl;
-        semStack.pop();
-    }
-    cout<<"Opstack: "<<opStack.size()<<endl;
-    while (!opStack.empty()) {
-        cout<<opStack.top()<<endl;
-        opStack.pop();
-    }
-    return false; // should never reach
+    return semStack.top(); // should never reach
 }
 
 #endif
