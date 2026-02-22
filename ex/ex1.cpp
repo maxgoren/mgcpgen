@@ -2,7 +2,7 @@
 #include "calc_firsts.hpp"
 #include "calc_follows.hpp"
 #include "build_table.hpp"
-#include "recognize.hpp"
+#include "parse.hpp"
 
 ParseTable createFromGrammar(Grammar& G, Symbol start) {
     calcFirstSets(G);

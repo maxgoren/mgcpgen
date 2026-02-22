@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stack>
 #include "ast.hpp"
-#include "ast_actions.hpp"
+#include "actions.hpp"
 #include "lexer.hpp"
 #include "cfg.hpp"
 using namespace std; 
@@ -26,7 +26,11 @@ struct StackSymbol {
     StackSymbol() { }
 };
 
-string tokenStr[] = { "TK_NUM", "TK_PLUS", "TK_MINUS", "TK_MUL", "TK_DIV", "TK_LPAREN", "TK_RPAREN", "TK_SEMI", "TK_PRINT", "TK_ID", "TK_EOI"};
+string tokenStr[] = { 
+ "TK_NUM",
+ "TK_PLUS", "TK_MINUS", "TK_MUL", "TK_DIV", "TK_LPAREN",
+ "TK_RPAREN", "TK_LT", "TK_GT", "TK_LCURLY", "TK_RCURLY", "TK_SEMI", "TK_PRINT", "TK_WHILE", "TK_ID", "TK_EOI"
+ };
 
 AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, std::map<Symbol, Production>>& table, const Symbol& startSymbol) {
     
@@ -55,7 +59,7 @@ AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, s
         if (st.top().kind == ACTION) {
             actionDispatch(actionId, semStack, opStack);
             st.pop();
-        } else if (find(G.terminals.begin(), G.terminals.end(), X) != G.terminals.end() || X == GOAL) {
+        } else if (G.isTerminal(X) || X == GOAL) {
         // Terminal or end marker
             if (X == tokenStr[a.getSymbol()]) {
                 if (X == "TK_NUM") {
@@ -64,9 +68,15 @@ AST* parseInput(const std::vector<Token>& tokens, Grammar& G, std::map<Symbol, s
                 } else if (X == "TK_ID") {
                     cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
                     semStack.push(new Identifier(a.getString()));
-                } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV") {
+                } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT") {
                     cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
                     opStack.push(a.getString());
+                } else if (X == "TK_PRINT") {
+                    cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
+                    semStack.push(new PrintStmt());
+                } else if (X == "TK_WHILE") {
+                    cout<<"\t \t \t PUSH("<<a.getString()<<")"<<endl;
+                    semStack.push(new WhileStmt());
                 }
                 st.pop();
                 i++;        // consume token

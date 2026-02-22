@@ -37,6 +37,7 @@ AST* attachLeaf(AST* node, AST* left) {
     }
     b->right = b->left;
     b->left = left;
+    b->print();
     return b;
 }
 
@@ -53,32 +54,23 @@ void sewTogether(stack<AST*>& semStack, stack<Symbol>& opStack) {
 
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     switch(id) {
-        case 1: {    
-                    cout<<"\t \t \t EXECUTING: "<<id<<endl;
-                    StmtSequence* ss = new StmtSequence();
-                    if (!semStack.empty())
-                        ss->addStmt(semStack.top());
-                    semStack.push(ss); 
-                    break;
-                }
-        case 2: {
+        case 2: {    
             cout<<"\t \t \t EXECUTING: "<<id<<endl;
-            if (!semStack.empty()) {
-                cout<<"Adding statement to sequence"<<endl;
-                auto stmt = semStack.top(); semStack.pop();
-                stmt->print();
-                ((StmtSequence*)(semStack.top()))->addStmt(stmt);
-            }
+            StmtSequence* ss = new StmtSequence();
+            if (!semStack.empty())
+                ss->addStmt(semStack.top()), semStack.pop();
+            semStack.push(ss); 
             break;
         }
         case 7: {
             cout<<"\t \t \t EXECUTING: "<<id<<endl;
             cout<<"print-stmtT -> expr"<<endl;
             AST* left = semStack.top(); semStack.pop();
-            semStack.push(new PrintStmt(left));
+            PrintStmt* pStmt = (PrintStmt*)semStack.top(); semStack.pop();
+            pStmt->expr = left;
+            semStack.push(pStmt);
             break;
         }
-        // exp → term expT
         case 9: {
             cout<<"\t \t \t EXECUTING: "<<id<<endl;
             cout<<"exp → term expT"<<endl;
@@ -86,7 +78,6 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
             break;
         }
 
-        // expT → addop term expT
         case 10:
         case 11: 
             cout<<"\t \t \tEXECUTING: "<<id<<endl;
@@ -94,39 +85,56 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
             buildBinaryOpTree(semStack, opStack);
             break;
 
-        // expT → ε
-        case 12:    cout<<"\t \t EXECUTING: "<<id<<endl;
-
+        case 12:    
+            cout<<"\t \t EXECUTING: "<<id<<"\nexpT → ε"<<endl;
             semStack.push(nullptr);
             break;
 
-        // term → factor termT
-        case 13:     cout<<"\t \t EXECUTING: "<<id<<endl;
-
+        case 13:     
+            cout<<"\t \t EXECUTING: "<<id<<"\nterm → factor termT"<<endl;
             sewTogether(semStack, opStack);
             break;
 
-        // termT → mulop factor termT
         case 14:
-        case 15:     cout<<"\t \t EXECUTING: "<<id<<endl;
-
+        case 15:     
+            cout<<"\t \t EXECUTING: "<<id<<endl;
             cout<<"termT → mulop factor termT"<<endl;
             buildBinaryOpTree(semStack, opStack);
             break;
         
-
-        // termT → ε
-        case 16:    cout<<"\t \t EXECUTING: "<<id<<endl;
-
+        case 16:    
+            cout<<"\t \t EXECUTING: "<<id<<"\ntermT → ε"<<endl;
             semStack.push(nullptr);
             break;
-
-        // factor → TK_MINUS factor (unary minus)
-        case 17:    cout<<"\t \t EXECUTING: "<<id<<endl;
-
+        
+        case 17:    
+            cout<<"\t \t EXECUTING: "<<id<<"\nfactor → TK_MINUS factor (unary minus)"<<endl;
             buildUnaryOpTree(semStack, opStack);
             break;
-        
+        case 25: {
+            cout<<"SemStack size: "<<semStack.size()<<endl;
+            AST* body = semStack.top(); semStack.pop();
+            AST* test = semStack.top(); semStack.pop();
+            WhileStmt* ws = (WhileStmt*)semStack.top(); semStack.pop();
+            ws->body = body;
+            ws->testExpr = test;
+            semStack.push(ws);
+        }
+            break;
+        case 26: {
+            sewTogether(semStack, opStack);
+        } break;
+        case 27:
+        case 28: {
+            cout<<"\t \t EXECUTING: "<<id<<endl;
+            cout<<"termT → mulop factor termT"<<endl;
+            buildBinaryOpTree(semStack, opStack);
+            break;
+        }
+        case 29: {
+            semStack.push(nullptr);
+            break;
+        }
         default:
             break;
     }

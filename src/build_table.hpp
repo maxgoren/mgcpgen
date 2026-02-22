@@ -71,4 +71,12 @@ ParseTable makeParseTable(Grammar& G) {
     return table;
 }
 
+ParseTable buildParserTable(Grammar& G, Symbol startSymbol) {
+    calcFirstSets(G);
+    calcFollowSets(G, startSymbol);
+    printFirsts(G);
+    printFollows(G);
+    return makeParseTable(G);
+}
+
 #endif

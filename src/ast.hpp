@@ -46,12 +46,14 @@ struct Binary : AST {
         int rhs = (right == nullptr) ? 0:right->eval();
         cout<<"lhs: "<<lhs<<endl;
         cout<<"rhs: "<<rhs<<endl;
-        cout<<op[0]<<"?";
+        cout<<"opr: "<<op[0]<<endl;
         switch (op[0]) {
             case '+': return lhs + rhs;
             case '-': return lhs - rhs;
             case '/': return lhs / rhs;
             case '*': return lhs * rhs;
+            case '<': return lhs < rhs;
+            case '>': return lhs > rhs;
         }
         return 0;
     }
@@ -75,12 +77,12 @@ struct Unary : AST {
 };
 
 struct StmtSequence : AST {
-    vector<AST*> sequence;
+    deque<AST*> sequence;
     StmtSequence() {
 
     }
     void addStmt(AST* sast) {
-        sequence.push_back(sast);
+        sequence.push_front(sast);
     }
     void print() {
         cout<<"Executing Statement Sequence: ";
@@ -89,15 +91,17 @@ struct StmtSequence : AST {
         }
     }
     int eval() {
+        int res;
         for (auto stmt : sequence) {
-            stmt->eval();
+            res = stmt->eval();
         }
-        return 0;
+        return res;
     }
 };
 
 struct PrintStmt : AST {
     AST* expr;
+    PrintStmt() { }
     PrintStmt(AST* ast) : expr(ast) { }
     void print() {
         cout<<"PrintStmt ";
@@ -107,6 +111,23 @@ struct PrintStmt : AST {
         int result = (expr == nullptr) ? 0:expr->eval();
         cout<<result<<endl;
         return result;
+    }
+};
+
+struct WhileStmt : AST {
+    AST* testExpr;
+    AST* body;
+    WhileStmt() { }
+    void print() {
+        cout<<"WhileStmt ";
+        if (testExpr) testExpr->print();
+        if (body) body->print();
+    }
+    int eval() {
+        while (testExpr->eval()) {
+            body->eval();
+        }
+        return 0;
     }
 };
 
