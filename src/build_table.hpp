@@ -8,7 +8,20 @@
 #include "cfg.hpp"
 using namespace std;
 
-set<Symbol> firstOfSequence(const vector<Symbol>& rhs, Grammar& G) {
+typedef map<Symbol, map<Symbol, Production>> ParseTable;
+
+
+class TableGenerator {
+    private:
+        set<Symbol> firstOfSequence(const vector<Symbol>& rhs, Grammar& G);
+    public:
+        TableGenerator() {
+
+        }
+        ParseTable makeParseTable(Grammar& G);
+};
+
+set<Symbol> TableGenerator::firstOfSequence(const vector<Symbol>& rhs, Grammar& G) {
     set<Symbol> result;
     if (rhs.empty()) {
         return {EPS};
@@ -38,9 +51,8 @@ set<Symbol> firstOfSequence(const vector<Symbol>& rhs, Grammar& G) {
     return result;
 }
 
-typedef map<Symbol, map<Symbol, Production>> ParseTable;
 
-ParseTable makeParseTable(Grammar& G) {
+ParseTable TableGenerator::makeParseTable(Grammar& G) {
     ParseTable table;
     for (auto A : G.nonterminals) {
 
@@ -69,14 +81,6 @@ ParseTable makeParseTable(Grammar& G) {
         }
     }
     return table;
-}
-
-ParseTable buildParserTable(Grammar& G, Symbol startSymbol) {
-    calcFirstSets(G);
-    calcFollowSets(G, startSymbol);
-    printFirsts(G);
-    printFollows(G);
-    return makeParseTable(G);
 }
 
 #endif

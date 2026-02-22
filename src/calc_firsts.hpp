@@ -2,7 +2,21 @@
 #define calc_firsts_hpp
 #include "cfg.hpp"
 
-void initFirsts(Grammar& G) {
+class ComputeFirstSets {
+    private:
+        void initFirsts(Grammar& G);
+        bool updateNonTerminal(Grammar& G, Symbol X, Symbol f);
+        bool propagate(Grammar& G, Symbol X, SymbolString& production);
+        bool propagateFirsts(Grammar& G);
+    public:
+        ComputeFirstSets() {
+
+        }
+        void compute(Grammar& G);
+        void printFirsts(Grammar& G);
+};
+
+void  ComputeFirstSets::initFirsts(Grammar& G) {
     //For all terminal symbols, first(t) -> {t}
     for (Symbol t : G.terminals) {
         G.firsts[t] = {t};
@@ -18,7 +32,7 @@ void initFirsts(Grammar& G) {
     }
 }
 
-bool updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
+bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     bool didchange = false;
     for (auto k : G.firsts[f]) {
         if (G.firsts[X].find(k) == G.firsts[X].end() && k != EPS) {
@@ -29,7 +43,7 @@ bool updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     return didchange;
 }
 
-bool propagate(Grammar& G, Symbol X, SymbolString& production) {
+bool ComputeFirstSets::propagate(Grammar& G, Symbol X, SymbolString& production) {
     bool didchange = false;
      // Check if the first symbol of this production is epsilon
     Symbol firstSymbol = production.front();
@@ -48,7 +62,7 @@ bool propagate(Grammar& G, Symbol X, SymbolString& production) {
     return didchange;
 }
 
-bool propagateFirsts(Grammar& G) {
+bool ComputeFirstSets::propagateFirsts(Grammar& G) {
     bool didchange = false;
     for (auto prod : G.productions) {
         Symbol X = prod.first;  // Left-hand side non-terminal
@@ -62,7 +76,7 @@ bool propagateFirsts(Grammar& G) {
     return didchange;
 }
 
-void calcFirstSets(Grammar& G) {
+void ComputeFirstSets::compute(Grammar& G) {
     // Initialize FIRST sets for terminals and non-terminals
     initFirsts(G);
     
@@ -75,7 +89,7 @@ void calcFirstSets(Grammar& G) {
     }
 } 
 
-void printFirsts(Grammar& G) {
+void ComputeFirstSets::printFirsts(Grammar& G) {
     for (auto f : G.firsts) {
         if (G.isNonTerminal(f.first)) {
             cout<<"FIRST("<<f.first<<")"<<": { ";

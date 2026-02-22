@@ -14,7 +14,18 @@
  *   then everything in FOLLOW(A) is in FOLLOW(B)
  */
 
- bool symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index) {
+class ComputeFollowSets {
+    private:
+        bool symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index);
+        bool calcFollow(Grammar& G, Symbol A);
+        void initFollows(Grammar& G);
+    public:
+        ComputeFollowSets() { }
+        void compute(Grammar& G, Symbol start);
+        void printFollows(Grammar& G);
+};
+
+bool ComputeFollowSets::symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index) {
     bool betaEps = true;
     bool didchange = false;
     // X -> aAb
@@ -39,9 +50,9 @@
             didchange = true;
     }
     return didchange;
- }
+}
 
-bool calcFollow(Grammar& G, Symbol A) {
+bool ComputeFollowSets::calcFollow(Grammar& G, Symbol A) {
     bool didchange = false;
     for (auto prod : G.productions) {
         Symbol X = prod.first;
@@ -58,7 +69,7 @@ bool calcFollow(Grammar& G, Symbol A) {
     return didchange;
 }
 
-void initFollows(Grammar& G) {
+void ComputeFollowSets::initFollows(Grammar& G) {
     for (Symbol t : G.terminals) {
         G.follow[t] = set<Symbol>();
     }
@@ -67,7 +78,7 @@ void initFollows(Grammar& G) {
     }
 }
 
-void calcFollowSets(Grammar& G, Symbol start) {
+void ComputeFollowSets::compute(Grammar& G, Symbol start) {
     initFollows(G);
     G.follow[start].insert(GOAL);
     bool didchange = true;
@@ -80,7 +91,7 @@ void calcFollowSets(Grammar& G, Symbol start) {
     }
 }
 
-void printFollows(Grammar& G) {
+void ComputeFollowSets::printFollows(Grammar& G) {
     for (auto f : G.follow) {
         if (G.isNonTerminal(f.first)) {
             cout<<"Follows("<<f.first<<": { ";

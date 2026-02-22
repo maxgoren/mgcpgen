@@ -1,10 +1,10 @@
-#include "../../src/cfg.hpp"
-#include "../../src/calc_firsts.hpp"
-#include "../../src/calc_follows.hpp"
-#include "../../src/build_table.hpp"
+#include "../../src/ParserGenerator.hpp"
 #include "parse.hpp"
 
-// LL(1) Expression Grammar Taken from Dragon Book
+//uses parser generated from grammar to build AST from & evaluate expressions/statements
+void interpreter(Grammar& G, ParseTable& table, string expr);
+
+//expressions grammar for integer math + assignment, comparison, looping, printing.
 void expGramWithStmts(string expr) {
     Grammar G;
     G.nonterminals = { "stmt-seq", 
@@ -81,7 +81,12 @@ void expGramWithStmts(string expr) {
     G.productions["primary"]    =   ProductionSet({Production(19,"primary",SymbolString({"TK_NUM"})), 
                                                    Production(20,"primary",SymbolString({"TK_ID"})), 
                                                    Production(21,"primary",SymbolString({"TK_LPAREN", "expr", "TK_RPAREN"}))});
-    auto table = buildParserTable(G, "stmt-seq");
+    ParserGenerator pg;
+    ParseTable table = pg.generate(G, "stmt-seq");
+    interpreter(G, table, expr);
+}
+
+void interpreter(Grammar& G, ParseTable& table, string expr) {
     Lexer lexer;
     Parser parser(G, table);
     string inbuff = expr;
