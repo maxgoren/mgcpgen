@@ -77,7 +77,7 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
         cout<<"("<<i<<")ActionId: "<<actionId<<endl;
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
-            cout<<"Accepted."<<endl;
+            cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
             return semStack.top();
         }
         if (st.top().kind == ACTION) {
@@ -111,7 +111,7 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
             }
         }
     }
-    return semStack.top();
+    return nullptr;
 }
 
 #endif

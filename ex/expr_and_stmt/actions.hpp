@@ -38,7 +38,7 @@ AST* attachLeaf(AST* node, AST* left) {
     b->right = b->left;
     b->left = left;
     b->print();
-    return b;
+    return node;
 }
 
 void sewTogether(stack<AST*>& semStack, stack<Symbol>& opStack) {
