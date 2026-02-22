@@ -1,8 +1,8 @@
-#include "src/cfg.hpp"
-#include "src/calc_firsts.hpp"
-#include "src/calc_follows.hpp"
-#include "src/build_table.hpp"
-#include "src/parse.hpp"
+#include "../../src/cfg.hpp"
+#include "../../src/calc_firsts.hpp"
+#include "../../src/calc_follows.hpp"
+#include "../../src/build_table.hpp"
+#include "parse.hpp"
 
 // LL(1) Expression Grammar Taken from Dragon Book
 void expGramWithStmts(string expr) {

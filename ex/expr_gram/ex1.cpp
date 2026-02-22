@@ -1,16 +1,7 @@
-#include "cfg.hpp"
-#include "calc_firsts.hpp"
-#include "calc_follows.hpp"
-#include "build_table.hpp"
-#include "parse.hpp"
-
-ParseTable createFromGrammar(Grammar& G, Symbol start) {
-    calcFirstSets(G);
-    calcFollowSets(G, start);
-    printFirsts(G);
-    printFollows(G);
-    return makeParseTable(G);
-}
+#include "../src/cfg.hpp"
+#include "../src/calc_firsts.hpp"
+#include "../src/calc_follows.hpp"
+#include "../src/build_table.hpp"
 
 //LL(1) Expression Grammar - Taken from Louden - Compiler Construction Principles and Practice
 void expGram() {
@@ -28,12 +19,6 @@ void expGram() {
     calcFollowSets(B, "exp");
     printFirsts(B);
     printFollows(B);
-    auto table = makeParseTable(B);
-    Lexer lexer;
-    StringBuffer* sb = new StringBuffer();
-    sb->init("(2*3+4)/7");
-    vector<Token> tokens = lexer.lex(sb);
-    recognize(tokens, B, table, "exp");
 }
 
 int main(int argc, char* argv[]) {

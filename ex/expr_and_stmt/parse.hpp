@@ -5,7 +5,7 @@
 #include "ast.hpp"
 #include "actions.hpp"
 #include "lexer.hpp"
-#include "cfg.hpp"
+#include "../../src/cfg.hpp"
 using namespace std; 
 
 
@@ -41,16 +41,20 @@ class Parser {
         int i;
         AST* parseInput(const Symbol& startSymbol);
     public:
-        Parser(Grammar& gram, ParseTable& pt) {
-            G = gram;
-            table = pt;
-        }
-        AST* parse(vector<Token>& token, const Symbol& startSymbol) {
-            tokens = token;
-            i = 0;
-            return parseInput(startSymbol);
-        }
+        Parser(Grammar& gram, ParseTable& pt);
+        AST* parse(vector<Token>& token, const Symbol& startSymbol);
 };
+
+Parser::Parser(Grammar& gram, ParseTable& pt) {
+    G = gram;
+    table = pt;
+}
+
+AST* Parser::parse(vector<Token>& token, const Symbol& startSymbol) {
+    tokens = token;
+    i = 0;
+    return parseInput(startSymbol);
+}
 
 AST* Parser::parseInput(const Symbol& startSymbol) {
     
