@@ -1,8 +1,9 @@
 #ifndef ast_hpp
 #define ast_hpp
 #include <iostream>
+#include <unordered_map>
 using namespace std;
-
+unordered_map<string, int> valTable;
 struct AST {
     virtual ~AST() = default;
     virtual void print() = 0;
@@ -23,7 +24,8 @@ struct Identifier : AST {
         cout<<"ID: "<<name;
     }
     int eval() {
-        return 0;
+        cout<<"Evaluating: "<<name<<endl;
+        return valTable[name];
     }
 };
 
@@ -54,6 +56,10 @@ struct Binary : AST {
             case '*': return lhs * rhs;
             case '<': return lhs < rhs;
             case '>': return lhs > rhs;
+            case ':': if (op == ":=") {
+                valTable[((Identifier*)left)->name] = rhs;
+                return rhs;
+            } break;
         }
         return 0;
     }

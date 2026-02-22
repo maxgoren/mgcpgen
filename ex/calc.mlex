@@ -10,6 +10,7 @@
 {"\{", TK_LCURLY}
 {"\}", TK_RCURLY}
 {"[;]", TK_SEMI}
+{":=", TK_ASSIGN}
 {"print", TK_PRINT}
 {"while", TK_WHILE}
 {"[A-Za-z]+", TK_ID}

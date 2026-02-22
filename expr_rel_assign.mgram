@@ -1,0 +1,10 @@
+expr ::= assign-expr exprT
+exprT ::= ':=' assign-expr exprT | eps
+assign-expr ::= rel-expr assign-exprT
+assign-exprT ::= '<' rel-expr assign-exprT | '>' rel-expr assign-exprT | eps
+rel-expr ::= term rel-exprT
+rel-exprT ::= '+' term rel-exprT | '-' term rel-exprT | eps
+term ::= factor termT
+termT ::= '*' factor termT | '/' factor termT | eps
+factor := '-' factor | primary
+primary ::= TK_NUM | TK_ID | '(' expr ')'
