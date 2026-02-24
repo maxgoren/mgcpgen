@@ -92,7 +92,7 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
             return semStack.top();
         }
         if (st.top().kind == ACTION) {
-            //actionDispatch(actionId, semStack, opStack);
+            actionDispatch(actionId, semStack, opStack);
             st.pop();
         } else if (G.isTerminal(X) || X == GOAL) {
             if (X == tokenStr[a.getSymbol()]) {

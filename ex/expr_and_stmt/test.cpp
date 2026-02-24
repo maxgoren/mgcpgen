@@ -34,13 +34,15 @@ void expGramWithStmts(string expr) {
         "TK_MUL","TK_MINUS", "TK_LT", "TK_GT",
         "TK_DIV", "TK_SEMI", "TK_ASSIGN", "$$", EPS 
     };
-    G.productions["stmt-seq"] =     ProductionSet({Production(1,"stmt-seq",SymbolString({"stmt", "stmt-seqT"}))});
+    G.productions["stmt-seq"] =     ProductionSet({Production(1,"stmt-seq",SymbolString({"stmt","TK_SEMI", "stmt-seqT"}))});
 
-    G.productions["stmt-seqT"] =    ProductionSet({Production(2,"stmt-seqT",SymbolString({ "TK_SEMI", "stmt-seq"})), 
+    G.productions["stmt-seqT"] =    ProductionSet({
+                                                   Production(2,"stmt-seqT",SymbolString({ "stmt-seq"})), 
                                                    Production(3,"stmt-seqT",SymbolString({EPS}))
                                                 });
 
-    G.productions["stmt"] =         ProductionSet({Production(4,"stmt",SymbolString({"expr-stmt"})), 
+    G.productions["stmt"] =         ProductionSet({
+                                                   Production(4,"stmt",SymbolString({"expr-stmt"})), 
                                                    Production(5,"stmt",SymbolString({"print-stmt"})),
                                                    Production(23, "stmt", SymbolString({"while-stmt"})),
                                                    Production(22, "stmt", SymbolString({EPS}))
