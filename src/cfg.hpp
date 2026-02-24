@@ -89,18 +89,6 @@ struct ProductionSet : vector<Production> {
     }
 };
 
-struct ParseState {
-    Symbol nonTerm;
-    Symbol term;
-    ParseState(Symbol NT, Symbol T) {
-        nonTerm = NT;
-        term = T;
-    }
-    bool operator<(const ParseState& ps) const {
-        return nonTerm < ps.nonTerm;
-    }
-};
-
 const Symbol EPS = "#";
 const Symbol GOAL = "TK_EOI";
 
@@ -110,7 +98,6 @@ struct Grammar {
     map<Symbol, ProductionSet> productions;
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
-    map<ParseState, SymbolString> predict;
     Grammar() {
         
     }
