@@ -15,7 +15,7 @@ typedef map<Symbol, map<Symbol, Production>> ParseTable;
 class TableGenerator {
     private:
         ParseTable table;
-        set<Symbol> firstOfSequence(const vector<Symbol>& rhs, Grammar& G);
+        set<Symbol> firstFromString(const vector<Symbol>& rhs, Grammar& G);
     public:
         TableGenerator() {
 
@@ -24,7 +24,7 @@ class TableGenerator {
         void persist(string filename);
 };
 
-set<Symbol> TableGenerator::firstOfSequence(const vector<Symbol>& rhs, Grammar& G) {
+set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& G) {
     set<Symbol> result;
     if (rhs.empty()) {
         return {EPS};
@@ -73,11 +73,14 @@ ParseTable TableGenerator::makeParseTable(Grammar& G) {
 
         for (auto& prod : G.productions[A]) {
 
-            auto firstAlpha = firstOfSequence(prod.rhs, G);
+            auto firstAlpha = firstFromString(prod.rhs, G);
 
             // FIRST(α) - {ε}
             for (auto t : firstAlpha) {
                 if (t != EPS) {
+                    if (table[A].find(t) != table[A].end()) {
+                        cout<<"Warning: Multiple Productions for M["<<A<<"]["<<t<<"]"<<endl;
+                    }
                     cout << "M[" << A << "," << t << "] "
                          << prod.toString() << endl;
                     table[A][t] = prod;
@@ -87,6 +90,9 @@ ParseTable TableGenerator::makeParseTable(Grammar& G) {
             // If ε ∈ FIRST(α), add FOLLOW(A)
             if (firstAlpha.find(EPS) != firstAlpha.end()) {
                 for (auto b : G.follow[A]) {
+                    if (table[A].find(b) != table[A].end()) {
+                        cout<<"Warning: Multiple Productions for M["<<A<<"]["<<b<<"]"<<endl;
+                    }
                     cout << "M[" << A << "," << b << "] "
                          << prod.toString() << endl;
                     table[A][b] = prod;
