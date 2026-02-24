@@ -41,7 +41,7 @@ struct Binary : AST {
         if (left)left->print();
         cout<<" ";
         if (right) right->print();
-        cout<<")"<<endl;
+        cout<<")";
     }
     int eval() {
         int lhs = (left == nullptr) ? 0:left->eval();
@@ -83,27 +83,39 @@ struct Unary : AST {
 };
 
 struct StmtSequence : AST {
-    deque<AST*> sequence;
+    StmtSequence* next;
+    AST* stmt;
     StmtSequence() {
-
+        stmt = nullptr;
+        next = nullptr;
     }
     void addStmt(AST* sast) {
-        sequence.push_front(sast);
+        if (stmt == nullptr) {
+            stmt = sast;
+        } else {
+            if (next == nullptr) {
+                next = new StmtSequence();
+            }
+            next->addStmt(sast);
+        }
     }
     void print() {
-        cout<<"Executing Statement Sequence: ";
-        for (auto stmt : sequence) {
+        if (next != nullptr) {
+            next->print();
+        }
+        if (stmt != nullptr) {
             stmt->print();
         }
     }
     int eval() {
-        int res;
-        for (auto stmt : sequence) {
-            res = stmt->eval();
-        }
-        return res;
+        int result = (next != nullptr) ? next->eval():0;
+        return (stmt != nullptr) ? stmt->eval():result;
     }
 };
+
+bool isStmtSequence(AST* ast) {
+    return dynamic_cast<StmtSequence*>(ast) != nullptr;
+}
 
 struct PrintStmt : AST {
     AST* expr;
@@ -112,6 +124,7 @@ struct PrintStmt : AST {
     void print() {
         cout<<"PrintStmt ";
         if (expr != nullptr) expr->print();
+        cout<<endl;
     }
     int eval() {
         int result = (expr == nullptr) ? 0:expr->eval();
@@ -120,14 +133,24 @@ struct PrintStmt : AST {
     }
 };
 
+bool isPrintStmt(AST* ast) {
+    return dynamic_cast<PrintStmt*>(ast) != nullptr;
+}
+
 struct WhileStmt : AST {
     AST* testExpr;
     AST* body;
     WhileStmt() { }
     void print() {
-        cout<<"WhileStmt ";
-        if (testExpr) testExpr->print();
-        if (body) body->print();
+        cout<<"\nWhileStmt ";
+        if (testExpr) {
+            cout<<"\t";
+            testExpr->print();
+        }
+        if (body) {
+            cout<<"\n\t";
+            body->print();
+        }
     }
     int eval() {
         while (testExpr->eval()) {
@@ -136,5 +159,9 @@ struct WhileStmt : AST {
         return 0;
     }
 };
+
+bool isWhileStmt(AST* ast) {
+    return dynamic_cast<WhileStmt*>(ast) != nullptr;
+}
 
 #endif

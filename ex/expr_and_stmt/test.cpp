@@ -5,12 +5,13 @@
 void interpreter(Grammar& G, ParseTable& table, string expr);
 
 //expressions grammar for integer math + assignment, comparison, looping, printing.
+//this grammar is featurefull enough for computing fibonacci numbers:
+// A := 0; B := 1; while ((C := (A+B)) < 200) { print ((A := B))+((B := C)) }
 void expGramWithStmts(string expr) {
     Grammar G;
     G.nonterminals = { "stmt-seq", 
                         "stmt-seqT", 
                         "stmt", 
-
                         "while-stmt",
                         "while-stmtT",
                         "print-stmt", 
@@ -83,6 +84,7 @@ void expGramWithStmts(string expr) {
                                                    Production(21,"primary",SymbolString({"TK_LPAREN", "expr", "TK_RPAREN"}))});
     ParserGenerator pg;
     ParseTable table = pg.generate(G, "stmt-seq");
+    pg.tableGen.persist("test.gmpt");
     interpreter(G, table, expr);
 }
 

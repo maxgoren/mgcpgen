@@ -9,6 +9,7 @@ class ParserGenerator {
     private:
         ComputeFirstSets    firsts;
         ComputeFollowSets   follows;
+    public:
         TableGenerator      tableGen;
     public:
         ParserGenerator() {

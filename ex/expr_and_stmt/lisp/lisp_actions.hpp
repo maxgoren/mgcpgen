@@ -52,31 +52,6 @@ void sewTogether(stack<AST*>& semStack) {
     }
 }
 
-void buildWhileStatement(stack<AST*>& semStack) {
-    if (semStack.size() >= 2) {
-        AST* body = semStack.top(); semStack.pop();
-        AST* test = semStack.top(); semStack.pop();
-        WhileStmt* ws = dynamic_cast<WhileStmt*>(semStack.top()); semStack.pop();
-        if (ws != nullptr) {
-        ws->body = body;
-        ws->testExpr = test;
-        semStack.push(ws);  
-        } else {
-            cout<<"Error: was expecting while stmt node."<<endl;
-        }  
-    }
-}
-
-void buildPrintStatement(stack<AST*>& semStack) {
-    AST* left = semStack.top(); semStack.pop();
-    PrintStmt* pStmt = dynamic_cast<PrintStmt*>(semStack.top()); semStack.pop();
-    pStmt->expr = left;
-    semStack.push(pStmt);
-}
-
-bool isStmt(AST* ast) {
-    return (isPrintStmt(ast) || isWhileStmt(ast) || isStmtSequence(ast));
-}
 /*
 
     you will notice a pattern of the following actions:
@@ -90,63 +65,16 @@ bool isStmt(AST* ast) {
 */
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     switch(id) {
-        case 2: {    
-            auto a = semStack.top(); semStack.pop();
-            auto b = semStack.top(); semStack.pop();
-            StmtSequence* ss = new StmtSequence();
-            ss->addStmt(a);
-            ss->addStmt(b);
-            semStack.push(ss);
-        } break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
         case 7:
-            buildPrintStatement(semStack);
-            break;
+        case 8:
         case 9:
-            sewTogether(semStack);
-            break;
         case 10:
-        case 11: 
-            buildBinaryOpTree(semStack, opStack);
-            break;
-        case 12:    
-            semStack.push(nullptr);
-            break;
-        case 13:     
-            sewTogether(semStack);
-            break;
-        case 14:
-        case 15:     
-            buildBinaryOpTree(semStack, opStack);
-            break;
-        case 16:    
-            semStack.push(nullptr);
-            break;
-        
-        case 17:    
-            buildUnaryOpTree(semStack, opStack);
-            break;
-        case 25: 
-            buildWhileStatement(semStack);
-            break;
-        case 26: 
-            sewTogether(semStack);
-        break;
-        case 27:
-        case 28:
-            buildBinaryOpTree(semStack, opStack);
-            break;
-        case 29:
-            semStack.push(nullptr);
-            break;
-        case 30:
-            sewTogether(semStack);
-        break;
-        case 31:
-            buildBinaryOpTree(semStack, opStack);
-            break;
-        case 32:
-            semStack.push(nullptr);
-            break;
         default:
             break;
     }

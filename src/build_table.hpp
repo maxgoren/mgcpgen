@@ -1,6 +1,7 @@
 #ifndef build_table_hpp
 #define build_table_hpp
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <vector>
 #include <map>
@@ -13,12 +14,14 @@ typedef map<Symbol, map<Symbol, Production>> ParseTable;
 
 class TableGenerator {
     private:
+        ParseTable table;
         set<Symbol> firstOfSequence(const vector<Symbol>& rhs, Grammar& G);
     public:
         TableGenerator() {
 
         }
         ParseTable makeParseTable(Grammar& G);
+        void persist(string filename);
 };
 
 set<Symbol> TableGenerator::firstOfSequence(const vector<Symbol>& rhs, Grammar& G) {
@@ -51,9 +54,21 @@ set<Symbol> TableGenerator::firstOfSequence(const vector<Symbol>& rhs, Grammar& 
     return result;
 }
 
+void TableGenerator::persist(string filename) {
+    std::ofstream ot(filename, ios::out);
+    if (ot.good()) {
+        for (auto t : table) {
+            for (auto e : t.second) {
+                ot<<t.first<<", "<<e.first<<", ";
+                ot<<e.second.toString()<<endl;
+            }
+        }
+    }
+    ot.close();
+}
 
 ParseTable TableGenerator::makeParseTable(Grammar& G) {
-    ParseTable table;
+    table = ParseTable();
     for (auto A : G.nonterminals) {
 
         for (auto& prod : G.productions[A]) {
