@@ -15,7 +15,6 @@ void buildBinaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
     Symbol op = opStack.top(); opStack.pop();
 
     AST* node = new Binary(op, lhs, rhs);
-    node->print();
     semStack.push(node);
 }
 
@@ -25,19 +24,17 @@ void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
 
     AST* node = new Unary(op, operand);
     semStack.push(node);
-    semStack.top()->print();
 }
 
 AST* attachLeaf(AST* node, AST* left) {
     Binary* b = dynamic_cast<Binary*>(node);
-    while (b->right != nullptr) {
+    while (b != nullptr && b->right != nullptr) {
         if (b->right == nullptr)
             break;
         b = dynamic_cast<Binary*>(b->right);
     }
     b->right = b->left;
     b->left = left;
-    b->print();
     return node;
 }
 
@@ -77,8 +74,8 @@ void buildPrintStatement(stack<AST*>& semStack) {
 bool isStmt(AST* ast) {
     return (isPrintStmt(ast) || isWhileStmt(ast) || isStmtSequence(ast));
 }
-/*
 
+/*
     you will notice a pattern of the following actions:
 
         case A: sewTogether(semStack);

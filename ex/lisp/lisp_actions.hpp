@@ -9,35 +9,14 @@ using namespace std;
 using Symbol = string;
 
 
-void buildBinaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
-    AST* rhs = semStack.top(); semStack.pop();
-    AST* lhs  = semStack.top(); semStack.pop();
-    Symbol op = opStack.top(); opStack.pop();
-
-    AST* node = new Binary(op, lhs, rhs);
-    node->print();
-    semStack.push(node);
-}
-
-void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
-    AST* operand = semStack.top(); semStack.pop();
-    Symbol op = opStack.top(); opStack.pop();
-
-    AST* node = new Unary(op, operand);
-    semStack.push(node);
-    semStack.top()->print();
-}
-
 AST* attachLeaf(AST* node, AST* left) {
-    Binary* b = dynamic_cast<Binary*>(node);
-    while (b->right != nullptr) {
-        if (b->right == nullptr)
+    Cons* b = dynamic_cast<Cons*>(node);
+    while (b->cdr != nullptr) {
+        if (b->cdr == nullptr)
             break;
-        b = dynamic_cast<Binary*>(b->right);
+        b = dynamic_cast<Cons*>(b->cdr);
     }
-    b->right = b->left;
-    b->left = left;
-    b->print();
+    b->cdr = left;
     return node;
 }
 
@@ -70,31 +49,45 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
         case 3:
         case 4:
         case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
+        case 6: {
+            Cons* cons = new Cons();
+            if (semStack.size() < 2) {
+                cons->car = semStack.top(); semStack.pop();
+                semStack.push(cons);
+            } else {
+                auto a = semStack.top(); semStack.pop();
+                auto b = semStack.top(); semStack.pop();
+                cons->car = a;
+                cons->append(b);
+                semStack.push(cons);
+            }
+        } break;
         default:
             break;
     }
 }
+
+bool checkSpecialSymbols(Symbol X) {
+    if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV") 
+        return true;
+    if(X == "TK_LT" || X == "TK_GT")
+        return true;
+    if (X == "TK_QUOTE" || X == "TK_LPAREN")
+        return true;
+
+    return false;
+}
+
 void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symbol>& opStack) {
     bool success = false;
     if (X == "TK_NUM") {
-        semStack.push(new Number(a.getString()));
+        semStack.push(new Atom(a.getString()));
         success = true;
     } else if (X == "TK_ID") {
-        semStack.push(new Identifier(a.getString()));
+        semStack.push(new Atom(a.getString()));
         success = true;
-    } else if (X == "TK_PRINT") {
-        semStack.push(new PrintStmt());
-        success = true;
-    } else if (X == "TK_WHILE") {
-        semStack.push(new WhileStmt());
-        success = true;
-    } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN") {
-        opStack.push(a.getString());
+    } else if (checkSpecialSymbols(X)) {
+        semStack.push(new Atom(a.getString()));
         success = true;
     } 
     if (success) {

@@ -3,17 +3,10 @@
 #include <iostream>
 #include <stack>
 #include "ast.hpp"
-#include "actions.hpp"
+#include "lisp_actions.hpp"
 #include "lexer.hpp"
 #include "../../src/cfg.hpp"
 using namespace std; 
-
-
-string tokenStr[] = { 
-    "TK_NUM", "TK_PLUS", "TK_MINUS", "TK_MUL", "TK_DIV", "TK_LPAREN",
-    "TK_RPAREN", "TK_LT", "TK_GT", "TK_LCURLY", "TK_RCURLY", "TK_SEMI", 
-    "TK_ASSIGN", "TK_PRINT", "TK_WHILE", "TK_ID", "TK_EOI"
- };
 
 enum StackItemType { TERMINAL, NONTERMINAL, ACTION };
 
@@ -38,7 +31,21 @@ class Parser {
         Grammar G;
         ParseTable table;
         vector<Token> tokens;
-        int i;
+        int tpos;
+        Token lookahead() {
+            return tokens[tpos];
+        }
+        void advance() {
+            tpos++;
+        }
+        bool match(Symbol sym) {
+            if (sym == tokenStr[lookahead().getSymbol()]) {
+                advance();
+                return true;
+            }
+            return false;
+        }
+        void pushProduction(stack<ParseStackSymbol>& st,Production p);
         AST* parseInput(const Symbol& startSymbol);
     public:
         Parser(Grammar& gram, ParseTable& pt);
@@ -52,7 +59,7 @@ Parser::Parser(Grammar& gram, ParseTable& pt) {
 
 AST* Parser::parse(vector<Token>& token, const Symbol& startSymbol) {
     tokens = token;
-    i = 0;
+    tpos = 0;
     return parseInput(startSymbol);
 }
 
@@ -73,52 +80,50 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
     std::stack<ParseStackSymbol> st;
     std::stack<AST*> semStack;
     std::stack<std::string> opStack;
-    // Push end marker
-    st.push({NONTERMINAL, GOAL, 0});
-    // Push start symbol
-    st.push({NONTERMINAL, startSymbol, 0});
-
-    size_t i = 0; // input pointer
-
+    st.push({NONTERMINAL, GOAL, 0});        // Push end marker
+    st.push({NONTERMINAL, startSymbol, 0}); // Push start symbol
     while (!st.empty()) {
-
         Symbol X = st.top().name;
-        Token a = tokens[i];
+        Token curr = tokens[tpos];
         int actionId = st.top().actionId;
-        cout<<"("<<i<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
+        cout<<"("<<tpos<<")M ["<<X<<"]["<<tokenStr[curr.getSymbol()]<<"] ("<<curr.getString()<<"), ActionId: "<<actionId<<endl;
         // Accept
-        if (X == GOAL && a.getSymbol() == TK_EOI) {
+        if (X == GOAL && curr.getSymbol() == TK_EOI) {
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
             return semStack.top();
         }
         if (st.top().kind == ACTION) {
-            //actionDispatch(actionId, semStack, opStack);
+            actionDispatch(actionId, semStack, opStack);
             st.pop();
         } else if (G.isTerminal(X) || X == GOAL) {
-            if (X == tokenStr[a.getSymbol()]) {
-                handleTerminalSymbols(X, a, semStack, opStack);
+            if (X == tokenStr[curr.getSymbol()]) {
+                handleTerminalSymbols(X, curr, semStack, opStack);
                 st.pop();
-                i++;        // consume token
+                advance();
             } else {
-                return syntaxError(X, a, MISMATCH);
+                return syntaxError(X, curr, MISMATCH);
             }
         } else {
-            if (table[X].find(tokenStr[a.getSymbol()]) == table[X].end()) {
-                return syntaxError(X, a, NO_RULE);
+            if (table[X].find(tokenStr[curr.getSymbol()]) == table[X].end()) {
+                return syntaxError(X, curr, NO_RULE);
             }
-            Production p = table[X][tokenStr[a.getSymbol()]];
-            st.pop();
-            //Push Action symbol for this production before RHS
-            st.push(ParseStackSymbol(ACTION, "", p.pid));
-            // push RHS in reverse order
-            for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
-                if (*it != EPS) {
-                    st.push(ParseStackSymbol(symbolKind(G, *it),*it,p.pid));
-                }
-            }
+            Production p = table[X][tokenStr[curr.getSymbol()]];
+            pushProduction(st, p);
         }
     }
     return nullptr;
+}
+
+void Parser::pushProduction(stack<ParseStackSymbol>& st, Production p) {
+    st.pop();
+    //Push Action symbol for this production before RHS
+    st.push(ParseStackSymbol(ACTION, "", p.pid));
+    // push RHS in reverse order
+    for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
+        if (*it != EPS) {
+            st.push(ParseStackSymbol(symbolKind(G, *it),*it,p.pid));
+        }
+    }
 }
 
 #endif

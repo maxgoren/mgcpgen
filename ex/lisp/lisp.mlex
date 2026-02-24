@@ -1,0 +1,11 @@
+{"[0-9]+(\.)?[0-9]*",TK_NUM}
+{"\+",TK_PLUS}
+{"-",TK_MINUS}
+{"\*",TK_MUL}
+{"/",TK_DIV}
+{"\(",TK_LPAREN}
+{"\)",TK_RPAREN}
+{"<",TK_LT}
+{">",TK_GT}
+{"[']",TK_QUOTE}
+{"[A-Za-z]([A-Za-z][-]*)*",TK_ID}

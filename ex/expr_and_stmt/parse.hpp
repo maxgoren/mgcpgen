@@ -9,12 +9,6 @@
 using namespace std; 
 
 
-string tokenStr[] = { 
-    "TK_NUM", "TK_PLUS", "TK_MINUS", "TK_MUL", "TK_DIV", "TK_LPAREN",
-    "TK_RPAREN", "TK_LT", "TK_GT", "TK_LCURLY", "TK_RCURLY", "TK_SEMI", 
-    "TK_ASSIGN", "TK_PRINT", "TK_WHILE", "TK_ID", "TK_EOI"
- };
-
 enum StackItemType { TERMINAL, NONTERMINAL, ACTION };
 
 StackItemType symbolKind(Grammar& G, Symbol sym) {
@@ -40,6 +34,7 @@ class Parser {
         vector<Token> tokens;
         int i;
         AST* parseInput(const Symbol& startSymbol);
+        void printState(int tokenNum, Symbol X, Token& a, int aid);
     public:
         Parser(Grammar& gram, ParseTable& pt);
         AST* parse(vector<Token>& token, const Symbol& startSymbol);
@@ -68,6 +63,10 @@ nullptr_t syntaxError(const Symbol& X, Token& a, int type) {
     return nullptr;
 }
 
+void Parser::printState(int tokenNum, Symbol X, Token& a, int actionId) {
+    cout<<"("<<tokenNum<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
+}
+
 AST* Parser::parseInput(const Symbol& startSymbol) {
     
     std::stack<ParseStackSymbol> st;
@@ -85,7 +84,9 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
         Symbol X = st.top().name;
         Token a = tokens[i];
         int actionId = st.top().actionId;
-        cout<<"("<<i<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
+        if (st.top().kind != ACTION) {
+            printState(i, X, a, actionId);
+        }
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;

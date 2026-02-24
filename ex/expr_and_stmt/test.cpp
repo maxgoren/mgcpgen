@@ -11,7 +11,13 @@ void expGramWithStmts(string expr) {
     Grammar G;
     G.nonterminals = { "stmt-seq", 
                         "stmt-seqT", 
-                        "stmt", 
+                        "stmt",
+                        "let-stmt",
+                        "let-stmtT",
+                        "def-stmt",
+                        "def-stmtT",
+                        "if-stmt",
+                        "if-stmtT", 
                         "while-stmt",
                         "while-stmtT",
                         "print-stmt", 
@@ -30,8 +36,8 @@ void expGramWithStmts(string expr) {
                     };
     G.terminals = { "TK_ID", "TK_NUM", 
         "TK_LPAREN", "TK_RPAREN", "TK_LCURLY", "TK_RCURLY",
-        "TK_PRINT","TK_WHILE", "TK_PLUS", 
-        "TK_MUL","TK_MINUS", "TK_LT", "TK_GT",
+        "TK_PRINT","TK_WHILE", "TK_LET", "TK_DEF", "TK_IF", 
+        "TK_PLUS", "TK_MUL","TK_MINUS", "TK_LT", "TK_GT",
         "TK_DIV", "TK_SEMI", "TK_ASSIGN", "$$", EPS 
     };
     G.productions["stmt-seq"] =     ProductionSet({Production(1,"stmt-seq",SymbolString({"stmt","TK_SEMI", "stmt-seqT"}))});
@@ -45,9 +51,22 @@ void expGramWithStmts(string expr) {
                                                    Production(4,"stmt",SymbolString({"expr-stmt"})), 
                                                    Production(5,"stmt",SymbolString({"print-stmt"})),
                                                    Production(23, "stmt", SymbolString({"while-stmt"})),
+                                                   Production(38, "stmt", SymbolString({"let-stmt"})),
+                                                   Production(39, "stmt", SymbolString({"def-stmt"})),
                                                    Production(22, "stmt", SymbolString({EPS}))
                                                 });
-    
+    G.productions["let-stmt"]     = ProductionSet({
+                                                    Production(34, "let-stmt", SymbolString({"TK_LET", "let-stmtT"}))
+                                    });
+    G.productions["let-stmtT"]     = ProductionSet({
+                                                    Production(35, "let-stmtT", SymbolString({"expr"}))
+                                    });
+    G.productions["def-stmt"]     = ProductionSet({
+                                                    Production(36, "def-stmt", SymbolString({"TK_DEF", "def-stmtT"}))
+                                    });
+    G.productions["def-stmtT"]     = ProductionSet({
+                                                    Production(37, "def-stmtT", SymbolString({"expr"}))
+                                    });
     G.productions["while-stmt"]   = ProductionSet({Production(24, "while-stmt", SymbolString({"TK_WHILE", "while-stmtT"}))});
     G.productions["while-stmtT"]  = ProductionSet({Production(25, "while-stmtT", SymbolString({"expr", "TK_LCURLY", "stmt-seq", "TK_RCURLY"}))});
     G.productions["print-stmt"]   = ProductionSet({Production(6,"print-stmt",SymbolString({"TK_PRINT", "print-stmtT"}))});
