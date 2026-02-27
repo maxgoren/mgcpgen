@@ -21,7 +21,7 @@ class TableGenerator {
 
         }
         ParseTable makeParseTable(Grammar& G);
-        void persist(string filename);
+        void persist(string filename, Grammar& G);
 };
 
 set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& G) {
@@ -54,12 +54,29 @@ set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& 
     return result;
 }
 
-void TableGenerator::persist(string filename) {
+void TableGenerator::persist(string filename, Grammar& G) {
     std::ofstream ot(filename, ios::out);
     if (ot.good()) {
+        ot<<"%% Firsts: "<<endl;
+        for (auto f : G.firsts) {
+            ot<<f.first<<"  {";
+            for (auto t : f.second) {
+                ot<<t<<" ";
+            }
+            ot<<"}"<<endl;
+        }
+        ot<<"%% Follow: "<<endl;
+        for (auto f : G.follow) {
+            ot<<f.first<<"  {";
+            for (auto t : f.second) {
+                ot<<t<<" ";
+            }
+            ot<<"}"<<endl;
+        }
+        ot<<"%% Transitions: "<<endl;
         for (auto t : table) {
             for (auto e : t.second) {
-                ot<<t.first<<", "<<e.first<<", ";
+                ot<<"["<<t.first<<", "<<e.first<<"] => ";
                 ot<<e.second.toString()<<endl;
             }
         }

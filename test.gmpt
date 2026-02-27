@@ -1,0 +1,199 @@
+%% Firsts: 
+  {}
+#  {}
+TK_ASSIGN  {TK_ASSIGN }
+TK_DEF  {TK_DEF }
+TK_DIV  {TK_DIV }
+TK_EOI  {TK_EOI }
+TK_GT  {TK_GT }
+TK_ID  {TK_ID }
+TK_LCURLY  {TK_LCURLY }
+TK_LET  {TK_LET }
+TK_LPAREN  {TK_LPAREN }
+TK_LT  {TK_LT }
+TK_MINUS  {TK_MINUS }
+TK_MUL  {TK_MUL }
+TK_NUM  {TK_NUM }
+TK_PLUS  {TK_PLUS }
+TK_PRINT  {TK_PRINT }
+TK_RCURLY  {TK_RCURLY }
+TK_RPAREN  {TK_RPAREN }
+TK_SEMI  {TK_SEMI }
+TK_WHILE  {TK_WHILE }
+assign-expr  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+assign-exprT  {# TK_GT TK_LT }
+def-stmt  {TK_DEF }
+def-stmtT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+expr  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+expr-stmt  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+exprT  {# TK_ASSIGN }
+factor  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+if-stmt  {}
+let-stmT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+let-stmt  {TK_LET }
+let-stmtT  {}
+primary  {TK_ID TK_LPAREN TK_NUM }
+print-stmt  {TK_PRINT }
+print-stmtT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+rel-expr  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+rel-exprT  {# TK_MINUS TK_PLUS }
+stmt  {# TK_DEF TK_ID TK_LET TK_LPAREN TK_MINUS TK_NUM TK_PRINT TK_WHILE }
+stmt-body  {TK_LCURLY }
+stmt-seq  {TK_DEF TK_ID TK_LET TK_LPAREN TK_MINUS TK_NUM TK_PRINT TK_WHILE }
+stmt-seqT  {# TK_DEF TK_ID TK_LET TK_LPAREN TK_MINUS TK_NUM TK_PRINT TK_WHILE }
+term  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+termT  {# TK_DIV TK_MUL }
+while-stmt  {TK_WHILE }
+while-stmtT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
+%% Follow: 
+  {TK_SEMI }
+#  {TK_ASSIGN TK_EOI TK_GT TK_LCURLY TK_LT TK_MINUS TK_PLUS TK_RCURLY TK_RPAREN TK_SEMI }
+TK_ASSIGN  {}
+TK_DEF  {}
+TK_DIV  {}
+TK_EOI  {}
+TK_GT  {}
+TK_ID  {}
+TK_LCURLY  {}
+TK_LET  {}
+TK_LPAREN  {}
+TK_LT  {}
+TK_MINUS  {}
+TK_MUL  {}
+TK_NUM  {}
+TK_PLUS  {}
+TK_PRINT  {}
+TK_RCURLY  {}
+TK_RPAREN  {}
+TK_SEMI  {}
+TK_WHILE  {}
+assign-expr  {TK_ASSIGN TK_LCURLY TK_RPAREN TK_SEMI }
+assign-exprT  {TK_ASSIGN TK_LCURLY TK_RPAREN TK_SEMI }
+def-stmt  {TK_SEMI }
+def-stmtT  {TK_SEMI }
+expr  {TK_LCURLY TK_RPAREN TK_SEMI }
+expr-stmt  {TK_SEMI }
+exprT  {TK_LCURLY TK_RPAREN TK_SEMI }
+factor  {TK_ASSIGN TK_DIV TK_GT TK_LCURLY TK_LT TK_MINUS TK_MUL TK_PLUS TK_RPAREN TK_SEMI }
+if-stmt  {TK_SEMI }
+let-stmT  {}
+let-stmt  {TK_SEMI }
+let-stmtT  {TK_SEMI }
+primary  {TK_ASSIGN TK_DIV TK_GT TK_LCURLY TK_LT TK_MINUS TK_MUL TK_PLUS TK_RPAREN TK_SEMI }
+print-stmt  {TK_SEMI }
+print-stmtT  {TK_SEMI }
+rel-expr  {TK_ASSIGN TK_GT TK_LCURLY TK_LT TK_RPAREN TK_SEMI }
+rel-exprT  {TK_ASSIGN TK_GT TK_LCURLY TK_LT TK_RPAREN TK_SEMI }
+stmt  {TK_SEMI }
+stmt-body  {TK_SEMI }
+stmt-seq  {TK_EOI TK_RCURLY }
+stmt-seqT  {TK_EOI TK_RCURLY }
+term  {TK_ASSIGN TK_GT TK_LCURLY TK_LT TK_MINUS TK_PLUS TK_RPAREN TK_SEMI }
+termT  {TK_ASSIGN TK_GT TK_LCURLY TK_LT TK_MINUS TK_PLUS TK_RPAREN TK_SEMI }
+while-stmt  {TK_SEMI }
+while-stmtT  {TK_SEMI }
+%% Transitions: 
+[assign-expr, TK_ID] => assign-expr ::= rel-expr assign-exprT 
+[assign-expr, TK_LPAREN] => assign-expr ::= rel-expr assign-exprT 
+[assign-expr, TK_MINUS] => assign-expr ::= rel-expr assign-exprT 
+[assign-expr, TK_NUM] => assign-expr ::= rel-expr assign-exprT 
+[assign-exprT, TK_ASSIGN] => assign-exprT ::= # 
+[assign-exprT, TK_GT] => assign-exprT ::= TK_GT rel-expr assign-exprT 
+[assign-exprT, TK_LCURLY] => assign-exprT ::= # 
+[assign-exprT, TK_LT] => assign-exprT ::= TK_LT rel-expr assign-exprT 
+[assign-exprT, TK_RPAREN] => assign-exprT ::= # 
+[assign-exprT, TK_SEMI] => assign-exprT ::= # 
+[def-stmt, TK_DEF] => def-stmt ::= TK_DEF def-stmtT 
+[def-stmtT, TK_ID] => def-stmtT ::= expr stmt-body 
+[def-stmtT, TK_LPAREN] => def-stmtT ::= expr stmt-body 
+[def-stmtT, TK_MINUS] => def-stmtT ::= expr stmt-body 
+[def-stmtT, TK_NUM] => def-stmtT ::= expr stmt-body 
+[expr, TK_ID] => expr ::= assign-expr exprT 
+[expr, TK_LPAREN] => expr ::= assign-expr exprT 
+[expr, TK_MINUS] => expr ::= assign-expr exprT 
+[expr, TK_NUM] => expr ::= assign-expr exprT 
+[expr-stmt, TK_ID] => expr-stmt ::= expr 
+[expr-stmt, TK_LPAREN] => expr-stmt ::= expr 
+[expr-stmt, TK_MINUS] => expr-stmt ::= expr 
+[expr-stmt, TK_NUM] => expr-stmt ::= expr 
+[exprT, TK_ASSIGN] => exprT ::= TK_ASSIGN assign-expr exprT 
+[exprT, TK_LCURLY] => exprT ::= # 
+[exprT, TK_RPAREN] => exprT ::= # 
+[exprT, TK_SEMI] => exprT ::= # 
+[factor, TK_ID] => factor ::= primary 
+[factor, TK_LPAREN] => factor ::= primary 
+[factor, TK_MINUS] => factor ::= TK_MINUS factor 
+[factor, TK_NUM] => factor ::= primary 
+[let-stmT, TK_ID] => let-stmT ::= expr 
+[let-stmT, TK_LPAREN] => let-stmT ::= expr 
+[let-stmT, TK_MINUS] => let-stmT ::= expr 
+[let-stmT, TK_NUM] => let-stmT ::= expr 
+[let-stmt, TK_LET] => let-stmt ::= TK_LET let-stmtT 
+[primary, TK_ID] => primary ::= TK_ID 
+[primary, TK_LPAREN] => primary ::= TK_LPAREN expr TK_RPAREN 
+[primary, TK_NUM] => primary ::= TK_NUM 
+[print-stmt, TK_PRINT] => print-stmt ::= TK_PRINT print-stmtT 
+[print-stmtT, TK_ID] => print-stmtT ::= expr 
+[print-stmtT, TK_LPAREN] => print-stmtT ::= expr 
+[print-stmtT, TK_MINUS] => print-stmtT ::= expr 
+[print-stmtT, TK_NUM] => print-stmtT ::= expr 
+[rel-expr, TK_ID] => rel-expr ::= term rel-exprT 
+[rel-expr, TK_LPAREN] => rel-expr ::= term rel-exprT 
+[rel-expr, TK_MINUS] => rel-expr ::= term rel-exprT 
+[rel-expr, TK_NUM] => rel-expr ::= term rel-exprT 
+[rel-exprT, TK_ASSIGN] => rel-exprT ::= # 
+[rel-exprT, TK_GT] => rel-exprT ::= # 
+[rel-exprT, TK_LCURLY] => rel-exprT ::= # 
+[rel-exprT, TK_LT] => rel-exprT ::= # 
+[rel-exprT, TK_MINUS] => rel-exprT ::= TK_MINUS term rel-exprT 
+[rel-exprT, TK_PLUS] => rel-exprT ::= TK_PLUS term rel-exprT 
+[rel-exprT, TK_RPAREN] => rel-exprT ::= # 
+[rel-exprT, TK_SEMI] => rel-exprT ::= # 
+[stmt, TK_DEF] => stmt ::= def-stmt 
+[stmt, TK_ID] => stmt ::= expr-stmt 
+[stmt, TK_LET] => stmt ::= let-stmt 
+[stmt, TK_LPAREN] => stmt ::= expr-stmt 
+[stmt, TK_MINUS] => stmt ::= expr-stmt 
+[stmt, TK_NUM] => stmt ::= expr-stmt 
+[stmt, TK_PRINT] => stmt ::= print-stmt 
+[stmt, TK_SEMI] => stmt ::= #  
+[stmt, TK_WHILE] => stmt ::= while-stmt 
+[stmt-body, TK_LCURLY] => stmt-body ::= TK_LCURLY stmt-seq TK_RCURLY 
+[stmt-seq, TK_DEF] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_ID] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_LET] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_LPAREN] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_MINUS] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_NUM] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_PRINT] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_SEMI] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seq, TK_WHILE] => stmt-seq ::= stmt TK_SEMI stmt-seqT 
+[stmt-seqT, TK_DEF] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_EOI] => stmt-seqT ::= # 
+[stmt-seqT, TK_ID] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_LET] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_LPAREN] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_MINUS] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_NUM] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_PRINT] => stmt-seqT ::= stmt-seq 
+[stmt-seqT, TK_RCURLY] => stmt-seqT ::= # 
+[stmt-seqT, TK_WHILE] => stmt-seqT ::= stmt-seq 
+[term, TK_ID] => term ::= factor termT 
+[term, TK_LPAREN] => term ::= factor termT 
+[term, TK_MINUS] => term ::= factor termT 
+[term, TK_NUM] => term ::= factor termT 
+[termT, TK_ASSIGN] => termT ::= # 
+[termT, TK_DIV] => termT ::= TK_DIV factor termT 
+[termT, TK_GT] => termT ::= # 
+[termT, TK_LCURLY] => termT ::= # 
+[termT, TK_LT] => termT ::= # 
+[termT, TK_MINUS] => termT ::= # 
+[termT, TK_MUL] => termT ::= TK_MUL factor termT 
+[termT, TK_PLUS] => termT ::= # 
+[termT, TK_RPAREN] => termT ::= # 
+[termT, TK_SEMI] => termT ::= # 
+[while-stmt, TK_WHILE] => while-stmt ::= TK_WHILE while-stmtT 
+[while-stmtT, TK_ID] => while-stmtT ::= expr stmt-body 
+[while-stmtT, TK_LPAREN] => while-stmtT ::= expr stmt-body 
+[while-stmtT, TK_MINUS] => while-stmtT ::= expr stmt-body 
+[while-stmtT, TK_NUM] => while-stmtT ::= expr stmt-body 

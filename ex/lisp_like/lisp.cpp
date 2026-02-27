@@ -11,20 +11,20 @@ ParseTable lispGrammar() {
 
     G.productions["sexpr"] = ProductionSet({Production(1,"sexpr", SymbolString({"atom"})), 
                                             Production(2, "sexpr", SymbolString({"TK_LPAREN", "list", "TK_RPAREN"})),
-                                        Production(10, "sexpr", SymbolString({"TK_QUOTE", "sexpr"}))});
-    G.productions["list"] = ProductionSet({Production(8, "list", SymbolString({"sexpr", "list"})),
-                                            Production(9, "atom", SymbolString({EPS})) });
-    G.productions["atom"] = ProductionSet({Production(3, "atom", SymbolString({"TK_ID"})),
-                                            Production(4, "atom", SymbolString({"TK_NUM"})),
-                                            Production(5, "atom", SymbolString({"built-in"}))});
-    G.productions["built-in"] = ProductionSet({Production(6, "built-in", SymbolString({"TK_PLUS"})),
-                                            Production(7, "built-in", SymbolString({"TK_MINUS"})),
-                                            Production(8, "built-in", SymbolString({"TK_MUL"}))});
+                                        Production(3, "sexpr", SymbolString({"TK_QUOTE", "sexpr"}))});
+    G.productions["list"] = ProductionSet({Production(4, "list", SymbolString({"sexpr", "list"})),
+                                            Production(5, "atom", SymbolString({EPS})) });
+    G.productions["atom"] = ProductionSet({Production(6, "atom", SymbolString({"TK_ID"})),
+                                            Production(7, "atom", SymbolString({"TK_NUM"})),
+                                            Production(8, "atom", SymbolString({"built-in"}))});
+    G.productions["built-in"] = ProductionSet({Production(9, "built-in", SymbolString({"TK_PLUS"})),
+                                            Production(10, "built-in", SymbolString({"TK_MINUS"})),
+                                            Production(11, "built-in", SymbolString({"TK_MUL"}))});
    
     ParserGenerator pg;
     ParseTable table = pg.generate(G, "list");
     pg.tableGen.persist("lisp.gmpt");
-    interpreter(G, table, "(+ 1 2)");
+    interpreter(G, table, "(+ 3 (+ 7 2))");
     return table;
 }
 

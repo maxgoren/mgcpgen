@@ -44,22 +44,15 @@ void sewTogether(stack<AST*>& semStack) {
 */
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     switch(id) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6: {
-            Cons* cons = new Cons();
-            if (semStack.size() < 2) {
-                cons->car = semStack.top(); semStack.pop();
-                semStack.push(cons);
-            } else {
-                auto a = semStack.top(); semStack.pop();
-                auto b = semStack.top(); semStack.pop();
-                cons->car = a;
-                cons->append(b);
-                semStack.push(cons);
+        case 5: semStack.push(nullptr); break;
+        case 2: {
+            Cons* nl = new Cons();;
+            while (!semStack.empty()) {
+                auto p = dynamic_cast<Atom*>(semStack.top());
+                if (p != nullptr && p->data == "(") {
+                    break;
+                } 
+                nl->append(semStack.top()); semStack.pop();
             }
         } break;
         default:

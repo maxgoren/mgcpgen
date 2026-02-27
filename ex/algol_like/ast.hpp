@@ -100,16 +100,16 @@ struct StmtSequence : AST {
         }
     }
     void print() {
-        if (next != nullptr) {
-            next->print();
-        }
         if (stmt != nullptr) {
             stmt->print();
         }
+        if (next != nullptr) {
+            next->print();
+        }
     }
     int eval() {
-        int result = (next != nullptr) ? next->eval():0;
-        return (stmt != nullptr) ? stmt->eval():result;
+        stmt->eval();
+        return next == nullptr ? 0:next->eval();
     }
 };
 
@@ -163,5 +163,14 @@ struct WhileStmt : AST {
 bool isWhileStmt(AST* ast) {
     return dynamic_cast<WhileStmt*>(ast) != nullptr;
 }
+
+struct IfStmt : AST {
+    AST* testExpr;
+    AST* truePath;
+    AST* falsePath;
+    int eval() {
+        return (testExpr->eval()) ? truePath->eval():falsePath->eval();
+    }
+};
 
 #endif

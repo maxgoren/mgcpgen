@@ -1,5 +1,5 @@
-#ifndef ast_actions_hpp
-#define ast_actions_hpp
+#ifndef actions_hpp
+#define actions_hpp
 #include <iostream>
 #include <stack>
 #include "token.hpp"
@@ -8,14 +8,14 @@ using namespace std;
 
 using Symbol = string;
 
-
 void buildBinaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
     AST* rhs = semStack.top(); semStack.pop();
     AST* lhs  = semStack.top(); semStack.pop();
     Symbol op = opStack.top(); opStack.pop();
-
+    cout<<"Building "<<op<<" node"<<endl;
     AST* node = new Binary(op, lhs, rhs);
     semStack.push(node);
+    node->print();
 }
 
 void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
@@ -28,12 +28,12 @@ void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
 
 AST* attachLeaf(AST* node, AST* left) {
     Binary* b = dynamic_cast<Binary*>(node);
-    while (b != nullptr && b->right != nullptr) {
+    while (b != nullptr) {
         if (b->right == nullptr)
             break;
         b = dynamic_cast<Binary*>(b->right);
     }
-    b->right = b->left;
+    b->right =  b->left;
     b->left = left;
     return node;
 }
@@ -48,6 +48,7 @@ void sewTogether(stack<AST*>& semStack) {
         semStack.push(rightChain);
     }
 }
+
 
 void buildWhileStatement(stack<AST*>& semStack) {
     if (semStack.size() >= 2) {
@@ -86,63 +87,71 @@ bool isStmt(AST* ast) {
     thats operator precedence being built into the grammar.
 */
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
+    cout<<"Executin Rule number: "<<id<<endl;
     switch(id) {
         case 2: {    
             auto a = semStack.top(); semStack.pop();
             auto b = semStack.top(); semStack.pop();
             StmtSequence* ss = new StmtSequence();
-            ss->addStmt(a);
             ss->addStmt(b);
+            ss->addStmt(a);
             semStack.push(ss);
         } break;
-        case 7:
-            buildPrintStatement(semStack);
             break;
-        case 9:
-            sewTogether(semStack);
+        case 5:
             break;
         case 10:
-        case 11: 
-            buildBinaryOpTree(semStack, opStack);
-            break;
-        case 12:    
             semStack.push(nullptr);
             break;
-        case 13:     
-            sewTogether(semStack);
-            break;
-        case 14:
-        case 15:     
-            buildBinaryOpTree(semStack, opStack);
-            break;
-        case 16:    
-            semStack.push(nullptr);
-            break;
-        
-        case 17:    
-            buildUnaryOpTree(semStack, opStack);
-            break;
-        case 25: 
+        case 17:
             buildWhileStatement(semStack);
             break;
-        case 26: 
+        case 19:
+            buildPrintStatement(semStack);
+            break;
+        case 20:
+            break;
+        case 21:     
             sewTogether(semStack);
-        break;
-        case 27:
-        case 28:
+            break;
+        case 22: // := build assignment ops    
             buildBinaryOpTree(semStack, opStack);
             break;
-        case 29:
+        case 23:    
             semStack.push(nullptr);
             break;
-        case 30:
+        case 24:
             sewTogether(semStack);
-        break;
-        case 31:
+            break;
+        case 25: // <
+        case 26: // >  build rel ops
             buildBinaryOpTree(semStack, opStack);
+            break;
+        case 27:    
+            semStack.push(nullptr); 
+            break;
+        case 28:
+            sewTogether(semStack);
+            break;
+        case 29: // +
+        case 30: // -
+            buildBinaryOpTree(semStack, opStack);
+            break;
+        case 31:
+            semStack.push(nullptr);
             break;
         case 32:
+            sewTogether(semStack);
+            break;
+        case 33: // *
+        case 34: // /
+            buildBinaryOpTree(semStack, opStack);
+            break;
+        case 35:
             semStack.push(nullptr);
+            break;
+        case 36: //unary
+            buildUnaryOpTree(semStack, opStack);
             break;
         default:
             break;

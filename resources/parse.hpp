@@ -5,7 +5,7 @@
 #include "ast.hpp"
 #include "actions.hpp"
 #include "lexer.hpp"
-#include "../../src/cfg.hpp"
+#include "../src/cfg.hpp"
 using namespace std; 
 
 
@@ -26,6 +26,8 @@ struct ParseStackSymbol {
     ParseStackSymbol(StackItemType k, Symbol s, int aid) : kind(k), name(s), actionId(aid) { }
     ParseStackSymbol() { }
 };
+
+using ParseTable = map<Symbol, map<Symbol, Production>>;
 
 class Parser {
     private:
