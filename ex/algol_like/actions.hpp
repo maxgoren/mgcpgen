@@ -15,7 +15,6 @@ void buildBinaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
     cout<<"Building "<<op<<" node"<<endl;
     AST* node = new Binary(op, lhs, rhs);
     semStack.push(node);
-    node->print();
 }
 
 void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
@@ -72,6 +71,13 @@ void buildPrintStatement(stack<AST*>& semStack) {
     semStack.push(pStmt);
 }
 
+void buildLetStatement(stack<AST*>& semStack) {
+    AST* left = semStack.top(); semStack.pop();
+    LetStmt* lStmt = dynamic_cast<LetStmt*>(semStack.top()); semStack.pop();
+    lStmt->expr = left;
+    semStack.push(lStmt);
+}
+
 bool isStmt(AST* ast) {
     return (isPrintStmt(ast) || isWhileStmt(ast) || isStmtSequence(ast));
 }
@@ -87,7 +93,7 @@ bool isStmt(AST* ast) {
     thats operator precedence being built into the grammar.
 */
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
-    cout<<"Executin Rule number: "<<id<<endl;
+    cout<<"Applying Rule: "<<id<<endl;
     switch(id) {
         case 2: {    
             auto a = semStack.top(); semStack.pop();
@@ -102,6 +108,9 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
             break;
         case 10:
             semStack.push(nullptr);
+            break;
+        case 12:
+            buildLetStatement(semStack);
             break;
         case 17:
             buildWhileStatement(semStack);
@@ -170,6 +179,9 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
         success = true;
     } else if (X == "TK_WHILE") {
         semStack.push(new WhileStmt());
+        success = true;
+    } else if (X == "TK_LET") {
+        semStack.push(new LetStmt());
         success = true;
     } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN") {
         opStack.push(a.getString());

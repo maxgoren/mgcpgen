@@ -91,6 +91,7 @@ struct ProductionSet : vector<Production> {
 
 const Symbol EPS = "#";
 const Symbol GOAL = "TK_EOI";
+vector<string> split(string input, char delim);
 
 struct Grammar {
     set<Symbol> terminals;
@@ -114,6 +115,50 @@ struct Grammar {
         }
         return false;
     }
+    void readGrammarFile(string filename) {
+        string buff;
+        ifstream infile(filename, ios::in);
+        if (!infile.is_open()) {
+            cout<<"Error: Couldn't open '"<<filename<<"' - unknown file."<<endl;
+            return;
+        }
+        int rulenum = 1;
+        while (infile.good()) {
+            getline(infile, buff);
+            vector<string> parts = split(buff, ' ');
+            nonterminals.insert(parts[0]);
+            ProductionSet ps = productions[parts[0]];
+            SymbolString ss;
+            terminals.insert(GOAL);
+            terminals.insert(EPS);
+            for (int i = 2; i < parts.size(); i++) {
+                string s = parts[i];
+                if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
+                   terminals.insert(s);
+                } else {
+                   nonterminals.insert(s);
+                }
+                ss.push_back(s);
+            }
+            ps.push_back(Production(rulenum++, parts[0], ss));
+            productions[parts[0]] = ps;
+        }
+    }
 };
+
+vector<string> split(string input, char delim) {
+    vector<string> result;
+    string buffer;
+    for (char c : input) {
+        if (c != delim) {
+            buffer.push_back(c);
+        } else {
+            result.push_back(buffer);
+            buffer.clear();
+        }
+    }
+    result.push_back(buffer);
+    return result;
+}
 
 #endif

@@ -4,7 +4,7 @@
 #include <vector>
 #include "token.hpp"
 #include "lexer_matrix.h"
-#include "../../src/buffer.hpp"
+#include "../../resources/buffer.hpp"
 using namespace std;
 
 class Lexer {

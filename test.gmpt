@@ -29,9 +29,8 @@ expr-stmt  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
 exprT  {# TK_ASSIGN }
 factor  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
 if-stmt  {}
-let-stmT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
 let-stmt  {TK_LET }
-let-stmtT  {}
+let-stmtT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
 primary  {TK_ID TK_LPAREN TK_NUM }
 print-stmt  {TK_PRINT }
 print-stmtT  {TK_ID TK_LPAREN TK_MINUS TK_NUM }
@@ -76,7 +75,6 @@ expr-stmt  {TK_SEMI }
 exprT  {TK_LCURLY TK_RPAREN TK_SEMI }
 factor  {TK_ASSIGN TK_DIV TK_GT TK_LCURLY TK_LT TK_MINUS TK_MUL TK_PLUS TK_RPAREN TK_SEMI }
 if-stmt  {TK_SEMI }
-let-stmT  {}
 let-stmt  {TK_SEMI }
 let-stmtT  {TK_SEMI }
 primary  {TK_ASSIGN TK_DIV TK_GT TK_LCURLY TK_LT TK_MINUS TK_MUL TK_PLUS TK_RPAREN TK_SEMI }
@@ -124,11 +122,11 @@ while-stmtT  {TK_SEMI }
 [factor, TK_LPAREN] => factor ::= primary 
 [factor, TK_MINUS] => factor ::= TK_MINUS factor 
 [factor, TK_NUM] => factor ::= primary 
-[let-stmT, TK_ID] => let-stmT ::= expr 
-[let-stmT, TK_LPAREN] => let-stmT ::= expr 
-[let-stmT, TK_MINUS] => let-stmT ::= expr 
-[let-stmT, TK_NUM] => let-stmT ::= expr 
 [let-stmt, TK_LET] => let-stmt ::= TK_LET let-stmtT 
+[let-stmtT, TK_ID] => let-stmtT ::= expr 
+[let-stmtT, TK_LPAREN] => let-stmtT ::= expr 
+[let-stmtT, TK_MINUS] => let-stmtT ::= expr 
+[let-stmtT, TK_NUM] => let-stmtT ::= expr 
 [primary, TK_ID] => primary ::= TK_ID 
 [primary, TK_LPAREN] => primary ::= TK_LPAREN expr TK_RPAREN 
 [primary, TK_NUM] => primary ::= TK_NUM 
