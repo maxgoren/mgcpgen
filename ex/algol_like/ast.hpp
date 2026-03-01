@@ -10,24 +10,26 @@ struct Identifier;
 struct Number;
 struct Binary;
 struct Unary;
-//struct ExprStmt;
+struct DefStmt;
 struct LetStmt;
 struct WhileStmt;
 struct PrintStmt;
 struct IfStmt;
 struct StmtSequence;
+struct ExprStmt;
 
 struct Visitor {
     virtual void visit(Identifier* ast) = 0;
     virtual void visit(Number* ast) = 0;
     virtual void visit(Binary* ast) = 0;
     virtual void visit(Unary* ast) = 0;
-    //virtual void visit(ExprStmt* ast) = 0;
+    virtual void visit(ExprStmt* ast) = 0;
     virtual void visit(LetStmt* ast) = 0;
     virtual void visit(WhileStmt* ast) = 0;
     virtual void visit(PrintStmt* ast) = 0;
     virtual void visit(IfStmt* ast) = 0;
     virtual void visit(StmtSequence* ast) = 0;
+    virtual void visit(DefStmt* ast) = 0;
 };
 
 struct AST {
@@ -74,6 +76,26 @@ struct Unary : AST {
     }
 };
 
+bool isExpression(AST* ast) {
+    if (dynamic_cast<Binary*>(ast) != nullptr)
+        return true;
+    if (dynamic_cast<Unary*>(ast) != nullptr)
+        return true;
+    if (dynamic_cast<Number*>(ast) != nullptr)
+        return true;
+    if (dynamic_cast<Identifier*>(ast) != nullptr)
+        return true;
+    return false;
+}
+
+struct ExprStmt : AST {
+    AST* expr;
+    ExprStmt(AST* e) : expr(e) { }
+    void accept(Visitor* v) {
+        v->visit(this);
+    }
+};
+
 struct StmtSequence : AST {
     StmtSequence* next;
     AST* stmt;
@@ -82,6 +104,8 @@ struct StmtSequence : AST {
         next = nullptr;
     }
     void addStmt(AST* sast) {
+        if (sast == nullptr)
+            return;
         if (stmt == nullptr) {
             stmt = sast;
         } else {
@@ -142,6 +166,14 @@ struct LetStmt : AST {
     }
 };
 
+struct DefStmt : AST {
+    Identifier* name;
+    StmtSequence* body;
+    void accept(Visitor* v) {
+        v->visit(this);
+    }
+};
+
 struct EvalVisitor : Visitor {
     stack<int> sv;
     void visit(Number* n) {
@@ -170,6 +202,8 @@ struct EvalVisitor : Visitor {
                 sv.push(rhs);
             } break;
         }
+        cout<<"{"<<sv.top()<<"|}";
+        cout<<endl;
     }
     void visit(Unary* uexpr) {
         uexpr->left->accept(this);
@@ -189,11 +223,15 @@ struct EvalVisitor : Visitor {
         }
     }
     void visit(LetStmt* ls) {
-
+        ls->expr->accept(this);
     }
     void visit(IfStmt* is) {
         is->testExpr->accept(this); 
-        sv.top() ? is->truePath->accept(this):is->falsePath->accept(this);
+        bool result = sv.top(); sv.pop();
+        result ? 
+            is->truePath->accept(this)
+            :
+            is->falsePath->accept(this);
     }
     void visit(StmtSequence* ss) {
         if (ss->stmt != nullptr) {
@@ -203,37 +241,70 @@ struct EvalVisitor : Visitor {
             ss->next->accept(this);
         }
     }
+    void visit(ExprStmt* es) { es->expr->accept(this); }
+    void visit(DefStmt* ds) {
+        //ds->name->accept(this);
+        //ds->body->accept(this);
+        procedures[ds->name->name] = ds;
+    }
+    map<string, DefStmt*> procedures;    
 };
 struct PrintVisitor : Visitor {
-    void visit(Number* n) { cout<<"Num: "<<n->value; }
-    void visit(Identifier* n) { cout<<"ID: "<<n->name;    }
+    int depth;
+    void enter() {
+        depth++;
+    }
+    void leave() {
+        depth--;
+    }
+    void print(string msg) {
+        for (int i = 0; i < depth; i++) cout<<" ";
+        cout<<msg<<endl;
+    }
+    PrintVisitor() {
+        depth = 0;
+    }
+    void visit(Number* n) { enter(); print("Num: " + n->value); leave(); }
+    void visit(Identifier* n) { enter(); print("ID: " + n->name); leave();   }
+    void visit(ExprStmt* es) { es->expr->accept(this); }
     void visit(Binary* bexpr) {
-        cout<<"Op: "<<bexpr->op;
+        enter();
+        print("Op: " + bexpr->op);
         bexpr->left->accept(this);
         bexpr->right->accept(this);
+        leave();
     }
     void visit(Unary* uexpr) {
-        cout<<"Op: "<<uexpr->op;
+        enter();
+        print("Op: " + uexpr->op);
         uexpr->left->accept(this);
+        leave();
     }
     void visit(PrintStmt* ps) {
-        cout<<"PrintStmt: ";
+        enter();
+        print("PrintStmt: ");
         ps->expr->accept(this);
+        leave();
     }
     void visit(WhileStmt* ws) {
-        cout<<"While Stmnt: ";
+        enter();
+        print("While Stmnt: ");
         ws->testExpr->accept(this);
         ws->body->accept(this);
+        leave();
     }
     void visit(IfStmt* is) {
-                cout<<"if stmt ";
+        enter();
+        print("if stmt ");
         is->testExpr->accept(this);
-        cout<<"{";
         is->truePath->accept(this);
-        cout<<"}"<<endl;
+        leave();
     }
     void visit(LetStmt* ls) {
+        enter();
+        print("Let stmt");
         ls->expr->accept(this);
+        leave();
     }
     void visit(StmtSequence* ss) {
         if (ss->stmt != nullptr) {
@@ -242,6 +313,13 @@ struct PrintVisitor : Visitor {
         if (ss->next != nullptr) {
             ss->next->accept(this);
         }
+    }
+    void visit(DefStmt* ds) {
+        enter();
+        print("Procedure Def");
+        ds->name->accept(this);
+        ds->body->accept(this);
+        leave();
     }
 };
 

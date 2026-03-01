@@ -78,6 +78,15 @@ void buildLetStatement(stack<AST*>& semStack) {
     semStack.push(lStmt);
 }
 
+void buildProcedureDef(stack<AST*>& semStack) {
+    StmtSequence* body = (StmtSequence*)semStack.top(); semStack.pop();
+    Identifier*  name = (Identifier*)semStack.top(); semStack.pop();
+    DefStmt* def = (DefStmt*) semStack.top(); semStack.pop();
+    def->name = name;
+    def->body = body;
+    semStack.push(def);
+}
+
 bool isStmt(AST* ast) {
     return (isPrintStmt(ast) || isWhileStmt(ast) || isStmtSequence(ast));
 }
@@ -99,6 +108,14 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
             auto a = semStack.top(); semStack.pop();
             auto b = semStack.top(); semStack.pop();
             StmtSequence* ss = new StmtSequence();
+            if (isExpression(a)) {
+                ExprStmt* est = new ExprStmt(a);
+                a = est;
+            }
+            if (isExpression(b)) {
+                ExprStmt* est = new ExprStmt(b);
+                b = est;
+            }
             ss->addStmt(b);
             ss->addStmt(a);
             semStack.push(ss);
@@ -111,6 +128,9 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
             break;
         case 12:
             buildLetStatement(semStack);
+            break;
+        case 13:
+            buildProcedureDef(semStack);
             break;
         case 17:
             buildWhileStatement(semStack);

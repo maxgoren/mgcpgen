@@ -1,6 +1,7 @@
 #ifndef cfg_hpp
 #define cfg_hpp
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <vector>
 #include <map>
@@ -62,6 +63,7 @@ struct Production {
     int pid; //for executing Actions
     Symbol lhs;
     SymbolString rhs;
+    vector<string> actions;
     Production(int id, Symbol l, SymbolString r) : pid(id), lhs(l), rhs(r) { }
     Production() { }
     string toString() {
@@ -123,8 +125,21 @@ struct Grammar {
             return;
         }
         int rulenum = 1;
+        string lastrule = "";
         while (infile.good()) {
             getline(infile, buff);
+            if (buff == "%%{" && lastrule != "") {
+                while (infile.good()) {
+                    getline(infile, buff);
+                    if (buff == "}%%") {
+                        break;
+                    } else {
+                        productions[lastrule].back().actions.push_back(buff);
+                    }
+                }
+            } else {
+                cout<<"Error with the action symbols big dog."<<endl;
+            }
             vector<string> parts = split(buff, ' ');
             nonterminals.insert(parts[0]);
             ProductionSet ps = productions[parts[0]];
@@ -142,6 +157,7 @@ struct Grammar {
             }
             ps.push_back(Production(rulenum++, parts[0], ss));
             productions[parts[0]] = ps;
+            lastrule = parts[0];
         }
     }
 };
