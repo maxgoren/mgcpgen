@@ -187,26 +187,33 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     }
 }
 void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symbol>& opStack) {
-    bool success = false;
+    bool success = true;
     if (X == "TK_NUM") {
         semStack.push(new Number(a.getString()));
-        success = true;
     } else if (X == "TK_ID") {
         semStack.push(new Identifier(a.getString()));
-        success = true;
     } else if (X == "TK_PRINT") {
         semStack.push(new PrintStmt());
-        success = true;
     } else if (X == "TK_WHILE") {
         semStack.push(new WhileStmt());
-        success = true;
+    } else if (X == "TK_IF") {
+        semStack.push(new IfStmt());
+    } else if (X == "TK_DEF") {
+        semStack.push(new DefStmt());
     } else if (X == "TK_LET") {
         semStack.push(new LetStmt());
-        success = true;
     } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN") {
         opStack.push(a.getString());
-        success = true;
-    } 
+    } else if (X == "TK_LPAREN") {
+        if (dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
+            Identifier* name = (Identifier*)semStack.top(); semStack.pop();
+            FuncExpr* fe = new FuncExpr();
+            fe->name = name;
+            semStack.push(fe);
+        }
+    } else {
+        success = false;
+    }
     if (success) {
         cout<<"\t \t \t \tPUSH("<<a.getString()<<")"<<endl;
 

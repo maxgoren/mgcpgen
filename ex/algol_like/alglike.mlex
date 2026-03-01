@@ -13,6 +13,7 @@
 {":=",TK_ASSIGN}
 {"==",TK_EQU}
 {"!=",TK_NEQ}
+{"[,]",TK_COMMA}
 {"if",TK_IF}
 {"def",TK_DEF}
 {"let",TK_LET}

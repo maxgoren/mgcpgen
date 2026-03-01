@@ -4,6 +4,7 @@
 #include "../../src/ParserGenerator.hpp"
 #include "lexer.hpp"
 #include "parse.hpp"
+#include "visitors.hpp"
 using namespace std;
 
 void interpreter(Grammar& G, ParseTable& table, string expr) {
