@@ -9,6 +9,7 @@ using namespace std;
 struct EvalVisitor : Visitor {
     stack<int> sv;
     unordered_map<string, int> valTable;
+    stack<unordered_map<string,int>> envStack;
     map<string, DefStmt*> procedures;
     void visit(Number* n) {
         sv.push(stoi(n->value));
@@ -21,9 +22,6 @@ struct EvalVisitor : Visitor {
         bexpr->right->accept(this);
         int rhs = sv.top(); sv.pop();
         int lhs = sv.top(); sv.pop();
-        cout<<"lhs: "<<lhs<<endl;
-        cout<<"rhs: "<<rhs<<endl;
-        cout<<"opr: "<<bexpr->op[0]<<endl;
         switch (bexpr->op[0]) {
             case '+': sv.push(lhs + rhs); break;
             case '-': sv.push(lhs - rhs); break;
@@ -36,8 +34,7 @@ struct EvalVisitor : Visitor {
                 sv.push(rhs);
             } break;
         }
-        cout<<"{"<<sv.top()<<"|}";
-        cout<<endl;
+        cout<<"{ "<<lhs<<" "<<bexpr->op<<" "<<rhs<<" := "<<"["<<sv.top()<<"] }"<<endl;
     }
     void visit(Unary* uexpr) {
         uexpr->left->accept(this);
@@ -81,9 +78,28 @@ struct EvalVisitor : Visitor {
     }
     void visit(FuncExpr* expr) {
         DefStmt* ds = procedures[expr->name->name];
+        if (ds != nullptr) {
+            envStack.push(valTable);
+            valTable = unordered_map<string,int>();
+        }
         ds->body->accept(this);
+        valTable = envStack.top(); envStack.pop();
     }
-
+    void eval(AST* ast) {
+        if (ast != nullptr && dynamic_cast<StmtSequence*>(ast) != nullptr) {
+            visit(dynamic_cast<StmtSequence*>(ast));
+        } else if (ast != nullptr && dynamic_cast<ExprStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<ExprStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<WhileStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<WhileStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<LetStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<LetStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<PrintStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<PrintStmt*>(ast));
+        } else if (dynamic_cast<DefStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<DefStmt*>(ast));
+        } 
+    }
 };
 struct PrintVisitor : Visitor {
     int depth;
@@ -99,6 +115,25 @@ struct PrintVisitor : Visitor {
     }
     PrintVisitor() {
         depth = 0;
+    }
+    void print(AST* ast) {
+        if (ast == nullptr) 
+            return;
+        if (dynamic_cast<StmtSequence*>(ast) != nullptr) {
+            visit(dynamic_cast<StmtSequence*>(ast));
+        } else if (ast != nullptr && dynamic_cast<ExprStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<ExprStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<WhileStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<WhileStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<LetStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<LetStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<PrintStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<PrintStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<DefStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<DefStmt*>(ast));
+        } else if (ast != nullptr && dynamic_cast<IfStmt*>(ast) != nullptr) {
+            visit(dynamic_cast<IfStmt*>(ast));
+        }
     }
     void visit(Number* n) { enter(); print("Num: " + n->value); leave(); }
     void visit(Identifier* n) { enter(); print("ID: " + n->name); leave();   }
@@ -153,14 +188,18 @@ struct PrintVisitor : Visitor {
     void visit(DefStmt* ds) {
         enter();
         print("Procedure Def");
-        ds->name->accept(this);
-        ds->body->accept(this);
+        if (ds->name != nullptr) {
+            ds->name->accept(this);
+        }
+        if (ds->body != nullptr) {
+            ds->body->accept(this);
+        }
         leave();
     }
     void visit(FuncExpr* fe) {
         enter();
         print("Function call");
-        fe->name->accept(this);
+        fe->name->accept(this); 
         leave();
     }
 };

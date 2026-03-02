@@ -114,6 +114,14 @@ struct StmtSequence : AST {
         stmt = nullptr;
         next = nullptr;
     }
+    StmtSequence(AST* s) {
+        stmt = s;
+        next = nullptr;
+    }
+    StmtSequence(AST* s1, AST* s2) {
+        stmt = s1;
+        addStmt(s2);
+    }
     void addStmt(AST* sast) {
         if (sast == nullptr)
             return;

@@ -128,17 +128,19 @@ struct Grammar {
         string lastrule = "";
         while (infile.good()) {
             getline(infile, buff);
-            if (buff == "%%{" && lastrule != "") {
-                while (infile.good()) {
-                    getline(infile, buff);
-                    if (buff == "}%%") {
-                        break;
-                    } else {
-                        productions[lastrule].back().actions.push_back(buff);
+            if (buff == "%%{") {
+                if  (lastrule != "") {
+                    while (infile.good()) {
+                        getline(infile, buff);
+                        if (buff == "}%%") {
+                            break;
+                        } else {
+                            productions[lastrule].back().actions.push_back(buff);
+                        }
                     }
+                } else {
+                    cout<<"Error with the action symbols big dog."<<endl;
                 }
-            } else {
-                cout<<"Error with the action symbols big dog."<<endl;
             }
             vector<string> parts = split(buff, ' ');
             nonterminals.insert(parts[0]);

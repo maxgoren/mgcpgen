@@ -11,7 +11,7 @@ TK_SEMI,TK_ASSIGN,TK_EQU,TK_NEQ,TK_IF,
 TK_DEF,TK_LET,TK_PRINT,TK_WHILE,TK_ID,
  TK_EOI
 };
-char* tokenStr[] = {
+const char* tokenStr[] = {
 "TK_NUM",
 "TK_PLUS","TK_MINUS","TK_MUL","TK_DIV","TK_LPAREN",
 "TK_RPAREN","TK_LT","TK_GT","TK_LCURLY","TK_RCURLY",

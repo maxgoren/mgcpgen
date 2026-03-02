@@ -1,5 +1,5 @@
-stmt-seq ::= stmt TK_SEMI stmt-seqT
-stmt-seqT ::= stmt-seq
+stmt-seq ::= stmt stmt-seqT
+stmt-seqT ::= TK_SEMI stmt-seq
 stmt-seqT ::= #
 stmt ::= expr-stmt
 stmt ::= print-stmt

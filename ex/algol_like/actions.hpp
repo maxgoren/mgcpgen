@@ -4,6 +4,7 @@
 #include <stack>
 #include "token.hpp"
 #include "ast.hpp"
+#include "visitors.hpp"
 using namespace std;
 
 using Symbol = string;
@@ -50,6 +51,7 @@ void sewTogether(stack<AST*>& semStack) {
 
 
 void buildWhileStatement(stack<AST*>& semStack) {
+    cout<<"Assembling While Statement"<<endl;
     if (semStack.size() >= 2) {
         AST* body = semStack.top(); semStack.pop();
         AST* test = semStack.top(); semStack.pop();
@@ -65,6 +67,7 @@ void buildWhileStatement(stack<AST*>& semStack) {
 }
 
 void buildPrintStatement(stack<AST*>& semStack) {
+    cout<<"Assembling Print Statement"<<endl;
     AST* left = semStack.top(); semStack.pop();
     PrintStmt* pStmt = dynamic_cast<PrintStmt*>(semStack.top()); semStack.pop();
     pStmt->expr = left;
@@ -79,16 +82,73 @@ void buildLetStatement(stack<AST*>& semStack) {
 }
 
 void buildProcedureDef(stack<AST*>& semStack) {
-    StmtSequence* body = (StmtSequence*)semStack.top(); semStack.pop();
-    Identifier*  name = (Identifier*)semStack.top(); semStack.pop();
-    DefStmt* def = (DefStmt*) semStack.top(); semStack.pop();
-    def->name = name;
-    def->body = body;
-    semStack.push(def);
+    cout<<"Assembling Procedure def"<<endl;
+    PrintVisitor* pv = new PrintVisitor();
+    Identifier*  name = nullptr;
+    StmtSequence* body = nullptr;
+    if (dynamic_cast<StmtSequence*>(semStack.top()) != nullptr) {
+        body = (StmtSequence*)semStack.top(); semStack.pop();
+        pv->visit(body);
+    } else {
+        cout<<"\n hmm.. "<<endl;
+        body = new StmtSequence();
+        body->addStmt(semStack.top());
+        semStack.pop();
+    }
+    if (dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
+        name = (Identifier*)semStack.top(); semStack.pop();
+        pv->visit(name);
+    } else {
+        cout<<"\n\n hmm.. wheres el name?"<<endl;
+    }
+    if (dynamic_cast<DefStmt*>(semStack.top()) != nullptr) {
+        DefStmt* def = (DefStmt*) semStack.top(); semStack.pop();
+        def->name = name;
+        def->body = body;
+        semStack.push(def);
+    } else {
+        cout<<"Well, fuck."<<endl;
+    }
 }
 
 bool isStmt(AST* ast) {
     return (isPrintStmt(ast) || isWhileStmt(ast) || isStmtSequence(ast));
+}
+
+void buildStatementSequence(stack<AST*>& semStack) {  
+    cout<<"Assembling Statement Sequence."<<endl;
+    AST* a = nullptr;
+    AST* b = nullptr;
+    StmtSequence* ss = nullptr;
+    switch (semStack.size()) {
+        case 0: cout<<"What in the..."<<endl; return;
+        case 1: {
+            a = semStack.top(); semStack.pop();
+            StmtSequence* ss = new StmtSequence(a);
+            semStack.push(ss);
+            return;
+        } break;
+        default:
+            break;
+    };
+    ss = new StmtSequence();
+    if (!semStack.empty()) {
+        a = semStack.top(); semStack.pop();
+    }
+    if (!semStack.empty()) {
+        b = semStack.top(); semStack.pop();
+    }
+    if (isExpression(a)) {
+        ExprStmt* est = new ExprStmt(a);
+        a = est;
+    }
+    if (isExpression(b)) {
+        ExprStmt* est = new ExprStmt(b);
+        b = est;
+    }
+    ss->addStmt(b);
+    ss->addStmt(a);
+    semStack.push(ss);
 }
 
 /*
@@ -102,24 +162,10 @@ bool isStmt(AST* ast) {
     thats operator precedence being built into the grammar.
 */
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
-    cout<<"Applying Rule: "<<id<<endl;
+    cout<<"    -[Applying Rule: "<<id<<"]"<<endl;
     switch(id) {
-        case 2: {    
-            auto a = semStack.top(); semStack.pop();
-            auto b = semStack.top(); semStack.pop();
-            StmtSequence* ss = new StmtSequence();
-            if (isExpression(a)) {
-                ExprStmt* est = new ExprStmt(a);
-                a = est;
-            }
-            if (isExpression(b)) {
-                ExprStmt* est = new ExprStmt(b);
-                b = est;
-            }
-            ss->addStmt(b);
-            ss->addStmt(a);
-            semStack.push(ss);
-        } break;
+        case 2: 
+            buildStatementSequence(semStack);
             break;
         case 5:
             break;
@@ -206,10 +252,15 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
         opStack.push(a.getString());
     } else if (X == "TK_LPAREN") {
         if (dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
-            Identifier* name = (Identifier*)semStack.top(); semStack.pop();
-            FuncExpr* fe = new FuncExpr();
-            fe->name = name;
-            semStack.push(fe);
+            Identifier* name = (Identifier*)semStack.top(); 
+            semStack.pop();
+            if (dynamic_cast<DefStmt*>(semStack.top()) == nullptr || dynamic_cast<DefStmt*>(semStack.top()) != nullptr && dynamic_cast<DefStmt*>(semStack.top())->name != nullptr) {
+                FuncExpr* fe = new FuncExpr();
+                fe->name = name;
+                semStack.push(fe);
+            } else {
+                semStack.push(name);
+            }
         }
     } else {
         success = false;
