@@ -69,6 +69,31 @@ void Parser::printState(int tokenNum, Symbol X, Token& a, int actionId) {
     cout<<"("<<tokenNum<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
 }
 
+void buildTopLevelSequence(stack<AST*>& semStack) {
+    StmtSequence* topSeq = new StmtSequence();
+    stack<AST*> tmp;
+
+    // Pop everything from semStack into tmp
+    while (!semStack.empty()) {
+        AST* stmt = semStack.top();
+        semStack.pop();
+        if (stmt != nullptr) tmp.push(stmt);
+    }
+
+    // Push in correct order
+    while (!tmp.empty()) {
+        AST* stmt = tmp.top();
+        tmp.pop();
+
+        // Wrap bare expressions in ExprStmt
+        if (isExpression(stmt)) stmt = new ExprStmt(stmt);
+
+        topSeq->addStmt(stmt);
+    }
+
+    semStack.push(topSeq);
+}
+
 AST* Parser::parseInput(const Symbol& startSymbol) {
     
     std::stack<ParseStackSymbol> st;
@@ -91,6 +116,7 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
         }
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
+            buildTopLevelSequence(semStack);
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
             return semStack.empty() ? nullptr:semStack.top();
         }

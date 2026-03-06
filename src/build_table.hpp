@@ -30,8 +30,11 @@ set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& 
         return {EPS};
     }
     bool allNullable = true;
+    bool realSym = false;
     for (auto X : rhs) {
-
+        if (X == ACTSYM)
+            continue;
+        realSym = true;
         if (find(G.terminals.begin(), G.terminals.end(), X) != G.terminals.end()) {
             result.insert(X);
             return result;
@@ -48,40 +51,12 @@ set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& 
         }
     }
 
-    if (allNullable)
+    if (!realSym || allNullable)
         result.insert(EPS);
 
     return result;
 }
-void TableGenerator::persist(string filename, Grammar& G) {
-    std::ofstream ot(filename, ios::out);
-    if (ot.good()) {
-        ot<<"%% Firsts: "<<endl;
-        for (auto f : G.firsts) {
-            ot<<f.first<<"  {";
-            for (auto t : f.second) {
-                ot<<t<<" ";
-            }
-            ot<<"}"<<endl;
-        }
-        ot<<"%% Follow: "<<endl;
-        for (auto f : G.follow) {
-            ot<<f.first<<"  {";
-            for (auto t : f.second) {
-                ot<<t<<" ";
-            }
-            ot<<"}"<<endl;
-        }
-        ot<<"%% Transitions: "<<endl;
-        for (auto t : table) {
-            for (auto e : t.second) {
-                ot<<"["<<t.first<<", "<<e.first<<"] => ";
-                ot<<e.second.toString()<<endl;
-            }
-        }
-    }
-    ot.close();
-}
+
 
 ParseTable TableGenerator::makeParseTable(Grammar& G) {
     table = ParseTable();
@@ -118,6 +93,36 @@ ParseTable TableGenerator::makeParseTable(Grammar& G) {
         }
     }
     return table;
+}
+
+void TableGenerator::persist(string filename, Grammar& G) {
+    std::ofstream ot(filename, ios::out);
+    if (ot.good()) {
+        ot<<"%% Firsts: "<<endl;
+        for (auto f : G.firsts) {
+            ot<<f.first<<"  {";
+            for (auto t : f.second) {
+                ot<<t<<" ";
+            }
+            ot<<"}"<<endl;
+        }
+        ot<<"%% Follow: "<<endl;
+        for (auto f : G.follow) {
+            ot<<f.first<<"  {";
+            for (auto t : f.second) {
+                ot<<t<<" ";
+            }
+            ot<<"}"<<endl;
+        }
+        ot<<"%% Transitions: "<<endl;
+        for (auto t : table) {
+            for (auto e : t.second) {
+                ot<<"["<<t.first<<", "<<e.first<<"] => ";
+                ot<<e.second.toString()<<endl;
+            }
+        }
+    }
+    ot.close();
 }
 
 #endif

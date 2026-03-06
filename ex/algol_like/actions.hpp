@@ -58,13 +58,19 @@ void sewTogether(stack<AST*>& semStack) {
 void buildWhileStatement(stack<AST*>& semStack) {
     cout<<"Assembling While Statement"<<endl;
     if (semStack.size() >= 2) {
+        cout<<"Body: ";
+        PrintVisitor* pv = new PrintVisitor();
+        semStack.pop();
         AST* body = semStack.top(); semStack.pop();
         AST* test = semStack.top(); semStack.pop();
+        pv->print(body);
+        cout<<"Test expr: "<<endl;
+        pv->print(test);
         WhileStmt* ws = dynamic_cast<WhileStmt*>(semStack.top()); semStack.pop();
         if (ws != nullptr) {
-        ws->body = body;
-        ws->testExpr = test;
-        semStack.push(ws);  
+            ws->body = body;
+            ws->testExpr = test;
+            semStack.push(ws);  
         } else {
             cout<<"Error: was expecting while stmt node."<<endl;
         }  
@@ -144,38 +150,12 @@ bool isStmt(AST* ast) {
 
 void buildStatementSequence(stack<AST*>& semStack) {  
     cout<<"Assembling Statement Sequence."<<endl;
-    AST* a = nullptr;
-    AST* b = nullptr;
-    StmtSequence* ss = nullptr;
-    switch (semStack.size()) {
-        case 0: cout<<"What in the..."<<endl; return;
-        case 1: {
-            a = semStack.top(); semStack.pop();
-            StmtSequence* ss = new StmtSequence(a);
-            semStack.push(ss);
-            return;
-        } break;
-        default:
-            break;
-    };
-    ss = new StmtSequence();
-    if (!semStack.empty()) {
-        a = semStack.top(); semStack.pop();
+    AST* curr = semStack.top(); semStack.pop();
+    if (!semStack.empty() && dynamic_cast<StmtSequence*>(semStack.top())) {
+        dynamic_cast<StmtSequence*>(semStack.top())->addStmt(curr);
+    } else {
+        semStack.push(new StmtSequence(curr));
     }
-    if (!semStack.empty()) {
-        b = semStack.top(); semStack.pop();
-    }
-    if (isExpression(a)) {
-        ExprStmt* est = new ExprStmt(a);
-        a = est;
-    }
-    if (isExpression(b)) {
-        ExprStmt* est = new ExprStmt(b);
-        b = est;
-    }
-    ss->addStmt(b);
-    ss->addStmt(a);
-    semStack.push(ss);
 }
 
 /*
@@ -194,64 +174,35 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
         case 2: 
             buildStatementSequence(semStack);
             break;
-        case 5:
-            break;
-        case 10:
-            semStack.push(nullptr);
-            break;
-        case 12:
+        
+        case 11:
             buildLetStatement(semStack);
             break;
-        case 13:
+        case 12:
             buildProcedureDef(semStack);
             break;
-        case 17:
+        case 16:
             buildWhileStatement(semStack);
             break;
-        case 19:
+        case 18:
             buildPrintStatement(semStack);
-            break;
-        case 20:
-            break;
-        case 21:     
-            sewTogether(semStack);
             break;
         case 22: // := build assignment ops    
             buildBinaryOpTree(semStack, opStack);
-            break;
-        case 23:    
-            semStack.push(nullptr);
-            break;
-        case 24:
-            sewTogether(semStack);
             break;
         case 25: // <
         case 26: // >  build rel ops
             buildBinaryOpTree(semStack, opStack);
             break;
-        case 27:    
-            semStack.push(nullptr); 
-            break;
-        case 28:
-            sewTogether(semStack);
-            break;
         case 29: // +
         case 30: // -
             buildBinaryOpTree(semStack, opStack);
-            break;
-        case 31:
-            semStack.push(nullptr);
-            break;
-        case 32:
-            sewTogether(semStack);
             break;
         case 33: // *
         case 34: // /
             buildBinaryOpTree(semStack, opStack);
             break;
-        case 35:
-            semStack.push(nullptr);
-            break;
+        
         case 36: //unary
             buildUnaryOpTree(semStack, opStack);
             break;

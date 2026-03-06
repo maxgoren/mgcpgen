@@ -28,8 +28,12 @@ class ComputeFollowSets {
 bool ComputeFollowSets::symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index) {
     bool betaEps = true;
     bool didchange = false;
+    bool realSym = false;
     // X -> aAb
     for (Symbol Y : alt.subString(index+1)) {
+        if (Y == ACTSYM)
+            continue;
+        realSym = true;
         for (Symbol s : G.firsts[Y]) {
             if (s != EPS) {
                 if (G.follow[A].insert(s).second)
@@ -43,7 +47,7 @@ bool ComputeFollowSets::symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, Symbo
     }
 
     //X -> aA
-    if (index+1 == alt.size() || betaEps) {
+    if (!realSym || betaEps) {
         int pre = G.follow[A].size();
         G.follow[A].insert(G.follow[X].begin(), G.follow[X].end());
         if (pre != G.follow[A].size())

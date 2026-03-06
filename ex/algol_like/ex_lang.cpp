@@ -45,6 +45,6 @@ int main(int argc, char* argv[]) {
     G.readGrammarFile(argv[1]);
     ParserGenerator pg;
     ParseTable table = pg.generate(G, "stmt-seq");
-    interpreter(G, table, "prev := 0; curr := 1; while (curr < 540) { next := prev + curr; print next; prev := curr; curr := next }");
+    interpreter(G, table, "prev := 0; curr := 1; while (curr < 150) { next := prev + curr; print next; prev := curr; curr := next; next }");
     return 0;
 }

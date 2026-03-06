@@ -35,8 +35,6 @@ void  ComputeFirstSets::initFirsts(Grammar& G) {
 bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     bool didchange = false;
     for (auto k : G.firsts[f]) {
-        if (k == ACTSYM)
-            continue;
         if (G.firsts[X].find(k) == G.firsts[X].end() && k != EPS) {
             G.firsts[X].insert(k);
             didchange = true;  // Mark that a change occurred

@@ -47,11 +47,11 @@ struct EvalVisitor : Visitor {
     }
     void visit(WhileStmt* ws) {
         ws->testExpr->accept(this);
-        while (sv.top()) {
-            sv.pop();
+        while (sv.top() == 1) {
             ws->body->accept(this);
             ws->testExpr->accept(this);
-        }
+        } 
+        sv.pop();
     }
     void visit(LetStmt* ls) {
         ls->expr->accept(this);
@@ -168,7 +168,9 @@ struct PrintVisitor : Visitor {
     void visit(WhileStmt* ws) {
         enter();
         print("While Stmnt: ");
+        print("  Predicate:");
         ws->testExpr->accept(this);
+        print("  Body");
         ws->body->accept(this);
         leave();
     }
