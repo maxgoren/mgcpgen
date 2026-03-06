@@ -17,7 +17,9 @@ class ParserGenerator {
         }
         ParseTable generate(Grammar& G, Symbol start) {
             firsts.compute(G);
+            firsts.printFirsts(G);
             follows.compute(G, start);
+            follows.printFollows(G);
             return tableGen.makeParseTable(G);
         }
 };

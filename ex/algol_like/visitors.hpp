@@ -100,6 +100,12 @@ struct EvalVisitor : Visitor {
             visit(dynamic_cast<DefStmt*>(ast));
         } 
     }
+    void visit(ArgsList* ast) {
+
+    }
+    void visit(ExprList* ast) {
+
+    }
 };
 struct PrintVisitor : Visitor {
     int depth;
@@ -141,8 +147,10 @@ struct PrintVisitor : Visitor {
     void visit(Binary* bexpr) {
         enter();
         print("Op: " + bexpr->op);
-        bexpr->left->accept(this);
-        bexpr->right->accept(this);
+        if (bexpr->left != nullptr)
+            bexpr->left->accept(this);
+        if (bexpr->right != nullptr)
+            bexpr->right->accept(this);
         leave();
     }
     void visit(Unary* uexpr) {
@@ -191,6 +199,9 @@ struct PrintVisitor : Visitor {
         if (ds->name != nullptr) {
             ds->name->accept(this);
         }
+        if (ds->args != nullptr) {
+            ds->args->accept(this);
+        }
         if (ds->body != nullptr) {
             ds->body->accept(this);
         }
@@ -201,6 +212,12 @@ struct PrintVisitor : Visitor {
         print("Function call");
         fe->name->accept(this); 
         leave();
+    }
+        void visit(ArgsList* ast) {
+
+    }
+    void visit(ExprList* ast) {
+        
     }
 };
 

@@ -16,6 +16,8 @@ struct PrintStmt;
 struct IfStmt;
 struct StmtSequence;
 struct ExprStmt;
+struct ArgsList;
+struct ExprList;
 
 struct Visitor {
     virtual void visit(Identifier* ast) = 0;
@@ -30,6 +32,8 @@ struct Visitor {
     virtual void visit(IfStmt* ast) = 0;
     virtual void visit(StmtSequence* ast) = 0;
     virtual void visit(DefStmt* ast) = 0;
+    virtual void visit(ArgsList* ast) = 0;
+    virtual void visit(ExprList* ast) = 0;
 };
 
 struct AST {
@@ -187,7 +191,22 @@ struct LetStmt : AST {
 
 struct DefStmt : AST {
     Identifier* name;
+    ArgsList* args;
     StmtSequence* body;
+    void accept(Visitor* v) {
+        v->visit(this);
+    }
+};
+
+struct ArgsList : AST {
+    vector<LetStmt*> arguments;
+    void accept(Visitor* v) {
+        v->visit(this);
+    }
+};
+
+struct ExprList : AST {
+    vector<LetStmt*> arguments;
     void accept(Visitor* v) {
         v->visit(this);
     }

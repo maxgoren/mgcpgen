@@ -59,6 +59,8 @@ bool ComputeFollowSets::calcFollow(Grammar& G, Symbol A) {
         ProductionSet RHS = prod.second;
         for (Production alt : RHS) {
             for (int i = 0; i < alt.rhs.size(); i++) {
+                if (alt.rhs[i] == ACTSYM)
+                    continue;
                 if (alt.rhs[i] == A) {
                     if (symbolFoundOnRight(G, A, X, alt.rhs, i))
                         didchange = true;
@@ -94,7 +96,7 @@ void ComputeFollowSets::compute(Grammar& G, Symbol start) {
 void ComputeFollowSets::printFollows(Grammar& G) {
     for (auto f : G.follow) {
         if (G.isNonTerminal(f.first)) {
-            cout<<"Follows("<<f.first<<": { ";
+            cout<<"Follows("<<f.first<<"): { ";
             for (auto q : f.second) {
                 cout<<q<<" ";
             }

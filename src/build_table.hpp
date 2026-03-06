@@ -53,7 +53,6 @@ set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& 
 
     return result;
 }
-
 void TableGenerator::persist(string filename, Grammar& G) {
     std::ofstream ot(filename, ios::out);
     if (ot.good()) {

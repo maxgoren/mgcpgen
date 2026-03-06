@@ -21,17 +21,13 @@ void interpreter(Grammar& G, ParseTable& table, string expr) {
     StringBuffer* sb = new StringBuffer();
     PrintVisitor* pv = new PrintVisitor();
     EvalVisitor* ev  = new EvalVisitor();
-    //do {
-    //    cout<<"\n -=> ";
-    //    getline(cin, inbuff);
+    do {
         AST* ast = stringToAST(inbuff, lexer, parser);
         pv->print(ast);
         ev->eval(ast);
-        inbuff = "def doit() { print 13 }; doit()";
-        ast = stringToAST(inbuff, lexer, parser);
-        pv->print(ast);
-        ev->eval(ast);
-    //} while (inbuff != "quit");
+        cout<<"\n -=> ";
+        getline(cin, inbuff);
+    } while (inbuff != "quit");
 }
 
 void showUsage(string name) {

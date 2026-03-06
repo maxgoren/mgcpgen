@@ -91,18 +91,20 @@ struct ProductionSet : vector<Production> {
     }
 };
 
+const Symbol ACTSYM = "@@";
 const Symbol EPS = "#";
 const Symbol GOAL = "TK_EOI";
 vector<string> split(string input, char delim);
 
 struct Grammar {
+    Symbol startSym;
     set<Symbol> terminals;
     set<Symbol> nonterminals;
     map<Symbol, ProductionSet> productions;
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
     Grammar() {
-        
+        startSym = "";
     }
     bool isNonTerminal(Symbol s) {
         return nonterminals.find(s) != nonterminals.end();
@@ -153,13 +155,17 @@ struct Grammar {
                 if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
                    terminals.insert(s);
                 } else {
-                   nonterminals.insert(s);
+                    if (s != ACTSYM)
+                        nonterminals.insert(s);
                 }
                 ss.push_back(s);
             }
             ps.push_back(Production(rulenum++, parts[0], ss));
             productions[parts[0]] = ps;
             lastrule = parts[0];
+            if (startSym == "") {
+                startSym = lastrule;
+            }
         }
     }
 };

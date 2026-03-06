@@ -16,6 +16,9 @@ void buildBinaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
     cout<<"Building "<<op<<" node"<<endl;
     AST* node = new Binary(op, lhs, rhs);
     semStack.push(node);
+    PrintVisitor* pv = new PrintVisitor();
+    cout<<"Push: "; 
+    pv->visit(dynamic_cast<Binary*>(node));
 }
 
 void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
@@ -27,6 +30,7 @@ void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
 }
 
 AST* attachLeaf(AST* node, AST* left) {
+    cout<<"\n called attach leaf"<<endl;
     Binary* b = dynamic_cast<Binary*>(node);
     while (b != nullptr) {
         if (b->right == nullptr)
@@ -39,13 +43,14 @@ AST* attachLeaf(AST* node, AST* left) {
 }
 
 void sewTogether(stack<AST*>& semStack) {
-    AST* rightChain = semStack.top(); semStack.pop();
-    AST* left       = semStack.top(); semStack.pop();
-    if (rightChain == nullptr)
+    AST* right = semStack.top(); semStack.pop();
+    AST* left  = semStack.top(); semStack.pop();
+    if (right == nullptr)
         semStack.push(left);
     else {
-        rightChain = attachLeaf(rightChain, left);
-        semStack.push(rightChain);
+        cout<<"\n called sew together \n";
+        right = attachLeaf(right, left);
+        semStack.push(right);
     }
 }
 
@@ -75,6 +80,7 @@ void buildPrintStatement(stack<AST*>& semStack) {
 }
 
 void buildLetStatement(stack<AST*>& semStack) {
+    cout<<"Assembling Let Statement."<<endl;
     AST* left = semStack.top(); semStack.pop();
     LetStmt* lStmt = dynamic_cast<LetStmt*>(semStack.top()); semStack.pop();
     lStmt->expr = left;
@@ -85,6 +91,7 @@ void buildProcedureDef(stack<AST*>& semStack) {
     cout<<"Assembling Procedure def"<<endl;
     PrintVisitor* pv = new PrintVisitor();
     Identifier*  name = nullptr;
+    ArgsList* args = nullptr;
     StmtSequence* body = nullptr;
     if (dynamic_cast<StmtSequence*>(semStack.top()) != nullptr) {
         body = (StmtSequence*)semStack.top(); semStack.pop();
@@ -95,6 +102,13 @@ void buildProcedureDef(stack<AST*>& semStack) {
         body->addStmt(semStack.top());
         semStack.pop();
     }
+    if (dynamic_cast<ArgsList*>(semStack.top()) != nullptr) {
+        args = dynamic_cast<ArgsList*>(semStack.top());
+        pv->visit(args);
+        semStack.pop();
+    } else {
+        cout<<"\n gulp..."<<endl;
+    }
     if (dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
         name = (Identifier*)semStack.top(); semStack.pop();
         pv->visit(name);
@@ -104,10 +118,23 @@ void buildProcedureDef(stack<AST*>& semStack) {
     if (dynamic_cast<DefStmt*>(semStack.top()) != nullptr) {
         DefStmt* def = (DefStmt*) semStack.top(); semStack.pop();
         def->name = name;
+        def->args = args;
         def->body = body;
         semStack.push(def);
     } else {
         cout<<"Well, fuck."<<endl;
+    }
+}
+
+void buildArgsList(stack<AST*>& semStack) {
+    cout<<"Constructing arg list"<<endl;
+    if (dynamic_cast<LetStmt*>(semStack.top())) {
+        LetStmt* arg = dynamic_cast<LetStmt*>(semStack.top()); semStack.pop();
+        if (dynamic_cast<ArgsList*>(semStack.top())) {
+            dynamic_cast<ArgsList*>(semStack.top())->arguments.push_back(arg);
+        } else {
+            cout<<"Shit man, that aint an argument list."<<endl;
+        }
     }
 }
 
@@ -228,6 +255,10 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
         case 36: //unary
             buildUnaryOpTree(semStack, opStack);
             break;
+        case 48:
+        case 50:
+            buildArgsList(semStack);
+            break;
         default:
             break;
     }
@@ -251,7 +282,7 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
     } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN") {
         opStack.push(a.getString());
     } else if (X == "TK_LPAREN") {
-        if (dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
+        if (!semStack.empty() && dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
             Identifier* name = (Identifier*)semStack.top(); 
             semStack.pop();
             if (dynamic_cast<DefStmt*>(semStack.top()) == nullptr || dynamic_cast<DefStmt*>(semStack.top()) != nullptr && dynamic_cast<DefStmt*>(semStack.top())->name != nullptr) {
@@ -260,6 +291,7 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
                 semStack.push(fe);
             } else {
                 semStack.push(name);
+                semStack.push(new ArgsList());
             }
         }
     } else {

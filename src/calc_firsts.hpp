@@ -35,6 +35,8 @@ void  ComputeFirstSets::initFirsts(Grammar& G) {
 bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     bool didchange = false;
     for (auto k : G.firsts[f]) {
+        if (k == ACTSYM)
+            continue;
         if (G.firsts[X].find(k) == G.firsts[X].end() && k != EPS) {
             G.firsts[X].insert(k);
             didchange = true;  // Mark that a change occurred
@@ -46,7 +48,7 @@ bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
 bool ComputeFirstSets::propagate(Grammar& G, Symbol X, SymbolString& production) {
     bool didchange = false;
      // Check if the first symbol of this production is epsilon
-    Symbol firstSymbol = production.front();
+    Symbol firstSymbol = production.front() == ACTSYM ? *(production.begin()+1):production.front();
      if (firstSymbol == EPS) {
         G.firsts[X].insert(EPS);
     } else {
