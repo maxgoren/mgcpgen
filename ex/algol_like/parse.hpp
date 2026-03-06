@@ -27,6 +27,8 @@ struct ParseStackSymbol {
     ParseStackSymbol() { }
 };
 
+using ParseTable = map<Symbol, map<Symbol, Production>>;
+
 class Parser {
     private:
         Grammar G;
@@ -85,12 +87,12 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
         Token a = tokens[i];
         int actionId = st.top().actionId;
         if (st.top().kind != ACTION) {
-           // printState(i, X, a, actionId);
+            printState(i, X, a, actionId);
         }
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
-            return semStack.top();
+            return semStack.empty() ? nullptr:semStack.top();
         }
         if (st.top().kind == ACTION) {
             actionDispatch(actionId, semStack, opStack);
@@ -109,11 +111,16 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
             }
             Production p = table[X][tokenStr[a.getSymbol()]];
             st.pop();
-            st.push(ParseStackSymbol(ACTION, "", p.pid));
+            ////Push Action symbol for this production before RHS
+            //st.push(ParseStackSymbol(ACTION, "", p.pid));
             // push RHS in reverse order
             for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
                 if (*it != EPS) {
-                    st.push(ParseStackSymbol(symbolKind(G, *it),*it,p.pid));
+                    if (*it == ACTSYM) {
+                        st.push(ParseStackSymbol(ACTION, "", p.pid));
+                    } else {
+                        st.push(ParseStackSymbol(symbolKind(G, *it),*it,p.pid));
+                    }
                 }
             }
         }

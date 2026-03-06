@@ -1,6 +1,6 @@
 stmt ::= expr
 expr ::= assign-expr exprT
-exprT ::= TK_ASSIGN assign-expr exprT @@
+exprT ::= TK_ASSIGN assign-expr @@ exprT
 exprT ::= #
 assign-expr ::= rel-expr assign-exprT
 assign-exprT ::= TK_LT rel-expr @@ assign-exprT

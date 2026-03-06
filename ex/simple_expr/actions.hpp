@@ -10,7 +10,8 @@ using Symbol = string;
 
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     cout<<"Apply action: "<<id<<endl;
-    if (id == 10 || id == 11 || id == 14 || id == 15) {
+    //    :=         <          >            +         -            *           /
+    if (id == 3 || id == 6 || id == 7 || id == 10 || id == 11 || id == 14 || id == 15) {
         AST* r = semStack.top(); semStack.pop();
         AST* l = semStack.top(); semStack.pop();
         Symbol op = opStack.top(); opStack.pop();
