@@ -82,11 +82,19 @@ struct PrintVisitor : Visitor {
     void visit(Identifier* n) { enter(); print("ID: " + n->name); leave();   }
     void visit(Binary* bexpr) {
         enter();
-        print("Op: " + bexpr->op);
+        switch (bexpr->op[0]) {
+            case '+': print("(add "); break;
+            case '-': print("(sub "); break;
+            case '*': print("(mul "); break;
+            case '/': print("(div "); break;
+            case ':': print("(assign "); break;
+            case '<': print("(less "); break;
+        }
         if (bexpr->left != nullptr)
             bexpr->left->accept(this);
         if (bexpr->right != nullptr)
             bexpr->right->accept(this);
+        print(")");
         leave();
     }
     void visit(Unary* uexpr) {

@@ -82,7 +82,7 @@ struct Unary : AST {
 
 struct FuncExpr : AST {
     Identifier* name;
-    StmtSequence* body;
+    ExprList* args;
     FuncExpr() { 
 
     }
@@ -206,7 +206,7 @@ struct ArgsList : AST {
 };
 
 struct ExprList : AST {
-    vector<LetStmt*> arguments;
+    vector<AST*> arguments;
     void accept(Visitor* v) {
         v->visit(this);
     }

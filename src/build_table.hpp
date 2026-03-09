@@ -98,29 +98,45 @@ ParseTable TableGenerator::makeParseTable(Grammar& G) {
 void TableGenerator::persist(string filename, Grammar& G) {
     std::ofstream ot(filename, ios::out);
     if (ot.good()) {
-        ot<<"%% Firsts: "<<endl;
-        for (auto f : G.firsts) {
-            ot<<f.first<<"  {";
-            for (auto t : f.second) {
-                ot<<t<<" ";
-            }
-            ot<<"}"<<endl;
+        ot<<"#include <vector>\n";
+        ot<<"#include <map>\n";
+        ot<<"#include <set>\n";
+        ot<<"#include \"cfg.hpp\"\n";
+        ot<<"using namespace std; \n";
+        ot<<"set<Symbol> terminalSymbols = {";
+        auto it = G.terminals.begin();
+        while (it != G.terminals.end()) {
+            ot<<"\""<<*it<<"\"";
+            it++;
+            if (it != G.terminals.end())
+                ot<<", ";
         }
-        ot<<"%% Follow: "<<endl;
-        for (auto f : G.follow) {
-            ot<<f.first<<"  {";
-            for (auto t : f.second) {
-                ot<<t<<" ";
-            }
-            ot<<"}"<<endl;
+        ot<<"};"<<endl;
+        ot<<"set<Symbol> nonTerminalSymbols = {";
+        it = G.nonterminals.begin();
+        while (it != G.nonterminals.end()) {
+            ot<<"\""<<*it<<"\"";
+            it++;
+            if (it != G.nonterminals.end())
+                ot<<", ";
         }
-        ot<<"%% Transitions: "<<endl;
+        ot<<"};"<<endl;
+        ot<<"typedef map<Symbol, map<Symbol, Production>> ParseTable;\n";
+        ot<<"ParseTable parseTable;\n";
+        ot<<"void initParseTable() {\n";
         for (auto t : table) {
             for (auto e : t.second) {
-                ot<<"["<<t.first<<", "<<e.first<<"] => ";
-                ot<<e.second.toString()<<endl;
-            }
+                ot<<"\t parseTable[\""<<t.first<<"\"][\""<<e.first<<"\"] = Production("<<e.second.pid<<",\""<<t.first<<"\", ";
+                ot<<"SymbolString({";
+                for (int i = 0; i < e.second.rhs.size(); i++) {
+                    ot<<"\""<<e.second.rhs[i]<<"\"";
+                    if (i+1 < e.second.rhs.size())
+                        ot<<",";
+                }
+                ot<<"}));"<<endl;
+            }           
         }
+        ot<<"}\n";
     }
     ot.close();
 }

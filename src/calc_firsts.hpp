@@ -82,9 +82,7 @@ void ComputeFirstSets::compute(Grammar& G) {
     
     // Iterative algorithm to compute FIRST sets until no changes occur
     bool didchange = true;
-    int iter = 0;
     while (didchange) {
-        // Reset change flag for this iteration
         didchange = propagateFirsts(G);
     }
 } 

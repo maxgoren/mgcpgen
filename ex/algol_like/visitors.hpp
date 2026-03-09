@@ -74,16 +74,41 @@ struct EvalVisitor : Visitor {
     }
     void visit(ExprStmt* es) { es->expr->accept(this); }
     void visit(DefStmt* ds) {
-        procedures[ds->name->name] = ds;
+        string id = (ds->name == nullptr) ? "":ds->name->name;
+        if (id != "") {
+            cout<<"Storing procedure as "<<id<<endl;
+            procedures[id] = ds;
+        } else {
+            cout<<"Cant store a procedure without a name, chief."<<endl;
+        }
     }
     void visit(FuncExpr* expr) {
-        DefStmt* ds = procedures[expr->name->name];
+        string name = "";
+        if (expr->name != nullptr) {
+            name = expr->name->name;
+        } else {
+            cout<<"Missing a name, bailing out."<<endl;
+            return;
+        }
+        cout<<"Getting procedure: "<<name<<endl;
+        DefStmt* ds = procedures[name];
         if (ds != nullptr) {
             envStack.push(valTable);
             valTable = unordered_map<string,int>();
+            auto names = ds->args->arguments.begin();
+            auto values = expr->args->arguments.begin();
+            while (names != ds->args->arguments.end() && values != expr->args->arguments.end()) {
+                string name = dynamic_cast<Identifier*>((*names)->expr)->name;
+                (*values)->accept(this);
+                valTable[name] = sv.top(); sv.pop();
+                names++;
+                values++;
+            }
+            ds->body->accept(this);
+            valTable = envStack.top(); envStack.pop();
+        } else {
+            cout<<"Bumbaclot pon "<<expr->name->name<<endl;
         }
-        ds->body->accept(this);
-        valTable = envStack.top(); envStack.pop();
     }
     void eval(AST* ast) {
         if (ast != nullptr && dynamic_cast<StmtSequence*>(ast) != nullptr) {
@@ -101,10 +126,14 @@ struct EvalVisitor : Visitor {
         } 
     }
     void visit(ArgsList* ast) {
-
+        for (auto t : ast->arguments) {
+            t->accept(this);
+        }
     }
     void visit(ExprList* ast) {
-
+        for (auto t : ast->arguments) {
+            t->accept(this);
+        }
     }
 };
 struct PrintVisitor : Visitor {
@@ -146,11 +175,12 @@ struct PrintVisitor : Visitor {
     void visit(ExprStmt* es) { es->expr->accept(this); }
     void visit(Binary* bexpr) {
         enter();
-        print("Op: " + bexpr->op);
+        print("(Op: " + bexpr->op);
         if (bexpr->left != nullptr)
             bexpr->left->accept(this);
         if (bexpr->right != nullptr)
             bexpr->right->accept(this);
+        print(")");
         leave();
     }
     void visit(Unary* uexpr) {
@@ -168,16 +198,24 @@ struct PrintVisitor : Visitor {
     void visit(WhileStmt* ws) {
         enter();
         print("While Stmnt: ");
-        print("  Predicate:");
-        ws->testExpr->accept(this);
-        print("  Body");
-        ws->body->accept(this);
+        if (ws->testExpr != nullptr) {
+            print("  Predicate: ");
+            ws->testExpr->accept(this);
+        } else {
+            cout<<"Error: Missing predicate."<<endl;
+        }
+        if (ws->body != nullptr) {
+            print("  Body: ");
+            ws->body->accept(this);
+        }
         leave();
     }
     void visit(IfStmt* is) {
         enter();
         print("if stmt ");
+        print("  Predicate: ");
         is->testExpr->accept(this);
+        print("  True path: ");
         is->truePath->accept(this);
         leave();
     }
@@ -197,14 +235,16 @@ struct PrintVisitor : Visitor {
     }
     void visit(DefStmt* ds) {
         enter();
-        print("Procedure Def");
+        print("Procedure Def, name: ");
         if (ds->name != nullptr) {
             ds->name->accept(this);
         }
         if (ds->args != nullptr) {
+            print("Arguments: ");
             ds->args->accept(this);
         }
         if (ds->body != nullptr) {
+            print("Body: ");
             ds->body->accept(this);
         }
         leave();
@@ -212,14 +252,22 @@ struct PrintVisitor : Visitor {
     void visit(FuncExpr* fe) {
         enter();
         print("Function call");
-        fe->name->accept(this); 
+        fe->name->accept(this);
+        if (fe->args != nullptr) {
+            print("Arguments");
+            fe->args->accept(this);
+        }
         leave();
     }
-        void visit(ArgsList* ast) {
-
+    void visit(ArgsList* ast) {
+        for (auto t : ast->arguments) {
+            t->accept(this);
+        }
     }
     void visit(ExprList* ast) {
-        
+        for (auto t : ast->arguments) {
+            t->accept(this);
+        }
     }
 };
 

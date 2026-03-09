@@ -2,19 +2,29 @@
 #define parser_hpp
 #include <iostream>
 #include <stack>
+#include <set>
 #include "ast.hpp"
 #include "actions.hpp"
 #include "lexer.hpp"
-#include "../src/cfg.hpp"
+#include "../../src/cfg.hpp"
 using namespace std; 
 
 
 enum StackItemType { TERMINAL, NONTERMINAL, ACTION };
 
-StackItemType symbolKind(Grammar& G, Symbol sym) {
-    if (G.isTerminal(sym)) 
+bool isTerminal(set<Symbol>& terminals, Symbol X) {
+    return terminals.find(X) != terminals.end();
+}
+
+bool isNonTerminal(set<Symbol>& nonterminals, Symbol X) {
+    return nonterminals.find(X) != nonterminals.end();
+}
+
+
+StackItemType symbolKind(set<Symbol>& terminalSymbols, set<Symbol>& nonTerminalSymbols, Symbol sym) {
+    if (isTerminal(terminalSymbols, sym)) 
         return TERMINAL;
-    if (G.isNonTerminal(sym))
+    if (isNonTerminal(nonTerminalSymbols, sym))
         return NONTERMINAL;
     return ACTION;
 }
@@ -33,17 +43,20 @@ class Parser {
     private:
         Grammar G;
         ParseTable table;
+        set<Symbol> terms;
+        set<Symbol> nonterms;
         vector<Token> tokens;
         int i;
         AST* parseInput(const Symbol& startSymbol);
         void printState(int tokenNum, Symbol X, Token& a, int aid);
     public:
-        Parser(Grammar& gram, ParseTable& pt);
+        Parser(ParseTable& pt, set<Symbol>& ts, set<Symbol>& nts);
         AST* parse(vector<Token>& token, const Symbol& startSymbol);
 };
 
-Parser::Parser(Grammar& gram, ParseTable& pt) {
-    G = gram;
+Parser::Parser(ParseTable& pt,  set<Symbol>& ts, set<Symbol>& nts) {
+    terms = ts;
+    nonterms = nts;
     table = pt;
 }
 
@@ -69,6 +82,7 @@ void Parser::printState(int tokenNum, Symbol X, Token& a, int actionId) {
     cout<<"("<<tokenNum<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
 }
 
+
 AST* Parser::parseInput(const Symbol& startSymbol) {
     
     std::stack<ParseStackSymbol> st;
@@ -92,12 +106,12 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
-            return semStack.top();
+            return semStack.empty() ? nullptr:semStack.top();
         }
         if (st.top().kind == ACTION) {
             actionDispatch(actionId, semStack, opStack);
             st.pop();
-        } else if (G.isTerminal(X) || X == GOAL) {
+        } else if (isTerminal(terms, X) || X == GOAL) {
             if (X == tokenStr[a.getSymbol()]) {
                 handleTerminalSymbols(X, a, semStack, opStack);
                 st.pop();
@@ -111,12 +125,15 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
             }
             Production p = table[X][tokenStr[a.getSymbol()]];
             st.pop();
-            //Push Action symbol for this production before RHS
-            st.push(ParseStackSymbol(ACTION, "", p.pid));
+
             // push RHS in reverse order
             for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
                 if (*it != EPS) {
-                    st.push(ParseStackSymbol(symbolKind(G, *it),*it,p.pid));
+                    if (*it == ACTSYM) {
+                        st.push(ParseStackSymbol(ACTION, "", p.pid));
+                    } else {
+                        st.push(ParseStackSymbol(symbolKind(terms, nonterms, *it),*it,p.pid));
+                    }
                 }
             }
         }

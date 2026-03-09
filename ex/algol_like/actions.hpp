@@ -29,31 +29,6 @@ void buildUnaryOpTree(stack<AST*>& semStack, stack<Symbol>& opStack) {
     semStack.push(node);
 }
 
-AST* attachLeaf(AST* node, AST* left) {
-    cout<<"\n called attach leaf"<<endl;
-    Binary* b = dynamic_cast<Binary*>(node);
-    while (b != nullptr) {
-        if (b->right == nullptr)
-            break;
-        b = dynamic_cast<Binary*>(b->right);
-    }
-    b->right =  b->left;
-    b->left = left;
-    return node;
-}
-
-void sewTogether(stack<AST*>& semStack) {
-    AST* right = semStack.top(); semStack.pop();
-    AST* left  = semStack.top(); semStack.pop();
-    if (right == nullptr)
-        semStack.push(left);
-    else {
-        cout<<"\n called sew together \n";
-        right = attachLeaf(right, left);
-        semStack.push(right);
-    }
-}
-
 
 void buildWhileStatement(stack<AST*>& semStack) {
     cout<<"Assembling While Statement"<<endl;
@@ -144,6 +119,20 @@ void buildArgsList(stack<AST*>& semStack) {
     }
 }
 
+void buildExprList(stack<AST*>& semStack) {
+    cout<<"Constructing param list"<<endl;
+    AST* t = semStack.top(); semStack.pop();
+    if (dynamic_cast<ExprList*>(semStack.top())) {
+        auto el = dynamic_cast<ExprList*>(semStack.top()); semStack.pop();
+        el->arguments.push_back(t);
+        if (dynamic_cast<FuncExpr*>(semStack.top())) {
+            dynamic_cast<FuncExpr*>(semStack.top())->args = el;
+        }
+    } else if (dynamic_cast<FuncExpr*>(semStack.top())) {
+        dynamic_cast<FuncExpr*>(semStack.top())->args->arguments.push_back(t);
+    }
+}
+
 bool isStmt(AST* ast) {
     return (isPrintStmt(ast) || isWhileStmt(ast) || isStmtSequence(ast));
 }
@@ -171,14 +160,14 @@ void buildStatementSequence(stack<AST*>& semStack) {
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     cout<<"    -[Applying Rule: "<<id<<"]"<<endl;
     switch(id) {
-        case 2: 
+        case 1: 
+        case 2:
             buildStatementSequence(semStack);
             break;
-        
         case 11:
             buildLetStatement(semStack);
             break;
-        case 12:
+        case 13:
             buildProcedureDef(semStack);
             break;
         case 16:
@@ -205,6 +194,9 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
         
         case 36: //unary
             buildUnaryOpTree(semStack, opStack);
+            break;
+        case 44:
+            buildExprList(semStack);
             break;
         case 48:
         case 50:
@@ -236,10 +228,11 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
         if (!semStack.empty() && dynamic_cast<Identifier*>(semStack.top()) != nullptr) {
             Identifier* name = (Identifier*)semStack.top(); 
             semStack.pop();
-            if (dynamic_cast<DefStmt*>(semStack.top()) == nullptr || dynamic_cast<DefStmt*>(semStack.top()) != nullptr && dynamic_cast<DefStmt*>(semStack.top())->name != nullptr) {
+            if (!semStack.empty() && (dynamic_cast<DefStmt*>(semStack.top()) == nullptr || (dynamic_cast<DefStmt*>(semStack.top()) != nullptr && dynamic_cast<DefStmt*>(semStack.top())->name != nullptr))) {
                 FuncExpr* fe = new FuncExpr();
                 fe->name = name;
                 semStack.push(fe);
+                semStack.push(new ExprList());
             } else {
                 semStack.push(name);
                 semStack.push(new ArgsList());
