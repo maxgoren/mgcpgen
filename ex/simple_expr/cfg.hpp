@@ -1,0 +1,188 @@
+#ifndef cfg_hpp
+#define cfg_hpp
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <set>
+using namespace std;
+
+using Symbol = string;
+
+struct SymbolString : vector<Symbol> {
+    SymbolString(vector<Symbol> ss) {
+        for (auto m : ss) {
+            this->push_back(m);
+        }
+    }
+    SymbolString() {
+
+    }
+    SymbolString(const SymbolString& ss) {
+        for (auto m : ss) {
+            this->push_back(m);
+        }
+    }
+    SymbolString subString(int startIndex) {
+        SymbolString result;
+        for (int i = startIndex; i < this->size(); i++)
+            result.push_back((*this)[i]);
+        return result;
+    }
+    SymbolString& operator=(const SymbolString& ss) {
+        if (this != &ss) {
+            for (auto m : ss) {
+                this->push_back(m);
+            }
+        }
+        return *this;
+    }
+    string toString() {
+        string str = "";
+        for (Symbol s : *this) {
+            str += s + " ";
+        }
+        return str;
+    }
+    bool operator==(const SymbolString& ss) {
+        auto oit = ss.begin();
+        auto it = this->begin();
+        while (oit != ss.end() && it != this->end()) {
+            if (*oit != *it)
+                return false;
+        }
+        return (oit == ss.end() && it == this->end());
+    }
+    bool operator!=(const SymbolString& ss) {
+        return !(*this == ss);
+    }
+};
+
+struct Production {
+    int pid; //for executing Actions
+    Symbol lhs;
+    SymbolString rhs;
+    vector<string> actions;
+    Production(int id, Symbol l, SymbolString r) : pid(id), lhs(l), rhs(r) { }
+    Production() { }
+    string toString() {
+        return lhs + " ::= " + rhs.toString(); 
+    }
+    bool operator==(const Production& op) {
+        return lhs == op.lhs && rhs == op.rhs;
+    }
+    bool operator!=(const Production& op) {
+        return !(*this==op);
+    }
+    bool operator<(const Production& op) const {
+        return this->lhs < op.lhs;
+    }
+};
+
+struct ProductionSet : vector<Production> {
+    ProductionSet(vector<Production> rhs) {
+        for (Production ss : rhs) {
+            push_back(ss);
+        }
+    }
+    ProductionSet() {
+
+    }
+};
+
+const Symbol ACTSYM = "@@";
+const Symbol EPS = "#";
+const Symbol GOAL = "TK_EOI";
+vector<string> split(string input, char delim);
+
+struct Grammar {
+    Symbol startSym;
+    set<Symbol> terminals;
+    set<Symbol> nonterminals;
+    map<Symbol, ProductionSet> productions;
+    map<Symbol, set<Symbol>> firsts;
+    map<Symbol, set<Symbol>> follow;
+    Grammar() {
+        startSym = "";
+    }
+    bool isNonTerminal(Symbol s) {
+        return nonterminals.find(s) != nonterminals.end();
+    }
+    bool isTerminal(Symbol s) {
+        return terminals.find(s) != terminals.end();
+    }
+    bool isNullable(Symbol nt) {
+        for (auto prod : productions[nt]) {
+            if (prod.rhs[0] == EPS)
+                return true;
+        }
+        return false;
+    }
+    void readGrammarFile(string filename) {
+        string buff;
+        ifstream infile(filename, ios::in);
+        if (!infile.is_open()) {
+            cout<<"Error: Couldn't open '"<<filename<<"' - unknown file."<<endl;
+            return;
+        }
+        int rulenum = 1;
+        string lastrule = "";
+        while (infile.good()) {
+            getline(infile, buff);
+            if (buff == "%%{") {
+                if  (lastrule != "") {
+                    while (infile.good()) {
+                        getline(infile, buff);
+                        if (buff == "}%%") {
+                            break;
+                        } else {
+                            productions[lastrule].back().actions.push_back(buff);
+                        }
+                    }
+                } else {
+                    cout<<"Error with the action symbols big dog."<<endl;
+                }
+            }
+            vector<string> parts = split(buff, ' ');
+            nonterminals.insert(parts[0]);
+            ProductionSet ps = productions[parts[0]];
+            SymbolString ss;
+            terminals.insert(GOAL);
+            terminals.insert(EPS);
+            for (int i = 2; i < parts.size(); i++) {
+                string s = parts[i];
+                if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
+                   terminals.insert(s);
+                } else {
+                    if (s != ACTSYM)
+                        nonterminals.insert(s);
+                }
+                ss.push_back(s);
+            }
+            ps.push_back(Production(rulenum++, parts[0], ss));
+            productions[parts[0]] = ps;
+            lastrule = parts[0];
+            if (startSym == "") {
+                startSym = lastrule;
+            }
+        }
+    }
+};
+
+vector<string> split(string input, char delim) {
+    vector<string> result;
+    string buffer;
+    for (char c : input) {
+        if (c != delim) {
+            buffer.push_back(c);
+        } else {
+            result.push_back(buffer);
+            buffer.clear();
+        }
+    }
+    result.push_back(buffer);
+    return result;
+}
+
+#endif

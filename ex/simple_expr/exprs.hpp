@@ -1,7 +1,7 @@
 #include <vector>
 #include <map>
 #include <set>
-#include "../../src/cfg.hpp"
+#include "cfg.hpp"
 using namespace std; 
 set<Symbol> terminalSymbols = {"#", "TK_ASSIGN", "TK_DIV", "TK_EOI", "TK_GT", "TK_ID", "TK_LPAREN", "TK_LT", "TK_MINUS", "TK_MUL", "TK_NUM", "TK_PLUS", "TK_RPAREN"};
 set<Symbol> nonTerminalSymbols = {"#", "assign-expr", "assign-exprT", "expr", "exprT", "factor", "primary", "rel-expr", "rel-exprT", "stmt", "term", "termT"};

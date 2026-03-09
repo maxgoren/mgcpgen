@@ -1,7 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include "../../src/cfg.hpp"
-#include "../../src/ParserGenerator.hpp"
 #include "lexer.hpp"
 #include "parse.hpp"
 #include "visitors.hpp"

@@ -5,7 +5,7 @@ using namespace std;
 
 void showUsage(string name) {
     cout<<"MGCPGen (c) 2026 MaxGCoding.com"<<endl;
-    cout<<name<<" <grammar file>"<<endl;
+    cout<<name<<" <grammar file> <output file>"<<endl;
 }
 
 
