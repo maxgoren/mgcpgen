@@ -1,16 +1,16 @@
 #include <fstream>
 #include <iostream>
-#include "lexer.hpp"
-#include "parse.hpp"
-#include "visitors.hpp"
-#include "hellapint.h"
+#include "include/lexer.hpp"
+#include "include/parse.hpp"
+#include "include/visitors.hpp"
+#include "include/exprs.hpp"
 using namespace std;
 
 AST* stringToAST(string input, Lexer lexer, Parser parser) {
     StringBuffer* sb = new StringBuffer();
     sb->init(input);
     vector<Token> tokens = lexer.lex(sb);
-    return parser.parse(tokens, "stmt-seq");
+    return parser.parse(tokens, "prog");
 }
 
 void interpreter(ParseTable& table, string expr) {
@@ -29,9 +29,8 @@ void interpreter(ParseTable& table, string expr) {
     } while (inbuff != "quit");
 }
 
-
 int main(int argc, char* argv[]) {
     initParseTable();
-    interpreter(parseTable, "prev := 0; curr := 1; while (curr < 150) { next := prev + curr; print next; prev := curr; curr := next; 1 }");
+    interpreter(parseTable, "1+2+3+4+5");
     return 0;
 }

@@ -6,7 +6,7 @@
 #include "ast.hpp"
 #include "actions.hpp"
 #include "lexer.hpp"
-#include "../../src/cfg.hpp"
+#include "cfg.hpp"
 using namespace std; 
 
 
@@ -82,30 +82,6 @@ void Parser::printState(int tokenNum, Symbol X, Token& a, int actionId) {
     cout<<"("<<tokenNum<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
 }
 
-void buildTopLevelSequence(stack<AST*>& semStack) {
-    StmtSequence* topSeq = new StmtSequence();
-    stack<AST*> tmp;
-
-    // Pop everything from semStack into tmp
-    while (!semStack.empty()) {
-        AST* stmt = semStack.top();
-        semStack.pop();
-        if (stmt != nullptr) tmp.push(stmt);
-    }
-
-    // Push in correct order
-    while (!tmp.empty()) {
-        AST* stmt = tmp.top();
-        tmp.pop();
-
-        // Wrap bare expressions in ExprStmt
-        if (isExpression(stmt)) stmt = new ExprStmt(stmt);
-
-        topSeq->addStmt(stmt);
-    }
-
-    semStack.push(topSeq);
-}
 
 AST* Parser::parseInput(const Symbol& startSymbol) {
     
@@ -120,7 +96,6 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
     size_t i = 0; // input pointer
 
     while (!st.empty()) {
-
         Symbol X = st.top().name;
         Token a = tokens[i];
         int actionId = st.top().actionId;
@@ -129,7 +104,6 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
         }
         // Accept
         if (X == GOAL && a.getSymbol() == TK_EOI) {
-            buildTopLevelSequence(semStack);
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
             return semStack.empty() ? nullptr:semStack.top();
         }
@@ -150,8 +124,6 @@ AST* Parser::parseInput(const Symbol& startSymbol) {
             }
             Production p = table[X][tokenStr[a.getSymbol()]];
             st.pop();
-            ////Push Action symbol for this production before RHS
-            //st.push(ParseStackSymbol(ACTION, "", p.pid));
             // push RHS in reverse order
             for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
                 if (*it != EPS) {

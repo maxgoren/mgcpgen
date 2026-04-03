@@ -39,9 +39,9 @@ void initParseTable() {
 	 parseTable["factor"]["TK_LPAREN"] = Production(24,"factor", SymbolString({"primary"}));
 	 parseTable["factor"]["TK_MINUS"] = Production(23,"factor", SymbolString({"TK_MINUS","factor","@@"}));
 	 parseTable["factor"]["TK_NUM"] = Production(24,"factor", SymbolString({"primary"}));
-	 parseTable["primary"]["TK_ID"] = Production(25,"primary", SymbolString({"TK_ID","@@"}));
-	 parseTable["primary"]["TK_LPAREN"] = Production(27,"primary", SymbolString({"TK_LPAREN","expr","TK_RPAREN","@@"}));
-	 parseTable["primary"]["TK_NUM"] = Production(26,"primary", SymbolString({"TK_NUM","@@"}));
+	 parseTable["primary"]["TK_ID"] = Production(25,"primary", SymbolString({"TK_ID"}));
+	 parseTable["primary"]["TK_LPAREN"] = Production(27,"primary", SymbolString({"TK_LPAREN","expr","TK_RPAREN"}));
+	 parseTable["primary"]["TK_NUM"] = Production(26,"primary", SymbolString({"TK_NUM"}));
 	 parseTable["prog"]["TK_EOI"] = Production(2,"prog", SymbolString({"#"}));
 	 parseTable["prog"]["TK_ID"] = Production(1,"prog", SymbolString({"stmt"}));
 	 parseTable["prog"]["TK_LPAREN"] = Production(1,"prog", SymbolString({"stmt"}));
