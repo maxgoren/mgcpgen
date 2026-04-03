@@ -84,7 +84,8 @@ struct FuncExpr : AST {
     Identifier* name;
     ExprList* args;
     FuncExpr() { 
-
+        name = nullptr;
+        args = nullptr;
     }
     void accept(Visitor* v) {
         v->visit(this);
@@ -105,7 +106,7 @@ bool isExpression(AST* ast) {
 
 struct ExprStmt : AST {
     AST* expr;
-    ExprStmt(AST* e) : expr(e) { }
+    ExprStmt(AST* e = nullptr) : expr(e) { }
     void accept(Visitor* v) {
         v->visit(this);
     }
@@ -149,7 +150,7 @@ bool isStmtSequence(AST* ast) {
 
 struct PrintStmt : AST {
     AST* expr;
-    PrintStmt() { }
+    PrintStmt() { expr = nullptr; }
     PrintStmt(AST* ast) : expr(ast) { }
     void accept(Visitor* v) {
         v->visit(this);
@@ -163,7 +164,7 @@ bool isPrintStmt(AST* ast) {
 struct WhileStmt : AST {
     AST* testExpr;
     AST* body;
-    WhileStmt() { }
+    WhileStmt() { testExpr = nullptr; body = nullptr; }
     void accept(Visitor* v) {
         v->visit(this);
     }
@@ -177,6 +178,11 @@ struct IfStmt : AST {
     AST* testExpr;
     AST* truePath;
     AST* falsePath;
+    IfStmt() {
+        testExpr = nullptr;
+        truePath = nullptr;
+        falsePath = nullptr;
+    }
     void accept(Visitor* v) {
         v->visit(this);
     }
@@ -184,6 +190,9 @@ struct IfStmt : AST {
 
 struct LetStmt : AST {
     AST* expr;
+    LetStmt() {
+        expr = nullptr;
+    }
     void accept(Visitor* v) {
         v->visit(this);
     }
@@ -193,6 +202,11 @@ struct DefStmt : AST {
     Identifier* name;
     ArgsList* args;
     StmtSequence* body;
+    DefStmt() {
+        name = nullptr;
+        args = nullptr;
+        body = nullptr;
+    }
     void accept(Visitor* v) {
         v->visit(this);
     }

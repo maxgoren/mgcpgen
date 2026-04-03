@@ -39,6 +39,8 @@ struct EvalVisitor : Visitor {
             case '*': sv.push(lhs * rhs); break;
             case '<': sv.push(lhs < rhs); break;
             case '>': sv.push(lhs > rhs); break;
+            case '=': sv.push(lhs == rhs); break;
+            case '!': sv.push(lhs != rhs); break;
             case ':': if (bexpr->op == ":=") {
                 valTable[((Identifier*)bexpr->left)->name] = rhs;
                 sv.push(rhs);
@@ -89,6 +91,9 @@ struct PrintVisitor : Visitor {
             case '/': print("(div "); break;
             case ':': print("(assign "); break;
             case '<': print("(less "); break;
+            case '>': print("(greater "); break;
+            case '=': print("(equals "); break;
+            case '!': print("(not-eq "); break;
         }
         if (bexpr->left != nullptr)
             bexpr->left->accept(this);

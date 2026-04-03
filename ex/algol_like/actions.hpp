@@ -160,7 +160,7 @@ void buildStatementSequence(stack<AST*>& semStack) {
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
     cout<<"    -[Applying Rule: "<<id<<"]"<<endl;
     switch(id) {
-        case 1: 
+       // case 1: 
         case 2:
             buildStatementSequence(semStack);
             break;
@@ -179,28 +179,31 @@ void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
         case 22: // := build assignment ops    
             buildBinaryOpTree(semStack, opStack);
             break;
-        case 25: // <
-        case 26: // >  build rel ops
+        case 25: // ==
+        case 26: // !=
             buildBinaryOpTree(semStack, opStack);
             break;
-        case 29: // +
-        case 30: // -
+        case 29: // <
+        case 30: // >
             buildBinaryOpTree(semStack, opStack);
             break;
-        case 33: // *
-        case 34: // /
+        case 33: // +
+        case 34: // -
             buildBinaryOpTree(semStack, opStack);
             break;
-        
-        case 36: //unary
+        case 38: // *
+        case 39: // /
+            buildBinaryOpTree(semStack, opStack);
+            break;
+        case 43: //unary
             buildUnaryOpTree(semStack, opStack);
-            break;
-        case 44:
-            buildExprList(semStack);
             break;
         case 48:
         case 50:
             buildArgsList(semStack);
+            break;
+        case 52:
+            buildExprList(semStack);
             break;
         default:
             break;
@@ -222,7 +225,7 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
         semStack.push(new DefStmt());
     } else if (X == "TK_LET") {
         semStack.push(new LetStmt());
-    } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN") {
+    } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN" || X == "TK_EQU" || X == "TK_NEQ") {
         opStack.push(a.getString());
     } else if (X == "TK_LPAREN") {
         if (!semStack.empty() && dynamic_cast<Identifier*>(semStack.top()) != nullptr) {

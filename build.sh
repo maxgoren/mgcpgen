@@ -1,1 +1,1 @@
-g++ src/mgcpgen.cpp -o mgcpgen
+g++ -g src/mgcpgen.cpp -o mgcpgen

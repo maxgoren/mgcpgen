@@ -29,6 +29,8 @@ struct EvalVisitor : Visitor {
             case '*': sv.push(lhs * rhs); break;
             case '<': sv.push(lhs < rhs); break;
             case '>': sv.push(lhs > rhs); break;
+            case '=': sv.push(lhs == rhs); break;
+            case '!': sv.push(lhs != rhs); break;
             case ':': if (bexpr->op == ":=") {
                 valTable[((Identifier*)bexpr->left)->name] = rhs;
                 sv.push(rhs);
@@ -235,8 +237,9 @@ struct PrintVisitor : Visitor {
     }
     void visit(DefStmt* ds) {
         enter();
-        print("Procedure Def, name: ");
+        print("Procedure Def: ");
         if (ds->name != nullptr) {
+            print("name");
             ds->name->accept(this);
         }
         if (ds->args != nullptr) {

@@ -10,7 +10,7 @@ AST* stringToAST(string input, Lexer lexer, Parser parser) {
     StringBuffer* sb = new StringBuffer();
     sb->init(input);
     vector<Token> tokens = lexer.lex(sb);
-    return parser.parse(tokens, "stmt");
+    return parser.parse(tokens, "prog");
 }
 
 void interpreter(ParseTable& table, string expr) {

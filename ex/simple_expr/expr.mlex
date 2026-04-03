@@ -7,5 +7,7 @@
 {"\)",TK_RPAREN}
 {"<",TK_LT}
 {">",TK_GT}
+{"==",TK_EQU}
+{"!=",TK_NEQ}
 {":=",TK_ASSIGN}
 {"[A-Za-z]([A-Za-z][-]*)*",TK_ID}

@@ -32,6 +32,6 @@ void interpreter(ParseTable& table, string expr) {
 
 int main(int argc, char* argv[]) {
     initParseTable();
-    interpreter(parseTable, "prev := 0; curr := 1; while (curr < 150) { next := prev + curr; print next; prev := curr; curr := next; 1 }; def eko(let a) { print a+a }; eko(13)");
+    interpreter(parseTable, "prev := 0; curr := 1; while (curr < 150) { next := prev + curr; print next; prev := curr; curr := next; 1 }");
     return 0;
 }
