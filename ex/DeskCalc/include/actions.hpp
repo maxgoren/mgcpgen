@@ -38,6 +38,7 @@ void handleTerminalSymbols(Symbol X, Token& a, stack<AST*>& semStack, stack<Symb
         semStack.push(new Identifier(a.getString()));
     } else if (X == "TK_NUM") {
         cout<<"PUSH: "<<a.getString()<<endl;
+        semStack.push(new Number(a.getString()));
     } else if (X == "TK_PLUS" || X == "TK_MINUS" || X == "TK_MUL" || X == "TK_DIV" || X == "TK_LT" || X == "TK_GT" || X == "TK_ASSIGN" || X == "TK_EQU" || X == "TK_NEQ") {
         opStack.push(a.getString());
     }

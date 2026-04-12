@@ -11,11 +11,12 @@ using namespace std;
 
 typedef map<Symbol, map<Symbol, Production>> ParseTable;
 
-
 class TableGenerator {
     private:
         ParseTable table;
         set<Symbol> firstFromString(const vector<Symbol>& rhs, Grammar& G);
+        void fillFromFirsts(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha);
+        void fillFromFollow(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha);
     public:
         TableGenerator() {
 
@@ -57,38 +58,38 @@ set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& 
     return result;
 }
 
+void TableGenerator::fillFromFirsts(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha) {
+    for (auto t : firstAlpha) {
+        if (t != EPS) {
+            if (table[sym].find(t) != table[sym].end()) {
+                cout<<"Warning: Multiple Productions for M["<<sym<<"]["<<t<<"]"<<endl;
+            }
+            cout << "M[" << sym << "," << t << "] "<< prod.toString() << endl;
+            table[sym][t] = prod;
+        } 
+    }
+}
+
+void TableGenerator::fillFromFollow(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha) {
+    for (auto b : G.follow[sym]) {
+        if (table[sym].find(b) != table[sym].end()) {
+            cout<<"Warning: Multiple Productions for M["<<sym<<"]["<<b<<"]"<<endl;
+        }
+        cout<<"M["<<sym<<","<<b<<"] "<< prod.toString() << endl;
+        table[sym][b] = prod;
+    }
+}
 
 ParseTable TableGenerator::makeParseTable(Grammar& G) {
     table = ParseTable();
-    for (auto A : G.nonterminals) {
-
-        for (auto& prod : G.productions[A]) {
-
+    for (auto sym : G.nonterminals) {
+        for (auto& prod : G.productions[sym]) {
             auto firstAlpha = firstFromString(prod.rhs, G);
-
             // FIRST(α) - {ε}
-            for (auto t : firstAlpha) {
-                if (t != EPS) {
-                    if (table[A].find(t) != table[A].end()) {
-                        cout<<"Warning: Multiple Productions for M["<<A<<"]["<<t<<"]"<<endl;
-                    }
-                    cout << "M[" << A << "," << t << "] "
-                         << prod.toString() << endl;
-                    table[A][t] = prod;
-                } 
-            }
-
-            // If ε ∈ FIRST(α), add FOLLOW(A)
+            fillFromFirsts(G, table, sym, prod, firstAlpha);
+            // If ε ∈ FIRST(α), add FOLLOW(sym)
             if (firstAlpha.find(EPS) != firstAlpha.end()) {
-                for (auto b : G.follow[A]) {
-                    if (table[A].find(b) != table[A].end()) {
-                        cout<<"Warning: Multiple Productions for M["<<A<<"]["<<b<<"]"<<endl;
-                    }
-                    cout << "M[" << A << "," << b << "] "
-                         << prod.toString() << endl;
-                    table[A][b] = prod;
-
-                }
+                fillFromFollow(G, table, sym, prod, firstAlpha);
             }
         }
     }

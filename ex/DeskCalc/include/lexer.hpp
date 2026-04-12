@@ -34,8 +34,8 @@ Token Lexer::nextToken() {
     bool in_quote = false;
     int start = buffer->markStart();
     for (char p = buffer->get(); !buffer->done(); buffer->advance(), len++) {
-        state = matrix[state][buffer->get()];
-        if (state > 0 && accept[state] > -1) {
+        state = mgc_lex_matrix[state][buffer->get()];
+        if (state > 0 && mgc_lex_accept[state] > -1) {
             last_match = state;
             match_len = len;
         }
@@ -55,7 +55,7 @@ Token Lexer::nextToken() {
     if (last_match == 0) {
         return {TK_EOI, "error"};
     }
-    return Token((TKSymbol)accept[last_match], buffer->sliceFromStart(match_len), buffer->lineNo());
+    return Token((TKSymbol)mgc_lex_accept[last_match], buffer->sliceFromStart(match_len), buffer->lineNo());
 }
 
 bool Lexer::shouldSkip(char c) {
