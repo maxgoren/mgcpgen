@@ -131,7 +131,7 @@ struct Grammar {
         while (infile.good()) {
             getline(infile, buff);
             if (buff == "%%{") {
-                if  (lastrule != "") {
+                if (lastrule != "") {
                     while (infile.good()) {
                         getline(infile, buff);
                         if (buff == "}%%") {
@@ -140,8 +140,6 @@ struct Grammar {
                             productions[lastrule].back().actions.push_back(buff);
                         }
                     }
-                } else {
-                    cout<<"Error with the action symbols big dog."<<endl;
                 }
             }
             vector<string> parts = split(buff, ' ');

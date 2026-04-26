@@ -10,11 +10,11 @@ using Symbol = string;
 
 bool isBinaryOp(int id) {
         //    :=         ==          !=            <         >            +           -            *           /
-    return (id == 5 || id == 8 || id == 9 || id == 12 || id == 13 || id == 16 || id == 17 || id == 20 || id == 21);
+    return (id == 7 || id == 10 || id == 11 || id == 14 || id == 15 || id == 18 || id == 19 || id == 22 || id == 23);
 }
 
 bool isUnaryOp(int id) {
-    return (id == 23);
+    return (id == 25);
 }
 
 void actionDispatch(int id, stack<AST*>& semStack, stack<Symbol>& opStack) {
