@@ -32,3 +32,16 @@ To build the example, simply compile DeskCalc.cpp with your systems C++ compiler
 ```
     g++ DeskCalc.cpp -o DeskCalc
 ```
+
+Grammar for mgcpgen is expected to be written as an augmented BNF form.
+The following is an EBNF-like representation of the grammar found in DeskCalc.mgram
+
+
+expr ::= assign-expr | #
+assign-expr ::= comp-expr { ':=' comp-expr }*
+ce ::= re { ['==' | '!='] re }*
+re ::= term { ['<' | '>'] term }*
+term ::= factor { ['+' | '-' ] factor }*
+factor ::= unary { ['*' | '/'] unary }*
+unary ::= '-' primary | primary
+primary ::= ID | NUM | '(' expr ')'

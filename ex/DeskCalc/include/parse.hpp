@@ -41,14 +41,20 @@ using ParseTable = map<Symbol, map<Symbol, Production>>;
 
 class Parser {
     private:
-        Grammar G;
-        ParseTable table;
-        set<Symbol> terms;
-        set<Symbol> nonterms;
+        std::stack<ParseStackSymbol> st;
+        std::stack<AST*>             semStack;
+        std::stack<Symbol>           opStack;
+        Grammar       G;
+        ParseTable    table;
+        set<Symbol>   terms;
+        set<Symbol>   nonterms;
         vector<Token> tokens;
-        int i;
+        int           ipos;
         AST* parseInput(const Symbol& startSymbol);
-        void printState(int tokenNum, Symbol X, Token& a, int aid);
+        void handleNonTerminal(Symbol X, Token& curr);
+        void printState(Symbol X, Token& curr, int aid);
+        Token current();
+        void advance();
     public:
         Parser(ParseTable& pt, set<Symbol>& ts, set<Symbol>& nts);
         AST* parse(vector<Token>& token, const Symbol& startSymbol);
@@ -60,83 +66,84 @@ Parser::Parser(ParseTable& pt,  set<Symbol>& ts, set<Symbol>& nts) {
     table = pt;
 }
 
+Token Parser::current() {
+    return tokens[ipos];
+}
+
+void Parser::advance() {
+    ipos++;
+}
+
 AST* Parser::parse(vector<Token>& token, const Symbol& startSymbol) {
     tokens = token;
-    i = 0;
+    ipos = 0;
     return parseInput(startSymbol);
 }
 
 #define MISMATCH 1
 #define NO_RULE  2
 
-nullptr_t syntaxError(const Symbol& X, Token& a, int type) {
+nullptr_t syntaxError(const Symbol& X, Token& curr, int type) {
     switch (type) {
-        case MISMATCH: std::cerr << "Error: expected "<< X << " got " << tokenStr[a.getSymbol()] << "\n"; break;
-        case NO_RULE: std::cerr << "Error: no rule for M["<< X << "," << tokenStr[a.getSymbol()] << "]\n"; break;
+        case MISMATCH: std::cerr << "Error: expected "<< X << " got " << tokenStr[curr.getSymbol()] << "\n"; break;
+        case NO_RULE: std::cerr << "Error: no rule for M["<< X << "," << tokenStr[curr.getSymbol()] << "]\n"; break;
         default: break;
     }
     return nullptr;
 }
 
-void Parser::printState(int tokenNum, Symbol X, Token& a, int actionId) {
-    cout<<"("<<tokenNum<<")M ["<<X<<"]["<<tokenStr[a.getSymbol()]<<"] ("<<a.getString()<<"), ActionId: "<<actionId<<endl;
+void Parser::printState(Symbol X, Token& curr, int actionId) {
+    cout<<"("<<ipos<<")M ["<<X<<"]["<<tokenStr[curr.getSymbol()]<<"] ("<<curr.getString()<<"), ActionId: "<<actionId<<endl;
 }
 
 
 AST* Parser::parseInput(const Symbol& startSymbol) {
-    
-    std::stack<ParseStackSymbol> st;
-    std::stack<AST*> semStack;
-    std::stack<std::string> opStack;
-    // Push end marker
+    // Push end marker && start symbol
     st.push({NONTERMINAL, GOAL, 0});
-    // Push start symbol
     st.push({NONTERMINAL, startSymbol, 0});
-
-    size_t i = 0; // input pointer
-
     while (!st.empty()) {
         Symbol X = st.top().name;
-        Token a = tokens[i];
-        int actionId = st.top().actionId;
+        Token curr = current();
         if (st.top().kind != ACTION) {
-            printState(i, X, a, actionId);
+            printState(X, curr, st.top().actionId);
         }
-        // Accept
-        if (X == GOAL && a.getSymbol() == TK_EOI) {
+        if (X == GOAL && curr.getSymbol() == TK_EOI) {
             cout<<"Accepted with "<<semStack.size()<<", "<<opStack.size()<<" left."<<endl;
             return semStack.empty() ? nullptr:semStack.top();
         }
         if (st.top().kind == ACTION) {
-            actionDispatch(actionId, semStack, opStack);
+            actionDispatch(st.top().actionId, semStack, opStack);
             st.pop();
-        } else if (isTerminal(terms, X) || X == GOAL) {
-            if (X == tokenStr[a.getSymbol()]) {
-                handleTerminalSymbols(X, a, semStack, opStack);
+        } else if (st.top().kind == TERMINAL || X == GOAL) {
+            if (X == tokenStr[curr.getSymbol()]) {
+                handleTerminalSymbols(X, curr, semStack, opStack);
                 st.pop();
-                i++;        // consume token
+                advance();
             } else {
-                return syntaxError(X, a, MISMATCH);
+                return syntaxError(X, curr, MISMATCH);
             }
         } else {
-            if (table[X].find(tokenStr[a.getSymbol()]) == table[X].end()) {
-                return syntaxError(X, a, NO_RULE);
+            if (table[X].find(tokenStr[curr.getSymbol()]) == table[X].end()) {
+                return syntaxError(X, curr, NO_RULE);
             }
-            Production p = table[X][tokenStr[a.getSymbol()]];
-            st.pop();
-            // push RHS in reverse order
-            for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
-                if (*it != EPS) {
-                    if (*it == ACTSYM) {
-                        st.push(ParseStackSymbol(ACTION, "", p.pid));
-                    } else {
-                        st.push(ParseStackSymbol(symbolKind(terms, nonterms, *it),*it,p.pid));
-                    }
-                }
-            }
+            handleNonTerminal(X, curr);
         }
     }
     return nullptr;
+}
+
+void Parser::handleNonTerminal(Symbol X, Token& curr) {
+    Production p = table[X][tokenStr[curr.getSymbol()]];
+    st.pop();
+    // push RHS in reverse order
+    for (auto it = p.rhs.rbegin();  it != p.rhs.rend(); ++it)  {
+        if (*it != EPS && *it == ACTSYM) {
+            st.push(ParseStackSymbol(ACTION, "", p.pid));
+        } else {
+            if (*it != EPS)
+                st.push(ParseStackSymbol(symbolKind(terms, nonterms, *it),*it,p.pid));
+        }
+    }
 }
 
 #endif
