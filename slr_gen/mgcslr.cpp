@@ -182,6 +182,10 @@ class SLRGenerator {
                 Token T = tokens[tpos];
                 LRState S = st.top();
                 cout<<"["<<S.state_num<<"]["<<tokenStr[T.getSymbol()]<<"]"<<actTable[S.state_num][T.getString()]<<endl;
+                if (T.getSymbol() == TK_EOI && actTable[S.state_num]["$"] == "accept") {
+                    cout<<"ACCEPT"<<endl;
+                    return;
+                }
                 switch (actTable[S.state_num][tokenStr[T.getSymbol()]][0]) {
                     case 'a': {
                         cout<<"Input parsed successfully."<<endl;

@@ -1,7 +1,11 @@
 sp ::= E
 E ::= E TK_PLUS T
+E ::= E TK_SUB T
 E ::= T
 T ::= T TK_MUL F
+T ::= T TK_DIV F
 T ::= F
-F ::= TK_LPAREN E TK_RPAREN
-F ::= TK_NUM
+F ::= TK_SUB P
+F ::= P
+P ::= TK_LPAREN E TK_RPAREN
+P ::= TK_NUM
