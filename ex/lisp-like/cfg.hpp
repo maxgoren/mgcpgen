@@ -69,10 +69,10 @@ struct Production {
     string toString() {
         return lhs + " ::= " + rhs.toString(); 
     }
-    bool operator==(const Production& op) const {
+    bool operator==(const Production& op) {
         return lhs == op.lhs && rhs == op.rhs;
     }
-    bool operator!=(const Production& op) const {
+    bool operator!=(const Production& op) {
         return !(*this==op);
     }
     bool operator<(const Production& op) const {
@@ -103,7 +103,6 @@ struct Grammar {
     map<Symbol, ProductionSet> productions;
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
-    map<int, Production> prodById;
     Grammar() {
         startSym = "";
     }
@@ -132,7 +131,7 @@ struct Grammar {
         while (infile.good()) {
             getline(infile, buff);
             if (buff == "%%{") {
-                if  (lastrule != "") {
+                if (lastrule != "") {
                     while (infile.good()) {
                         getline(infile, buff);
                         if (buff == "}%%") {
@@ -141,8 +140,6 @@ struct Grammar {
                             productions[lastrule].back().actions.push_back(buff);
                         }
                     }
-                } else {
-                    cout<<"Error with the action symbols big dog."<<endl;
                 }
             }
             vector<string> parts = split(buff, ' ');
@@ -163,7 +160,6 @@ struct Grammar {
             }
             ps.push_back(Production(rulenum++, parts[0], ss));
             productions[parts[0]] = ps;
-            prodById[ps.back().pid] = ps.back();
             lastrule = parts[0];
             if (startSym == "") {
                 startSym = lastrule;

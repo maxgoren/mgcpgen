@@ -16,16 +16,15 @@
 
 class ComputeFollowSets {
     private:
-        bool symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index);
-        bool calcFollow(Grammar& G, Symbol A);
-        void initFollows(Grammar& G);
+        bool firstFromRHS(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index);
+        bool followClosure(Grammar& G, Symbol A);
     public:
         ComputeFollowSets() { }
         void compute(Grammar& G, Symbol start);
         void printFollows(Grammar& G);
 };
 
-bool ComputeFollowSets::symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index) {
+bool ComputeFollowSets::firstFromRHS(Grammar& G, Symbol currNonTerm, Symbol currLHS, SymbolString alt, int index) {
     bool betaEps = true;
     bool didchange = false;
     bool realSym = false;
@@ -36,7 +35,7 @@ bool ComputeFollowSets::symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, Symbo
         realSym = true;
         for (Symbol s : G.firsts[Y]) {
             if (s != EPS) {
-                if (G.follow[A].insert(s).second)
+                if (G.follow[currNonTerm].insert(s).second)
                     didchange = true;
             }
         }
@@ -48,25 +47,25 @@ bool ComputeFollowSets::symbolFoundOnRight(Grammar& G, Symbol A, Symbol X, Symbo
 
     //X -> aA
     if (!realSym || betaEps) {
-        int pre = G.follow[A].size();
-        G.follow[A].insert(G.follow[X].begin(), G.follow[X].end());
-        if (pre != G.follow[A].size())
+        int pre = G.follow[currNonTerm].size();
+        G.follow[currNonTerm].insert(G.follow[currLHS].begin(), G.follow[currLHS].end());
+        if (pre != G.follow[currNonTerm].size())
             didchange = true;
     }
     return didchange;
 }
 
-bool ComputeFollowSets::calcFollow(Grammar& G, Symbol A) {
+bool ComputeFollowSets::followClosure(Grammar& G, Symbol nonTerm) {
     bool didchange = false;
     for (auto prod : G.productions) {
-        Symbol X = prod.first;
+        Symbol LHS = prod.first;
         ProductionSet RHS = prod.second;
         for (Production alt : RHS) {
             for (int i = 0; i < alt.rhs.size(); i++) {
                 if (alt.rhs[i] == ACTSYM)
                     continue;
-                if (alt.rhs[i] == A) {
-                    if (symbolFoundOnRight(G, A, X, alt.rhs, i))
+                if (alt.rhs[i] == nonTerm) {
+                    if (firstFromRHS(G, nonTerm, LHS, alt.rhs, i))
                         didchange = true;
                 }
             }
@@ -75,23 +74,15 @@ bool ComputeFollowSets::calcFollow(Grammar& G, Symbol A) {
     return didchange;
 }
 
-void ComputeFollowSets::initFollows(Grammar& G) {
-    for (Symbol t : G.terminals) {
-        G.follow[t] = set<Symbol>();
-    }
-    for (Symbol nt : G.nonterminals) {
-        G.follow[nt] = set<Symbol>();
-    }
-}
-
 void ComputeFollowSets::compute(Grammar& G, Symbol start) {
-    initFollows(G);
+    for (Symbol t : G.terminals)     { G.follow[t] = set<Symbol>(); }
+    for (Symbol nt : G.nonterminals) { G.follow[nt] = set<Symbol>(); }
     G.follow[start].insert(GOAL);
     bool didchange = true;
     while (didchange) {
         didchange = false;
-        for (auto A : G.nonterminals) {
-            if (calcFollow(G, A))
+        for (auto nonTerm : G.nonterminals) {
+            if (followClosure(G, nonTerm))
                 didchange = true;                
         }   
     }

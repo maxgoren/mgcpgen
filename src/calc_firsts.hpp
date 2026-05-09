@@ -6,7 +6,7 @@ class ComputeFirstSets {
     private:
         void initFirsts(Grammar& G);
         bool updateNonTerminal(Grammar& G, Symbol X, Symbol f);
-        bool propagate(Grammar& G, Symbol X, SymbolString& production);
+        bool firstClosure(Grammar& G, Symbol X, SymbolString& production);
         bool propagateFirsts(Grammar& G);
     public:
         ComputeFirstSets() {
@@ -43,7 +43,7 @@ bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     return didchange;
 }
 
-bool ComputeFirstSets::propagate(Grammar& G, Symbol X, SymbolString& production) {
+bool ComputeFirstSets::firstClosure(Grammar& G, Symbol X, SymbolString& production) {
     bool didchange = false;
      // Check if the first symbol of this production is epsilon
     Symbol firstSymbol = production.front() == ACTSYM ? *(production.begin()+1):production.front();
@@ -69,7 +69,7 @@ bool ComputeFirstSets::propagateFirsts(Grammar& G) {
         ProductionSet RHS = prod.second;
         // Process each alternative production for X
         for (Production production : RHS) {
-            if (propagate(G, X, production.rhs))
+            if (firstClosure(G, X, production.rhs))
                 didchange = true;
         }
     }   

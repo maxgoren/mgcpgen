@@ -1,0 +1,9 @@
+sexpr ::= atom
+sexpr ::= list
+list ::= TK_LPAREN elmnts TK_RPAREN @@
+elmnts ::= sexpr elmnts
+elmnts ::= #
+atom ::= TK_ID
+atom ::= TK_NUMBER
+atom ::= TK_QUOTE atom
+atom ::= TK_OP
