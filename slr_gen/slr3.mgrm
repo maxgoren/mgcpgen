@@ -1,5 +1,0 @@
-sp ::= E
-E ::= E TK_PLUS T
-E ::= T
-T ::= TK_LPAREN E TK_RPAREN
-T ::= TK_ID

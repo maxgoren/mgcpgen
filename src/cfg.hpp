@@ -63,7 +63,8 @@ struct Production {
     int pid; //for executing Actions
     Symbol lhs;
     SymbolString rhs;
-    vector<string> actions;
+    string action;
+    Production(int id, Symbol l, SymbolString r, string a) : pid(id), lhs(l), rhs(r), action(a) { }
     Production(int id, Symbol l, SymbolString r) : pid(id), lhs(l), rhs(r) { }
     Production() { }
     string toString() {
@@ -131,37 +132,26 @@ struct Grammar {
         string lastrule = "";
         while (infile.good()) {
             getline(infile, buff);
-            if (buff == "%%{") {
-                if  (lastrule != "") {
-                    while (infile.good()) {
-                        getline(infile, buff);
-                        if (buff == "}%%") {
-                            break;
-                        } else {
-                            productions[lastrule].back().actions.push_back(buff);
-                        }
-                    }
-                } else {
-                    cout<<"Error with the action symbols big dog."<<endl;
-                }
-            }
             vector<string> parts = split(buff, ' ');
             nonterminals.insert(parts[0]);
             ProductionSet ps = productions[parts[0]];
             SymbolString ss;
             terminals.insert(GOAL);
             terminals.insert(EPS);
+            string actmaybe;
             for (int i = 2; i < parts.size(); i++) {
                 string s = parts[i];
                 if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
                    terminals.insert(s);
                 } else {
-                    if (s != ACTSYM)
+                    if (s[0] != '@')
                         nonterminals.insert(s);
+                    else actmaybe = s;
                 }
-                ss.push_back(s);
+                if (s[0] != '@')
+                    ss.push_back(s);
             }
-            ps.push_back(Production(rulenum++, parts[0], ss));
+            ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
             productions[parts[0]] = ps;
             prodById[ps.back().pid] = ps.back();
             lastrule = parts[0];
