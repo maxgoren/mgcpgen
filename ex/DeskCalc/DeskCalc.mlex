@@ -5,8 +5,8 @@
 {"/",TK_DIV}
 {"\(",TK_LPAREN}
 {"\)",TK_RPAREN}
-{"<",TK_LT}
-{">",TK_GT}
+{"\<",TK_LT}
+{"\>",TK_GT}
 {"==",TK_EQU}
 {"!=",TK_NEQ}
 {":=",TK_ASSIGN}

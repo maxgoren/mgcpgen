@@ -116,7 +116,7 @@ struct Grammar {
     }
     bool isNullable(Symbol nt) {
         for (auto prod : productions[nt]) {
-            if (prod.rhs[0] == EPS)
+            if (prod.rhs.empty())
                 return true;
         }
         return false;
@@ -151,6 +151,7 @@ struct Grammar {
                 if (s[0] != '@')
                     ss.push_back(s);
             }
+            if (ss[0] == "#") ss.clear();
             ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
             productions[parts[0]] = ps;
             prodById[ps.back().pid] = ps.back();

@@ -46,10 +46,10 @@ bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
 bool ComputeFirstSets::firstClosure(Grammar& G, Symbol X, SymbolString& production) {
     bool didchange = false;
      // Check if the first symbol of this production is epsilon
-    Symbol firstSymbol = production.front() == ACTSYM ? *(production.begin()+1):production.front();
-     if (firstSymbol == EPS) {
+     if (production.empty()) {
         G.firsts[X].insert(EPS);
     } else {
+        Symbol firstSymbol = production.front() == ACTSYM ? *(production.begin()+1):production.front();
         // If f is a non-terminal
         if (G.firsts.find(firstSymbol) != G.firsts.end()) {
             // Add all symbols from FIRST(firstSymbol) to FIRST(X), except epsilon if f is nullable (FIRST(f) - 'E')
