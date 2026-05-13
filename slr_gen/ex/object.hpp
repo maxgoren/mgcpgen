@@ -2,11 +2,14 @@
 #define object_hpp
 #include <iostream>
 #include <deque>
+#include "ast.hpp"
 using namespace std;
 
 enum ObjectType {
-    NUMBER, STRING, BOOL, LIST, NIL
+    NUMBER, STRING, BOOL, LIST, FUNCTION, NIL
 };
+
+struct Function;
 
 struct Object {
     ObjectType type;
@@ -15,11 +18,13 @@ struct Object {
         double         numval;
         string*        strval;
         deque<Object>* listval;
+        Function*      funcval;
     };
     Object(bool v) : boolval(v), type(BOOL) { }
     Object(double dv) : numval(dv), type(NUMBER) { }
     Object(string* str) : strval(str), type(STRING) { }
     Object(deque<Object>* lv) : listval(lv), type(LIST) { }
+    Object(Function* fv) : funcval(fv), type(FUNCTION) { }
     Object() : type(NIL) { }
     string toString() {
         switch (type) {
@@ -42,6 +47,15 @@ struct Object {
     }
 };
 
-
+struct Function {
+    string name;
+    AST* params;
+    AST* body;
+    Function(string nm, AST* p, AST* b) {
+        name = nm;
+        params = p;
+        body = b;
+    }
+};
 
 #endif

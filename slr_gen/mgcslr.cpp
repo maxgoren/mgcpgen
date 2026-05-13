@@ -1,6 +1,6 @@
 #include "slr_gen.hpp"
 #include "slr_parser.hpp"
-
+#include "ex/terp.hpp"
 void showUsage(string name) {
     cout<<"MGCPGen, SLR Generator"<<endl;
     cout<<name<<" <filename> "<<endl;

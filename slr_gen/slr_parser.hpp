@@ -8,7 +8,7 @@
 #include "lr_item_set.hpp"
 #include <stack>
 #include "lexer.hpp"
-#include "ex/procedural_ast.hpp"
+#include "ex/actions.hpp"
 using namespace std;
 
 class SLRParser {
@@ -31,15 +31,19 @@ class SLRParser {
         SLRParser(ActionTable at, GoToTable gt, vector<LRState>& st) {
             actions.insert(make_pair("binop", [](auto& a) { return makebinop(a); }));
             actions.insert(make_pair("unary", [](auto& a) { return makeunary(a); }));
-            actions.insert(make_pair("num", [](auto& a) { return a[0]; }));
-            actions.insert(make_pair("id", [](auto& a) { return a[0]; }));
-            actions.insert(make_pair("string", [](auto& a) { return a[0]; }));
+            actions.insert(make_pair("num", [](auto& a) { a[0]->type = NUM_EXPR; return a[0]; }));
+            actions.insert(make_pair("id", [](auto& a) { a[0]->type = ID_EXPR; return a[0]; }));
+            actions.insert(make_pair("string", [](auto& a) { a[0]->type = STRING_EXPR; return a[0]; }));
             actions.insert(make_pair("pass", [](auto& a) { return a[1]; }));
             actions.insert(make_pair("mklist", [](auto& a) { return makelist(a); }));
             actions.insert(make_pair("mkprint", [](auto& a) { return makeprint(a); }));
             actions.insert(make_pair("mkif", [](auto& a) { return makeIf(a); }));
             actions.insert(make_pair("mkblock", [](auto& a) { return makeBlock(a); }));
             actions.insert(make_pair("mkfunc", [](auto& a) { return makeFunc(a); }));
+            actions.insert(make_pair("mkcall", [](auto& a) { return makeCall(a); }));
+            actions.insert(make_pair("mklet", [](auto& a) { return makeLet(a); }));
+            actions.insert(make_pair("mkret", [](auto& a) { return makeRet(a); }));
+            actions.insert(make_pair("mkexprstmt", [](auto& a) { return a[0]; }));
             actTable = at;
             goTab = gt;
             states = st;
@@ -76,8 +80,10 @@ class SLRParser {
                 }
             }
             st.push(states[goTab[st.top().state_num][X.lhs]]);
+            preorder(semStack.top(), 1);
         }
         void printCurrent(LRState& S, Token& T) {
+            //cout<<S.key()<<endl;
             cout<<"[ state: "<<S.state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTable[S.state_num][T.getString()]<<endl<<"Action: ";
         }
         bool checkAccept(LRState& S, Token& T) {
