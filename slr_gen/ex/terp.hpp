@@ -45,7 +45,16 @@ void eval(AST* ast) {
                 st.push(Object(0.0));
             }
         } else {
-            if (ast->type == FUNC_EXPR) {
+            if (ast->type == LIST_EXPR) {
+                AST* itr = ast->children[0];
+                Object nl(new deque<Object>());
+                while (itr != nullptr) {
+                    eval(itr);
+                    nl.listval->push_back(st.top()); st.pop();
+                    itr = itr->next;
+                }
+                st.push(nl);
+            } else if (ast->type == FUNC_EXPR) {
                 unordered_map<string, Object> tmp;
                 Object t = funcTab[ast->token.getString()];
                 cout<<"Executing function: "<<t.funcval->name<<endl;

@@ -44,6 +44,8 @@ class SLRParser {
             actions.insert(make_pair("mklet", [](auto& a) { return makeLet(a); }));
             actions.insert(make_pair("mkret", [](auto& a) { return makeRet(a); }));
             actions.insert(make_pair("mkexprstmt", [](auto& a) { return a[0]; }));
+            actions.insert(make_pair("mklistcon", [](auto& a) { return makeListConstructor(a); }));
+            actions.insert(make_pair("mksubscript", [](auto& a) { return makeSubScript(a); }));
             actTable = at;
             goTab = gt;
             states = st;

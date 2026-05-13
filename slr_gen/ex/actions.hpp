@@ -100,4 +100,30 @@ AST* makeFunc(vector<AST*>& reducing) {
     return nn;
 }
 
+AST* makeSubScript(vector<AST*>& reducing) {
+    AST* nn = new AST(reducing[1]->token);
+    nn->type = SUBSCRIPT_EXPR;
+    nn->children[0] = reducing[0];
+    nn->children[1] = reducing[2];
+    return nn;
+}
+
+AST* makeListConstructor(vector<AST*>& reducing) {
+    reducing[0]->type = LIST_EXPR;
+    if (reducing[1]->token.getSymbol() == TK_RPAREN)
+        return reducing[0];
+    else {
+        for (int i = 1; i < reducing.size()-1; i++) {
+            if (reducing[0]->children[0] == nullptr) {
+                reducing[0]->children[0] = reducing[1];
+            } else {
+                AST* itr = reducing[0]->children[0];
+                while (itr->next != nullptr) itr = itr->next;
+                itr->next = reducing[i];
+            }
+        }
+    }
+    return reducing[0];
+}
+
 #endif
