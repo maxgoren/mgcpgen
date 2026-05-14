@@ -66,7 +66,7 @@ void eval(AST* ast) {
                     string nm = params->children[0]->token.getString();
                     eval(args);
                     tmp[nm] = st.top(); st.pop();
-                    cout<<"Assigned "<<st.top().toString()<<" to "<<nm<<endl;
+                    cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
                     params = params->next;
                     args = args->next;
                 }

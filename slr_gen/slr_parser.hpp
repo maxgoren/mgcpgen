@@ -75,6 +75,7 @@ class SLRParser {
                 cout<<"And do: ";
                 cout<<X.action<<endl;
                 semStack.push(actions[X.action.substr(1)](tmp));
+                preorder(semStack.top(), 1);
             } else {
                 for (auto m : tmp) {
                     if (m != nullptr)
@@ -82,7 +83,6 @@ class SLRParser {
                 }
             }
             st.push(states[goTab[st.top().state_num][X.lhs]]);
-            preorder(semStack.top(), 1);
         }
         void printCurrent(LRState& S, Token& T) {
             //cout<<S.key()<<endl;

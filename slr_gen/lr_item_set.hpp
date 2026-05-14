@@ -23,8 +23,6 @@ struct LRItem {
     Symbol symbolAfterDot() {
         if (complete())
             return "<fin>";
-        //cout<<production.toString()<<": ";
-        //cout<<"DP: "<<dotPosition<<", size: "<< production.rhs.size()<<endl;
         return production.rhs.at(dotPosition);
     }
     bool complete() const {
@@ -50,22 +48,14 @@ struct LRItem {
         if (dotPosition == production.rhs.size()) 
             result += ".";
         return result;
-
     }
     void print() {
         cout<<toString()<<endl;
     }
 };
 
-namespace std {
-    template <> struct hash<LRItem> {
-        std::size_t operator()(const LRItem& item) const {
-            size_t h1 = hash<int>()(item.production.pid);
-            size_t h2 = hash<int>()(item.dotPosition);
-            return h1 ^ (h2 << 1);
-        }
-    };
-}
+
+
 
 struct LRState {
     int state_num;
@@ -90,15 +80,6 @@ struct LRState {
     }
 };
 
-vector<LRItem> make_lr_items(Production& prod) {
-    vector<LRItem> items;
-    int i = 0;
-    for (auto m : prod.rhs) {
-        items.push_back(LRItem(prod, i++));
-    }
-    items.push_back(LRItem(prod, i++));
-    return items;
-}
 
 LRState closure(const Grammar& G, const LRState& state) {
     LRState ret;

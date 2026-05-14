@@ -63,7 +63,7 @@ class SLRGenerator {
             GoToTable tab;
             for (int s = 0; s < cfsm.V(); s++) {
                 for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
-                        tab[s][it->edgeLabel] = it->dest;
+                    tab[s][it->edgeLabel] = it->dest;
                 }
             }
             return tab;
@@ -101,8 +101,7 @@ class SLRGenerator {
             start.items.insert(LRItem(G.productions[ss][0], 0));
             LRState I0 = closure(G, start);
             queue<LRState> fq;
-            unordered_set<string> seen;
-            
+            unordered_set<string> seen;   
             I0.state_num = 0;
             fq.push(I0);
             seen.insert(I0.key());
