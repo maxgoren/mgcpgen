@@ -11,21 +11,21 @@ using namespace std;
 
 typedef map<Symbol, map<Symbol, Production>> ParseTable;
 
-class TableGenerator {
+class LLTableGenerator {
     private:
         ParseTable table;
         set<Symbol> firstFromString(const vector<Symbol>& rhs, Grammar& G);
         void fillFromFirsts(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha);
         void fillFromFollow(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha);
     public:
-        TableGenerator() {
+        LLTableGenerator() {
 
         }
         ParseTable makeParseTable(Grammar& G);
         void persist(string filename, Grammar& G);
 };
 
-set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& G) {
+set<Symbol> LLTableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& G) {
     set<Symbol> result;
     if (rhs.empty()) {
         return {EPS};
@@ -58,7 +58,7 @@ set<Symbol> TableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar& 
     return result;
 }
 
-void TableGenerator::fillFromFirsts(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha) {
+void LLTableGenerator::fillFromFirsts(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha) {
     for (auto t : firstAlpha) {
         if (t != EPS) {
             if (table[sym].find(t) != table[sym].end()) {
@@ -70,7 +70,7 @@ void TableGenerator::fillFromFirsts(Grammar& G, ParseTable& table, Symbol sym, P
     }
 }
 
-void TableGenerator::fillFromFollow(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha) {
+void LLTableGenerator::fillFromFollow(Grammar& G, ParseTable& table, Symbol sym, Production& prod, const set<Symbol>& firstAlpha) {
     for (auto b : G.follow[sym]) {
         if (table[sym].find(b) != table[sym].end()) {
             cout<<"Warning: Multiple Productions for M["<<sym<<"]["<<b<<"]"<<endl;
@@ -80,7 +80,7 @@ void TableGenerator::fillFromFollow(Grammar& G, ParseTable& table, Symbol sym, P
     }
 }
 
-ParseTable TableGenerator::makeParseTable(Grammar& G) {
+ParseTable LLTableGenerator::makeParseTable(Grammar& G) {
     table = ParseTable();
     for (auto sym : G.nonterminals) {
         for (auto& prod : G.productions[sym]) {
@@ -96,7 +96,7 @@ ParseTable TableGenerator::makeParseTable(Grammar& G) {
     return table;
 }
 
-void TableGenerator::persist(string filename, Grammar& G) {
+void LLTableGenerator::persist(string filename, Grammar& G) {
     std::ofstream ot(filename, ios::out);
     if (ot.good()) {
         ot<<"#include <vector>\n";

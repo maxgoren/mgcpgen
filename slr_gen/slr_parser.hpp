@@ -13,6 +13,8 @@ using namespace std;
 
 class SLRParser {
     private:
+        stack<AST*> semStack;
+        stack<LRState> st;
         ActionTable actTable;
         GoToTable goTab;
         vector<LRState> states;
@@ -28,7 +30,7 @@ class SLRParser {
             }
         }
     public:
-        SLRParser(ActionTable at, GoToTable gt, vector<LRState>& st) {
+        SLRParser(ActionTable at, GoToTable gt, vector<LRState>& sl) {
             actions.insert(make_pair("binop", [](auto& a) { return makebinop(a); }));
             actions.insert(make_pair("unary", [](auto& a) { return makeunary(a); }));
             actions.insert(make_pair("num", [](auto& a) { a[0]->type = NUM_EXPR; return a[0]; }));
@@ -48,22 +50,16 @@ class SLRParser {
             actions.insert(make_pair("mksubscript", [](auto& a) { return makeSubScript(a); }));
             actTable = at;
             goTab = gt;
-            states = st;
+            states = sl;
         }
-        void doShift(stack<LRState>& st, stack<AST*>& semStack, LRState S, Token& T) {
+        void doShift(int next) {
             cout<<"SHIFT"<<endl;
-            if (goTab[S.state_num].find(tokenStr[T.getSymbol()]) != goTab[S.state_num].end()) {
-                int next = goTab[S.state_num][tokenStr[T.getSymbol()]];
-                st.push(states[next]);
-            } else {
-                cout<<"Hmmm.. nothing to shift?"<<endl;
-            }
+            st.push(states[next]);
             semStack.push(new AST(current()));
             advance();
         }
-        void doReduce(Production& X, LRState S, Token& T, stack<LRState>& st, stack<AST*>& semStack) {
+        void doReduce(Production& X) {
             cout<<"REDUCE"<<endl;
-            int rto = stoi(actTable[S.state_num][tokenStr[T.getSymbol()]].substr(1));
             vector<AST*> tmp;
             for (int i = 0; i < X.rhs.size(); i++) {
                 st.pop();
@@ -72,14 +68,14 @@ class SLRParser {
             }
             reverse(tmp.begin(), tmp.end());
             if (X.action.empty() == false) {
-                cout<<"And do: ";
-                cout<<X.action<<endl;
+                cout<<"And do: "<<X.action<<endl;
                 semStack.push(actions[X.action.substr(1)](tmp));
                 preorder(semStack.top(), 1);
             } else {
                 for (auto m : tmp) {
-                    if (m != nullptr)
+                    if (m != nullptr) {
                         semStack.push(m);
+                    }
                 }
             }
             st.push(states[goTab[st.top().state_num][X.lhs]]);
@@ -98,27 +94,25 @@ class SLRParser {
         AST* shift_reduce_driver(Grammar& G, vector<Token>& tok) {
             tokens = tok;
             tpos = 0;
-            stack<LRState> st;
-            stack<AST*> semStack;
             st.push(states[0]);
             for (;;) {
-                Token T = current();
-                LRState S = st.top();
-                printCurrent(S, T);
-                if (checkAccept(S, T))
+                Token curr_token = current();
+                LRState curr_state = st.top();
+                printCurrent(curr_state, curr_token);
+                if (checkAccept(curr_state, curr_token))
                     return semStack.top();
-                string next = actTable[S.state_num][tokenStr[T.getSymbol()]];
-                switch (next[0]) {
+                string act = actTable[curr_state.state_num][tokenStr[curr_token.getSymbol()]];
+                int next = stoi(act.substr(1));
+                switch (act[0]) {
                     case 's': {
-                        doShift(st, semStack, S, T);
+                        doShift(next);
                     } break;
                     case 'r': {
-                        int rto = stoi(next.substr(1));
-                        Production X = G.prodById[rto];
-                        doReduce(X, S, T, st, semStack);
+                        Production prod = G.prodById[next];
+                        doReduce(prod);
                     } break;
                     default:
-                        cout<<"Syntax Error: "<<tokenStr[T.getSymbol()]<<endl;
+                        cout<<"Syntax Error: "<<tokenStr[curr_token.getSymbol()]<<endl;
                         return nullptr;
                 }
             }

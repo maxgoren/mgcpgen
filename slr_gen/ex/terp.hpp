@@ -54,6 +54,12 @@ void eval(AST* ast) {
                     itr = itr->next;
                 }
                 st.push(nl);
+            } else if (ast->type == SUBSCRIPT_EXPR) {
+                eval(ast->children[0]);
+                Object lv = st.top(); st.pop();
+                eval(ast->children[1]);
+                Object idx = st.top(); st.pop();
+                st.push(lv.listval->at(idx.numval));
             } else if (ast->type == FUNC_EXPR) {
                 unordered_map<string, Object> tmp;
                 Object t = funcTab[ast->token.getString()];

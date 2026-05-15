@@ -23,6 +23,8 @@ struct LRItem {
     Symbol symbolAfterDot() {
         if (complete())
             return "<fin>";
+        //cout<<production.toString()<<": ";
+        //cout<<"DP: "<<dotPosition<<", size: "<< production.rhs.size()<<endl;
         return production.rhs.at(dotPosition);
     }
     bool complete() const {
@@ -48,14 +50,22 @@ struct LRItem {
         if (dotPosition == production.rhs.size()) 
             result += ".";
         return result;
+
     }
     void print() {
         cout<<toString()<<endl;
     }
 };
 
-
-
+namespace std {
+    template <> struct hash<LRItem> {
+        std::size_t operator()(const LRItem& item) const {
+            size_t h1 = hash<int>()(item.production.pid);
+            size_t h2 = hash<int>()(item.dotPosition);
+            return h1 ^ (h2 << 1);
+        }
+    };
+}
 
 struct LRState {
     int state_num;
@@ -79,48 +89,6 @@ struct LRState {
         return !(*this == other);
     }
 };
-
-
-LRState closure(const Grammar& G, const LRState& state) {
-    LRState ret;
-    ret.items = state.items;
-
-    queue<LRItem> work;
-
-    for (const auto& item : state.items)
-        work.push(item);
-
-    while (!work.empty()) {
-
-        LRItem item = work.front();
-        work.pop();
-
-        Symbol X = item.symbolAfterDot();
-
-        if (G.nonterminals.find(X) == G.nonterminals.end())
-            continue;
-
-        for (Production p : G.productions.at(X)) {
-            LRItem newItem(p, 0);
-            if (ret.items.find(newItem) == ret.items.end()) {
-                ret.items.insert(newItem);
-                work.push(newItem);
-            }
-        }
-    }
-    return ret;
-}
-
-LRState lr_goto(Grammar& G, const LRState& state, Symbol X) {
-    LRState next;
-    for (LRItem item : state.items) {
-        Symbol after = item.symbolAfterDot();
-        if (after == X) {
-            next.items.insert(item.advance());
-        }
-    }
-    return closure(G, next);
-}
 
 
 #endif

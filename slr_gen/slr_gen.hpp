@@ -63,7 +63,8 @@ class SLRGenerator {
             GoToTable tab;
             for (int s = 0; s < cfsm.V(); s++) {
                 for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
-                    tab[s][it->edgeLabel] = it->dest;
+                    if (G.nonterminals.count(it->edgeLabel))
+                        tab[s][it->edgeLabel] = it->dest;
                 }
             }
             return tab;
@@ -91,6 +92,39 @@ class SLRGenerator {
                 }
             }
             return tab;
+        }
+        LRState closure(const Grammar& G, const LRState& state) {
+            LRState ret;
+            queue<LRItem> work;
+            ret.items = state.items;
+            for (const auto& item : state.items) {
+                work.push(item);
+            }
+            while (!work.empty()) {
+                Symbol X = work.front().symbolAfterDot();
+                work.pop();
+                if (G.nonterminals.find(X) != G.nonterminals.end()) {
+                    for (Production p : G.productions.at(X)) {
+                        LRItem newItem(p, 0);
+                        if (ret.items.find(newItem) == ret.items.end()) {
+                            ret.items.insert(newItem);
+                            work.push(newItem);
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
+
+        LRState lr_goto(Grammar& G, const LRState& state, Symbol X) {
+            LRState next;
+            for (LRItem item : state.items) {
+                Symbol after = item.symbolAfterDot();
+                if (after == X) {
+                    next.items.insert(item.advance());
+                }
+            }
+            return closure(G, next);
         }
         void generate_CFSM(Grammar& G, Symbol ss) {
             for (Symbol s : G.terminals)
@@ -147,13 +181,17 @@ class SLRGenerator {
             cfsm.print();
         }
         template <class Iterable>
-        void printTables(Iterable table) {
+        void printTables(ostream& os, Iterable table, string tableName) {
             for (auto e : table) {
-                cout<<e.first<<": ";
+                os<<tableName<<"["<<e.first<<"] = {";
+                int i = 0;
                 for (auto t : e.second) {
-                    cout<<"("<<t.first<<", "<<t.second<<") ";
+                    os<<"{\""<<t.first<<"\", \""<<t.second<<"\"}";
+                    if (i+1 < e.second.size())
+                        os<<", ";
+                    i++;
                 }
-                cout<<endl;
+                os<<"}"<<endl;
             }
         }
     public:
@@ -163,7 +201,7 @@ class SLRGenerator {
         vector<LRState>& getStates() {
             return states;
         }
-        pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss) {
+        pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) {
             firsts.compute(G);
             follows.compute(G, ss);
             generate_CFSM(G, ss);
@@ -171,16 +209,27 @@ class SLRGenerator {
             GoToTable goTab;                                                                                                                                                                               
             goTab = make_goto_table(G);
             actTable = make_action_table(G, ss);
-            printTables(goTab);
-            printTables(actTable);
+            printTables(cout, goTab, "goTab");
+            printTables(cout, actTable, "actTab");
+            printTables(ofile, goTab, "goTab");
+            printTables(ofile, actTable, "actTab");
             firsts.printFirsts(G);
             follows.printFollows(G);
             return make_pair(actTable, goTab);
         }
+        pair<ActionTable,GoToTable> generate(Grammar& G, Symbol start) {
+            ofstream ofile("mgc_slr_gen.out.hpp");
+            auto ret = generate(G, start, ofile);
+            ofile.close();
+            return ret;
+        }
         pair<ActionTable,GoToTable> generate(string filename, Symbol start) {
             Grammar G;
             G.readGrammarFile(filename);
-            return generate(G, start);
+            ofstream ofile("mgc_slr_gen.out.hpp");
+            auto ret = generate(G, start, ofile);
+            ofile.close();
+            return ret;
         }
 };
 
