@@ -1,5 +1,5 @@
 #pragma once
-#include "../token.hpp"
+#include "token.hpp"
 using namespace std;
 
 enum NODE_TYPE {

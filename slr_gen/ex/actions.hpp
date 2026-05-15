@@ -1,6 +1,6 @@
 #ifndef ast_hpp
 #define ast_hpp
-#include "../token.hpp"
+#include "token.hpp"
 #include <map>
 #include <unordered_set>
 #include <algorithm>

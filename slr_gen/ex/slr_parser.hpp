@@ -2,22 +2,17 @@
 #define slr_parser_hpp
 #include <iostream>
 #include <functional>
-#include "../src/cfg.hpp"
-#include "../src/calc_firsts.hpp"
-#include "../src/calc_follows.hpp"
-#include "lr_item_set.hpp"
 #include <stack>
 #include "lexer.hpp"
-#include "ex/actions.hpp"
+#include "actions.hpp"
+#include "mgc_slr_gen.out.hpp"
+
 using namespace std;
 
 class SLRParser {
     private:
         stack<AST*> semStack;
-        stack<LRState> st;
-        ActionTable actTable;
-        GoToTable goTab;
-        vector<LRState> states;
+        stack<int> st;
         map<string, function<AST*(vector<AST*>&)>> actions;
         int tpos;
         vector<Token> tokens;
@@ -30,7 +25,10 @@ class SLRParser {
             }
         }
     public:
-        SLRParser(ActionTable at, GoToTable gt, vector<LRState>& sl) {
+        SLRParser() {
+            initprod();
+            initactTab();
+            initgoTab();
             actions.insert(make_pair("binop", [](auto& a) { return makebinop(a); }));
             actions.insert(make_pair("unary", [](auto& a) { return makeunary(a); }));
             actions.insert(make_pair("num", [](auto& a) { a[0]->type = NUM_EXPR; return a[0]; }));
@@ -48,13 +46,10 @@ class SLRParser {
             actions.insert(make_pair("mkexprstmt", [](auto& a) { return a[0]; }));
             actions.insert(make_pair("mklistcon", [](auto& a) { return makeListConstructor(a); }));
             actions.insert(make_pair("mksubscript", [](auto& a) { return makeSubScript(a); }));
-            actTable = at;
-            goTab = gt;
-            states = sl;
         }
         void doShift(int next) {
             cout<<"SHIFT"<<endl;
-            st.push(states[next]);
+            st.push(next);
             semStack.push(new AST(current()));
             advance();
         }
@@ -78,38 +73,52 @@ class SLRParser {
                     }
                 }
             }
-            st.push(states[goTab[st.top().state_num][X.lhs]]);
+            st.push(stoi(goTab[st.top()][X.lhs]));
         }
-        void printCurrent(LRState& S, Token& T) {
+        void printCurrent(int state_num, Token& T) {
             //cout<<S.key()<<endl;
-            cout<<"[ state: "<<S.state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTable[S.state_num][T.getString()]<<endl<<"Action: ";
+            cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][T.getString()]<<endl<<"Action: ";
         }
-        bool checkAccept(LRState& S, Token& T) {
-            if (T.getSymbol() == TK_EOI && actTable[S.state_num]["$"] == "accept") {
+        bool checkAccept(int state_num, Token& T) {
+            if (T.getSymbol() == TK_EOI && actTab[state_num]["$"] == "accept") {
                 cout<<"ACCEPT"<<endl;
                 return true;
             }
             return false;
         }
-        AST* shift_reduce_driver(Grammar& G, vector<Token>& tok) {
+        AST* shift_reduce_driver(vector<Token>& tok) {
+            for (auto m : actTab) {
+                cout<<m.first<<" ";
+                for (auto n : m.second) {
+                    cout<<n.first<<" "<<n.second;
+                }
+                cout<<endl;
+            }
             tokens = tok;
             tpos = 0;
-            st.push(states[0]);
+            st.push(0);
             for (;;) {
                 Token curr_token = current();
-                LRState curr_state = st.top();
+                int curr_state = st.top();
                 printCurrent(curr_state, curr_token);
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
-                string act = actTable[curr_state.state_num][tokenStr[curr_token.getSymbol()]];
+                if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
+                    cout<<"Hmm, nothing to do?";
+                    for (auto m : actTab[curr_state]) {
+                        cout<<m.first<<": "<<m.second<<endl;
+                    }
+                    return nullptr;
+                }
+                string act = actTab[curr_state][tokenStr[curr_token.getSymbol()]];
                 int next = stoi(act.substr(1));
                 switch (act[0]) {
                     case 's': {
                         doShift(next);
                     } break;
                     case 'r': {
-                        Production prod = G.prodById[next];
-                        doReduce(prod);
+                        Production p = prod[next];
+                        doReduce(p);
                     } break;
                     default:
                         cout<<"Syntax Error: "<<tokenStr[curr_token.getSymbol()]<<endl;
