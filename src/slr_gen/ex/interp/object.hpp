@@ -2,7 +2,7 @@
 #define object_hpp
 #include <iostream>
 #include <deque>
-#include "ast.hpp"
+#include "../parse/ast.hpp"
 using namespace std;
 
 enum ObjectType {

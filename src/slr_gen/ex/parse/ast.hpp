@@ -1,5 +1,6 @@
 #pragma once
-#include "token.hpp"
+#include "../lex/token.hpp"
+#include <iostream>
 using namespace std;
 
 enum NODE_TYPE {
@@ -24,3 +25,15 @@ struct AST {
         type = TMP;
     }
 };
+
+void preorder(AST* ast, int d) {
+    if (ast != nullptr) {
+        for (int i = 0; i < d; i++) cout<<" ";
+        cout<<nodeTypeStr[ast->type]<<" ";
+        cout<<ast->token.getString()<<endl;
+        for (AST* n : ast->children) {
+            preorder(n, d+1);
+        }
+        preorder(ast->next, d);
+    }
+}

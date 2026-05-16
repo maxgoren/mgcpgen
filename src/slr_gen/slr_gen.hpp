@@ -136,7 +136,7 @@ class SLRGenerator {
             ofile<<"#include <vector>\n";
             ofile<<"#include <map>\n";
             ofile<<"#include <set>\n";
-            ofile<<"#include \"cfg.hpp\"\n";
+            ofile<<"#include \"production.hpp\"\n";
             ofile<<"using namespace std; \n";
         }
         void printProductions(ostream& os, Grammar& G, string name) {

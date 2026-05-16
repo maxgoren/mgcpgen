@@ -1,14 +1,11 @@
 #ifndef ast_hpp
 #define ast_hpp
-#include "token.hpp"
 #include <map>
 #include <unordered_set>
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
-#include "object.hpp"
 #include "ast.hpp"
-#include "terp.hpp"
 using namespace std;
 
 AST* makebinop(vector<AST*>& reducing) {
@@ -104,6 +101,7 @@ AST* makeSubScript(vector<AST*>& reducing) {
     AST* nn = new AST(reducing[1]->token);
     nn->type = SUBSCRIPT_EXPR;
     nn->children[0] = reducing[0];
+    nn->children[0]->type = ID_EXPR;
     nn->children[1] = reducing[2];
     return nn;
 }

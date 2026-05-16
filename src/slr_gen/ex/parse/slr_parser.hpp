@@ -3,7 +3,6 @@
 #include <iostream>
 #include <functional>
 #include <stack>
-#include "lexer.hpp"
 #include "actions.hpp"
 #include "mgc_slr_gen.out.hpp"
 

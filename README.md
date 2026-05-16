@@ -14,4 +14,3 @@ mgcpgen has algorithms for:
       3a) the transition table for an LL(1) iterative parser.
       3b) the action/goto tables for an SLR(1) parser
 ```
-

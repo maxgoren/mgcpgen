@@ -1,5 +1,6 @@
-#include "slr_parser.hpp"
-#include "terp.hpp"
+#include "parse/slr_parser.hpp"
+#include "lex/lexer.hpp"
+#include "interp/terp.hpp"
 
 int main() {
     Lexer lexer;

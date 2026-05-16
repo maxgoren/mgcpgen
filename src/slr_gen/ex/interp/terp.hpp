@@ -1,5 +1,5 @@
 #pragma once
-#include "ast.hpp"
+#include "../parse/ast.hpp"
 #include "object.hpp"
 #include <unordered_map>
 #include <iostream>
@@ -11,18 +11,6 @@ class ReturnException : public std::exception {
         return "ret stmt";
     }
 };
-
-void preorder(AST* ast, int d) {
-    if (ast != nullptr) {
-        for (int i = 0; i < d; i++) cout<<" ";
-        cout<<nodeTypeStr[ast->type]<<" ";
-        cout<<ast->token.getString()<<endl;
-        for (AST* n : ast->children) {
-            preorder(n, d+1);
-        }
-        preorder(ast->next, d);
-    }
-}
 
 void exec(AST* ast);
 void evalBinOp(AST* ast);
@@ -94,8 +82,18 @@ void eval(AST* ast) {
 void evalBinOp(AST* ast) {
     if (ast->token.getSymbol() == TK_ASSIGN) {
         eval(ast->children[1]);
-        symtab[ast->children[0]->token.getString()] = st.top(); st.pop();
-        st.push(symtab[ast->children[0]->token.getString()]);
+        if (ast->children[0]->type == ID_EXPR) {
+            symtab[ast->children[0]->token.getString()] = st.top(); st.pop();
+            st.push(symtab[ast->children[0]->token.getString()]);
+        } else if (ast->children[0]->type == SUBSCRIPT_EXPR) {
+            eval(ast->children[0]->children[0]);
+            eval(ast->children[0]->children[1]);
+            Object idx = st.top(); st.pop();
+            Object lval = st.top(); st.pop();
+            lval.listval->at(idx.numval) = st.top(); st.pop();
+            symtab[ast->children[0]->children[0]->token.getString()] = lval;
+            st.push(lval);
+        }
     }
     eval(ast->children[0]);
     Object lho =st.top(); st.pop();
