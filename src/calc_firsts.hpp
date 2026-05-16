@@ -26,7 +26,7 @@ void  ComputeFirstSets::initFirsts(Grammar& G) {
     for (Symbol nt : G.nonterminals) {
         G.firsts[nt] = set<Symbol>();
         if (G.isNullable(nt)) {
-            cout<<nt<<" is nullable..."<<endl;
+            //cout<<nt<<" is nullable..."<<endl;
             G.firsts[nt].insert("#");
         }
     }

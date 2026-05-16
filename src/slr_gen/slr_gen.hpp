@@ -6,46 +6,9 @@
 #include "../../src/calc_firsts.hpp"
 #include "../../src/calc_follows.hpp"
 #include "lr_item_set.hpp"
+#include "directed_graph.hpp"
 #include <stack>
 using namespace std;
-
-
-struct Transition {
-    int dest;
-    Symbol edgeLabel;
-    Transition* next;
-    Transition(int d, Symbol x, Transition* t) : dest(d), edgeLabel(x), next(t) { }
-};
-
-class DirectedGraph {
-    private:
-        map<int, Transition*> adjlist;
-        int edgecount;
-    public:
-        DirectedGraph() {
-            edgecount = 0;
-        }
-        int V() {
-            return adjlist.size();
-        }
-        int E() {
-            return edgecount;
-        }
-        void addEdge(int s, int t, Symbol X) {
-            adjlist[s] = new Transition(t, X, adjlist[s]);
-            edgecount++;
-        }
-        Transition* adj(int v) {
-            return adjlist[v];
-        }
-        void print() {
-            for (auto e : adjlist) {
-                for (auto it = e.second; it != nullptr; it = it->next) {
-                    cout<<e.first<<" -("<<it->edgeLabel<<")-> "<<it->dest<<endl;
-                }
-            }
-        }
-};
 
 using GoToTable = map<int,map<Symbol,int>>;
 using ActionTable = map<int,map<Symbol,string>>;
@@ -57,7 +20,6 @@ class SLRGenerator {
         ComputeFollowSets   follows;
         DirectedGraph       cfsm;
         vector<LRState>     states;
-
         GoToTable make_goto_table(Grammar& G) {
             GoToTable tab;
             for (int s = 0; s < cfsm.V(); s++) {
@@ -102,7 +64,7 @@ class SLRGenerator {
             while (!work.empty()) {
                 Symbol X = work.front().symbolAfterDot();
                 work.pop();
-                if (G.nonterminals.find(X) != G.nonterminals.end()) {
+                if (G.nonterminals.count(X)) {
                     for (Production p : G.productions.at(X)) {
                         LRItem newItem(p, 0);
                         if (ret.items.find(newItem) == ret.items.end()) {
@@ -178,6 +140,19 @@ class SLRGenerator {
             ofile<<"using namespace std; \n";
         }
         void printProductions(ostream& os, Grammar& G, string name) {
+            os<<"enum NTSYMBOL {\n";
+            int i = 0;
+            for (auto t : G.nonterminals) {
+                if (t != "#") {
+                    os<<t;
+                    if (i+1 < G.nonterminals.size())
+                        os<<", ";
+                    if (i % 5 == 0) 
+                        os<<endl;
+                }
+                i++;
+            }
+            os<<"\n};\n";
             os<<"map<int, Production> "<<name<<";"<<endl;
             os<<"void init"<<name<<"() {\n";
             for (auto e : G.prodById) {
@@ -213,13 +188,6 @@ class SLRGenerator {
             }
             os<<"}"<<endl;
         }
-    public:
-        SLRGenerator() {
-
-        }
-        vector<LRState>& getStates() {
-            return states;
-        }
         pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) {
             firsts.compute(G);
             follows.compute(G, ss);
@@ -233,6 +201,13 @@ class SLRGenerator {
             printTables(ofile, goTab, "goTab");
             printTables(ofile, actTable, "actTab");
             return make_pair(actTable, goTab);
+        }
+    public:
+        SLRGenerator() {
+
+        }
+        vector<LRState>& getStates() {
+            return states;
         }
         pair<ActionTable,GoToTable> generate(Grammar& G, Symbol start) {
             ofstream ofile("mgc_slr_gen.out.hpp");

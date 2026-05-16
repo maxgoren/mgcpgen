@@ -23,8 +23,6 @@ struct LRItem {
     Symbol symbolAfterDot() {
         if (complete())
             return "<fin>";
-        //cout<<production.toString()<<": ";
-        //cout<<"DP: "<<dotPosition<<", size: "<< production.rhs.size()<<endl;
         return production.rhs.at(dotPosition);
     }
     bool complete() const {
