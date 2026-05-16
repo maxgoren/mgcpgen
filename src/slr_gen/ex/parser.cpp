@@ -12,7 +12,7 @@ int main() {
         sb->init(expr);
         vector<Token> tokens = lexer.lex(sb);
         cout<<"Parsing: "<<expr<<endl;
-        AST* ast = parser.shift_reduce_driver(tokens);
+        AST* ast = parser.parse(tokens);
         preorder(ast,1);
         exec(ast);
     } while (true);

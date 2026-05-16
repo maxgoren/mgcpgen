@@ -2,7 +2,7 @@
 #define lr_item_set_hpp
 #include <queue>
 #include <unordered_set>
-#include "../src/cfg.hpp"
+#include "../../src/cfg.hpp"
 using namespace std;
 
 struct LRItem {

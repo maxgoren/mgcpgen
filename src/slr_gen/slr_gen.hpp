@@ -2,9 +2,9 @@
 #define slr_gen_hpp
 #include <iostream>
 #include <functional>
-#include "../src/cfg.hpp"
-#include "../src/calc_firsts.hpp"
-#include "../src/calc_follows.hpp"
+#include "../../src/cfg.hpp"
+#include "../../src/calc_firsts.hpp"
+#include "../../src/calc_follows.hpp"
 #include "lr_item_set.hpp"
 #include <stack>
 using namespace std;
@@ -140,9 +140,7 @@ class SLRGenerator {
             seen.insert(I0.key());
             states.push_back(I0);
             while (!fq.empty()) {
-                cout<<"--------------------"<<endl;
                 LRState curr = fq.front(); fq.pop();
-                cout<<"Current state: "<<curr.state_num<<endl;
                 unordered_set<Symbol> valid;
                 for (auto item : curr.items) {
                     Symbol tmp = item.symbolAfterDot();
@@ -155,7 +153,6 @@ class SLRGenerator {
                         continue;
                     int target;
                     if (seen.find(gt.key()) == seen.end()) {
-                        cout<<"\nGoto(I"<<curr.state_num<<","<<X<<"): "<<endl;
                         gt.state_num = states.size();
                         fq.push(gt);
                         states.push_back(gt);
@@ -165,7 +162,6 @@ class SLRGenerator {
                         for (auto s : states) {
                             if (gt.key() == s.key()) {
                                 target = s.state_num;
-                                cout<<"Found existing: "<<target<<endl;
                                 break;
                             }
                         }
@@ -173,28 +169,13 @@ class SLRGenerator {
                     cfsm.addEdge(curr.state_num, target, X);                    
                 }
             }
-            for (auto m : states) {
-                cout<<"I"<<m.state_num<<": \n";
-                cout<<m.key();
-            }
-            cfsm.print();
         }
-        template <class Iterable>
-        void printTables(ostream& os, Iterable table, string tableName) {
-            os<<"map<int,map<string,string>> "<<tableName<<";\n";
-            os<<"void init"<<tableName<<"() {\n";
-            for (auto e : table) {
-                os<<"\t "<<tableName<<"["<<e.first<<"] = {";
-                int i = 0;
-                for (auto t : e.second) {
-                    os<<"{\""<<t.first<<"\", \""<<t.second<<"\"}";
-                    if (i+1 < e.second.size())
-                        os<<", ";
-                    i++;
-                }
-                os<<"};"<<endl;
-            }
-            os<<"}"<<endl;
+        void printPrelude(ostream& ofile) {
+            ofile<<"#include <vector>\n";
+            ofile<<"#include <map>\n";
+            ofile<<"#include <set>\n";
+            ofile<<"#include \"cfg.hpp\"\n";
+            ofile<<"using namespace std; \n";
         }
         void printProductions(ostream& os, Grammar& G, string name) {
             os<<"map<int, Production> "<<name<<";"<<endl;
@@ -215,6 +196,23 @@ class SLRGenerator {
             }
             os<<"}\n";
         }
+        template <class Iterable>
+        void printTables(ostream& os, Iterable table, string tableName) {
+            os<<"map<int,map<string,string>> "<<tableName<<";\n";
+            os<<"void init"<<tableName<<"() {\n";
+            for (auto e : table) {
+                os<<"\t "<<tableName<<"["<<e.first<<"] = {";
+                int i = 0;
+                for (auto t : e.second) {
+                    os<<"{\""<<t.first<<"\", \""<<t.second<<"\"}";
+                    if (i+1 < e.second.size())
+                        os<<", ";
+                    i++;
+                }
+                os<<"};"<<endl;
+            }
+            os<<"}"<<endl;
+        }
     public:
         SLRGenerator() {
 
@@ -230,18 +228,10 @@ class SLRGenerator {
             GoToTable goTab;                                                                                                                                                                               
             goTab = make_goto_table(G);
             actTable = make_action_table(G, ss);
-            ofile<<"#include <vector>\n";
-            ofile<<"#include <map>\n";
-            ofile<<"#include <set>\n";
-            ofile<<"#include \"cfg.hpp\"\n";
-            ofile<<"using namespace std; \n";
-            printTables(cout, goTab, "goTab");
-            printTables(cout, actTable, "actTab");
+            printPrelude(ofile);
             printProductions(ofile, G, "prod");
             printTables(ofile, goTab, "goTab");
             printTables(ofile, actTable, "actTab");
-            firsts.printFirsts(G);
-            follows.printFollows(G);
             return make_pair(actTable, goTab);
         }
         pair<ActionTable,GoToTable> generate(Grammar& G, Symbol start) {

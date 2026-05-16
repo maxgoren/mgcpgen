@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 #include <set>
-#include "cfg.hpp"
+#include "../../src/cfg.hpp"
 using namespace std;
 
 typedef map<Symbol, map<Symbol, Production>> ParseTable;

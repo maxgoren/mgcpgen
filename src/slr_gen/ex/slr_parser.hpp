@@ -86,14 +86,7 @@ class SLRParser {
             }
             return false;
         }
-        AST* shift_reduce_driver(vector<Token>& tok) {
-            for (auto m : actTab) {
-                cout<<m.first<<" ";
-                for (auto n : m.second) {
-                    cout<<n.first<<" "<<n.second;
-                }
-                cout<<endl;
-            }
+        AST* parse(vector<Token>& tok) {
             tokens = tok;
             tpos = 0;
             st.push(0);
