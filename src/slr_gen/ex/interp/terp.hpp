@@ -15,22 +15,29 @@ class ReturnException : public std::exception {
 void exec(AST* ast);
 void evalBinOp(AST* ast);
 
-unordered_map<string, Object> symtab;
-unordered_map<string, Object> funcTab;
-stack<Object> st;
+struct Context {
+    vector<unordered_map<string, Object>> symtab;
+    unordered_map<string, Object> funcTab;
+    stack<Object> st;
+    Context() {
+        symtab.push_back(unordered_map<string,Object>());
+    }
+};
+
+Context cxt;
 
 void eval(AST* ast) {
     if (ast != nullptr) {
         eval(ast->next);
         if (ast->children[0] == nullptr) {
             if (ast->token.getSymbol() == TK_NUM) {
-                st.push( Object(stod(ast->token.getString())));
+                cxt.st.push( Object(stod(ast->token.getString())));
             } else if (ast->token.getSymbol() == TK_ID) {
-                st.push(symtab[ast->token.getString()]);
+                cxt.st.push(cxt.symtab.back()[ast->token.getString()]);
             } else if (ast->token.getSymbol() == TK_STRING) {
-                st.push(Object(new string(ast->token.getString())));
+                cxt.st.push(Object(new string(ast->token.getString())));
             } else {
-                st.push(Object(0.0));
+                cxt.st.push(Object(0.0));
             }
         } else {
             if (ast->type == LIST_EXPR) {
@@ -38,19 +45,19 @@ void eval(AST* ast) {
                 Object nl(new deque<Object>());
                 while (itr != nullptr) {
                     eval(itr);
-                    nl.listval->push_back(st.top()); st.pop();
+                    nl.listval->push_back(cxt.st.top()); cxt.st.pop();
                     itr = itr->next;
                 }
-                st.push(nl);
+                cxt.st.push(nl);
             } else if (ast->type == SUBSCRIPT_EXPR) {
                 eval(ast->children[0]);
-                Object lv = st.top(); st.pop();
+                Object lv = cxt.st.top(); cxt.st.pop();
                 eval(ast->children[1]);
-                Object idx = st.top(); st.pop();
-                st.push(lv.listval->at(idx.numval));
-            } else if (ast->type == FUNC_EXPR) {
+                Object idx = cxt.st.top(); cxt.st.pop();
+                cxt.st.push(lv.listval->at(idx.numval));
+            } else if (ast->type == FUNC_EXPR) { 
                 unordered_map<string, Object> tmp;
-                Object t = funcTab[ast->token.getString()];
+                Object t = cxt.funcTab[ast->token.getString()];
                 cout<<"Executing function: "<<t.funcval->name<<endl;
                 Function* f = t.funcval;
                 AST* params = f->params;
@@ -59,19 +66,18 @@ void eval(AST* ast) {
                 while (params != nullptr && args != nullptr) {
                     string nm = params->children[0]->token.getString();
                     eval(args);
-                    tmp[nm] = st.top(); st.pop();
+                    tmp[nm] = cxt.st.top(); cxt.st.pop();
                     cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
                     params = params->next;
                     args = args->next;
                 }
-                auto prev = symtab;
-                symtab = tmp;
+                cxt.symtab.push_back(tmp);
                 try {
                     exec(f->body);
                 } catch (ReturnException re) {
 
                 }
-                symtab = prev;
+                cxt.symtab.pop_back();
             } else {
                 evalBinOp(ast);
             }
@@ -83,40 +89,40 @@ void evalBinOp(AST* ast) {
     if (ast->token.getSymbol() == TK_ASSIGN) {
         eval(ast->children[1]);
         if (ast->children[0]->type == ID_EXPR) {
-            symtab[ast->children[0]->token.getString()] = st.top(); st.pop();
-            st.push(symtab[ast->children[0]->token.getString()]);
+            cxt.symtab.back()[ast->children[0]->token.getString()] = cxt.st.top(); cxt.st.pop();
+            cxt.st.push(cxt.symtab.back()[ast->children[0]->token.getString()]);
         } else if (ast->children[0]->type == SUBSCRIPT_EXPR) {
             eval(ast->children[0]->children[0]);
             eval(ast->children[0]->children[1]);
-            Object idx = st.top(); st.pop();
-            Object lval = st.top(); st.pop();
-            lval.listval->at(idx.numval) = st.top(); st.pop();
-            symtab[ast->children[0]->children[0]->token.getString()] = lval;
-            st.push(lval);
+            Object idx = cxt.st.top(); cxt.st.pop();
+            Object lval = cxt.st.top(); cxt.st.pop();
+            lval.listval->at(idx.numval) = cxt.st.top(); cxt.st.pop();
+            cxt.symtab.back()[ast->children[0]->children[0]->token.getString()] = lval;
+            cxt.st.push(lval);
         }
     }
     eval(ast->children[0]);
-    Object lho =st.top(); st.pop();
+    Object lho = cxt.st.top(); cxt.st.pop();
     eval(ast->children[1]);
-    Object rho = st.top(); st.pop();
+    Object rho = cxt.st.top(); cxt.st.pop();
     double lhs = lho.numval;
     double rhs = rho.numval;
     cout<<"Performing "<<ast->token.getString()<<" to "<<lhs<<" and "<<rhs<<endl;
     switch (ast->token.getSymbol()) {
         case TK_MINUS: {
             if (ast->children[1] == nullptr) {
-                st.push(-lhs);
+                cxt.st.push(-lhs);
             } else {
-                st.push(lhs-rhs);
+                cxt.st.push(lhs-rhs);
             }
         } break;
-        case TK_PLUS: st.push(lhs+rhs); break;
-        case TK_MUL:  st.push(lhs*rhs); break;
-        case TK_DIV:  st.push(lhs/rhs); break;
-        case TK_EQU:  st.push(lhs == rhs); break;
-        case TK_NEQ:  st.push(lhs != rhs); break;
-        case TK_LT:   st.push(lhs < rhs);  break;
-        case TK_GT:   st.push(lhs > rhs);  break;
+        case TK_PLUS: cxt.st.push(lhs+rhs); break;
+        case TK_MUL:  cxt.st.push(lhs*rhs); break;
+        case TK_DIV:  cxt.st.push(lhs/rhs); break;
+        case TK_EQU:  cxt.st.push(lhs == rhs); break;
+        case TK_NEQ:  cxt.st.push(lhs != rhs); break;
+        case TK_LT:   cxt.st.push(lhs < rhs);  break;
+        case TK_GT:   cxt.st.push(lhs > rhs);  break;
         default:
             break;
     }
@@ -128,14 +134,14 @@ void exec(AST* ast) {
         switch (ast->type) {
             case PRINT_STMT:
                 exec(ast->children[0]);
-                cout<<st.top().toString()<<endl;
+                cout<<cxt.st.top().toString()<<endl;
             break;
             case BLOCK_STMT:
                 exec(ast->children[0]);
             break;
             case IF_STMT:
                 eval(ast->children[0]);
-                if (st.top().boolval) {
+                if (cxt.st.top().boolval) {
                    exec(ast->children[1]);
                 }
             break;
@@ -148,7 +154,7 @@ void exec(AST* ast) {
             break;
             case DEF_STMT: {
                 string name = ast->children[0]->token.getString();
-                funcTab[name] = new Function(name, ast->children[1], ast->children[2]);
+                cxt.funcTab[name] = new Function(name, ast->children[1], ast->children[2]);
             } break;
             default:
                 eval(ast);

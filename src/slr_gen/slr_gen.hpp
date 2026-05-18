@@ -35,12 +35,15 @@ class SLRGenerator {
             for (int s = 0; s < cfsm.V(); s++) {
                 for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
                     if (G.terminals.count(it->edgeLabel)) {
+                        if (tab[s].count(it->edgeLabel)) {
+                            cout<<"Shift conflict: ["<<s<<"]["<<it->edgeLabel<<"] "<<tab[s][it->edgeLabel]<<endl;
+                        }
                         tab[s][it->edgeLabel] = "s"+to_string(it->dest);
                     }
                 }
             }
             for (int s = 0; s < states.size(); s++) {
-                for (const LRItem& item : states[s].items) {
+                for (const LRItem& item : states[s].getItems()) {
                     if (!item.complete()) continue;
                     Production p = item.production;
                     if (p.lhs == ss) {
@@ -48,6 +51,9 @@ class SLRGenerator {
                         continue;
                     }
                     for (Symbol a : G.follow.at(p.lhs)) {
+                        if (tab[s].count(a)) {
+                            cout<<"Reduce conflict: ["<<s<<"]["<<a<<"] "<<tab[s][a]<<endl;
+                        }
                         tab[s][a] = "r"+to_string(p.pid);
                     }
                 }
@@ -57,19 +63,19 @@ class SLRGenerator {
         LRState closure(const Grammar& G, const LRState& state) {
             LRState ret;
             queue<LRItem> work;
-            ret.items = state.items;
-            for (const auto& item : state.items) {
+            for (const LRItem& item : state.getItems()) {
                 work.push(item);
+                ret.addItem(item);
             }
             while (!work.empty()) {
                 Symbol X = work.front().symbolAfterDot();
                 work.pop();
                 if (G.nonterminals.count(X)) {
-                    for (Production p : G.productions.at(X)) {
+                    for (const Production& p : G.productions.at(X)) {
                         LRItem newItem(p, 0);
-                        if (ret.items.find(newItem) == ret.items.end()) {
-                            ret.items.insert(newItem);
+                        if (!ret.hasItem(newItem)) {
                             work.push(newItem);
+                            ret.addItem(newItem);
                         }
                     }
                 }
@@ -79,10 +85,9 @@ class SLRGenerator {
 
         LRState lr_goto(Grammar& G, const LRState& state, Symbol X) {
             LRState next;
-            for (LRItem item : state.items) {
-                Symbol after = item.symbolAfterDot();
-                if (after == X) {
-                    next.items.insert(item.advance());
+            for (LRItem item : state.getItems()) {
+                if (item.symbolAfterDot() == X) {
+                    next.addItem(item.advance());
                 }
             }
             return closure(G, next);
@@ -93,42 +98,42 @@ class SLRGenerator {
             for (Symbol s : G.nonterminals)
                 symbols.insert(s);
             LRState start;
-            start.items.insert(LRItem(G.productions[ss][0], 0));
+            start.addItem(LRItem(G.productions[ss][0], 0));
             LRState I0 = closure(G, start);
             queue<LRState> fq;
             unordered_set<string> seen;   
-            I0.state_num = 0;
+            I0.setStateNum(0);
             fq.push(I0);
             seen.insert(I0.key());
             states.push_back(I0);
             while (!fq.empty()) {
                 LRState curr = fq.front(); fq.pop();
                 unordered_set<Symbol> valid;
-                for (auto item : curr.items) {
+                for (auto item : curr.getItems()) {
                     Symbol tmp = item.symbolAfterDot();
                     if (tmp != "<fin>")
                         valid.insert(tmp);
                 }
                 for (auto X : valid) {
                     LRState gt = lr_goto(G, curr, X);
-                    if (gt.items.empty())
+                    if (gt.getItems().empty())
                         continue;
                     int target;
                     if (seen.find(gt.key()) == seen.end()) {
-                        gt.state_num = states.size();
+                        gt.setStateNum(states.size());
                         fq.push(gt);
                         states.push_back(gt);
                         seen.insert(gt.key());
-                        target = gt.state_num;
+                        target = gt.getStateNum();
                     } else {
                         for (auto s : states) {
                             if (gt.key() == s.key()) {
-                                target = s.state_num;
+                                target = s.getStateNum();
                                 break;
                             }
                         }
                     }
-                    cfsm.addEdge(curr.state_num, target, X);                    
+                    cfsm.addEdge(curr.getStateNum(), target, X);                    
                 }
             }
         }

@@ -65,9 +65,14 @@ namespace std {
     };
 }
 
-struct LRState {
+class LRState {
+    private:
     int state_num;
     unordered_set<LRItem> items;
+    public:
+    LRState() : state_num(-1) {
+
+    }
     string key() const {
         vector<string> strs;
         for (const auto& item : items) {
@@ -79,6 +84,21 @@ struct LRState {
             result += s + "\n";
         }
         return result;
+    }
+    int getStateNum() {
+        return state_num;
+    }
+    void setStateNum(int sn) {
+        state_num = sn;
+    }
+    bool hasItem(const LRItem& item) {
+        return items.find(item) != items.end();
+    } 
+    void addItem(LRItem item) {
+        items.insert(item);
+    }
+    unordered_set<LRItem> getItems() const {
+        return items;
     }
     bool operator==(const LRState& other) const {
         return key() == other.key();
