@@ -24,6 +24,7 @@ struct Context {
 class Interpreter {
     private:
         Context cxt;
+        void stmt(AST* ast);
         void eval(AST* ast);
         void evalBinOp(AST* ast);
     public:
@@ -47,7 +48,7 @@ void Interpreter::eval(AST* ast) {
                 cxt.st.push(Object(0.0));
             }
         } else {
-            if (ast->type == LIST_EXPR) {
+            if (ast->attr.expr == LIST_EXPR) {
                 AST* itr = ast->children[0];
                 Object nl(new deque<Object>());
                 while (itr != nullptr) {
@@ -56,13 +57,13 @@ void Interpreter::eval(AST* ast) {
                     itr = itr->next;
                 }
                 cxt.st.push(nl);
-            } else if (ast->type == SUBSCRIPT_EXPR) {
+            } else if (ast->attr.expr == SUBSCRIPT_EXPR) {
                 eval(ast->children[0]);
                 Object lv = cxt.st.top(); cxt.st.pop();
                 eval(ast->children[1]);
                 Object idx = cxt.st.top(); cxt.st.pop();
                 cxt.st.push(lv.listval->at(idx.numval));
-            } else if (ast->type == FUNC_EXPR) { 
+            } else if (ast->attr.expr == FUNC_EXPR) { 
                 unordered_map<string, Object> tmp;
                 Object t = cxt.funcTab[ast->token.getString()];
                 cout<<"Executing function: "<<t.funcval->name<<endl;
@@ -95,10 +96,10 @@ void Interpreter::eval(AST* ast) {
 void Interpreter::evalBinOp(AST* ast) {
     if (ast->token.getSymbol() == TK_ASSIGN) {
         eval(ast->children[1]);
-        if (ast->children[0]->type == ID_EXPR) {
+        if (ast->children[0]->attr.expr == ID_EXPR) {
             cxt.symtab.back()[ast->children[0]->token.getString()] = cxt.st.top(); cxt.st.pop();
             cxt.st.push(cxt.symtab.back()[ast->children[0]->token.getString()]);
-        } else if (ast->children[0]->type == SUBSCRIPT_EXPR) {
+        } else if (ast->children[0]->attr.expr == SUBSCRIPT_EXPR) {
             eval(ast->children[0]->children[0]);
             eval(ast->children[0]->children[1]);
             Object idx = cxt.st.top(); cxt.st.pop();
@@ -114,7 +115,7 @@ void Interpreter::evalBinOp(AST* ast) {
     Object rho = cxt.st.top(); cxt.st.pop();
     double lhs = lho.numval;
     double rhs = rho.numval;
-    cout<<"Performing "<<ast->token.getString()<<" to "<<lhs<<" and "<<rhs<<endl;
+    cout<<"Performing "<<ast->token.getString()<<" to "<<lho.toString()<<" and "<<rho.toString()<<endl;
     switch (ast->token.getSymbol()) {
         case TK_MINUS: {
             if (ast->children[1] == nullptr) {
@@ -135,37 +136,45 @@ void Interpreter::evalBinOp(AST* ast) {
     }
 }
 
-void Interpreter::exec(AST* ast) {
-    Object val = 0.0;
-    if (ast != nullptr) {
-        switch (ast->type) {
+void Interpreter::stmt(AST* ast) {
+    switch (ast->attr.stmt) {
             case PRINT_STMT:
                 exec(ast->children[0]);
                 cout<<cxt.st.top().toString()<<endl;
             break;
-            case BLOCK_STMT:
-                exec(ast->children[0]);
+        case BLOCK_STMT:
+            exec(ast->children[0]);
+        break;
+        case IF_STMT:
+            eval(ast->children[0]);
+            if (cxt.st.top().boolval) {
+                exec(ast->children[1]);
+            }
+        break;
+        case LET_STMT:
+            eval(ast->children[0]);
+        break;
+        case RETURN_STMT:
+            eval(ast->children[0]);
+            throw ReturnException();
+        break;
+        case DEF_STMT: {
+            string name = ast->children[0]->token.getString();
+            cxt.funcTab[name] = new Function(name, ast->children[1], ast->children[2]);
+        } break;
+        default:
+            eval(ast);
             break;
-            case IF_STMT:
-                eval(ast->children[0]);
-                if (cxt.st.top().boolval) {
-                   exec(ast->children[1]);
-                }
-            break;
-            case LET_STMT:
-                eval(ast->children[0]);
-            break;
-            case RETURN_STMT:
-                eval(ast->children[0]);
-                throw ReturnException();
-            break;
-            case DEF_STMT: {
-                string name = ast->children[0]->token.getString();
-                cxt.funcTab[name] = new Function(name, ast->children[1], ast->children[2]);
-            } break;
-            default:
-                eval(ast);
-                break;
+    }
+}
+
+void Interpreter::exec(AST* ast) {
+    Object val = 0.0;
+    if (ast != nullptr) {
+        if (ast->attr.type == STMT_NODE) {
+            stmt(ast);
+        } else {
+            eval(ast);
         }
         if (ast->next)
             exec(ast->next);

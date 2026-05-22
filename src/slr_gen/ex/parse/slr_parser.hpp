@@ -30,9 +30,9 @@ class SLRParser {
             initgoTab();
             actions.insert(make_pair("binop", [](auto& a) { return makebinop(a); }));
             actions.insert(make_pair("unary", [](auto& a) { return makeunary(a); }));
-            actions.insert(make_pair("num", [](auto& a) { a[0]->type = NUM_EXPR; return a[0]; }));
-            actions.insert(make_pair("id", [](auto& a) { a[0]->type = ID_EXPR; return a[0]; }));
-            actions.insert(make_pair("string", [](auto& a) { a[0]->type = STRING_EXPR; return a[0]; }));
+            actions.insert(make_pair("num", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = NUM_EXPR; return a[0]; }));
+            actions.insert(make_pair("id", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = ID_EXPR; return a[0]; }));
+            actions.insert(make_pair("string", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = STRING_EXPR; return a[0]; }));
             actions.insert(make_pair("pass", [](auto& a) { return a[1]; }));
             actions.insert(make_pair("mklist", [](auto& a) { return makelist(a); }));
             actions.insert(make_pair("mkprint", [](auto& a) { return makeprint(a); }));

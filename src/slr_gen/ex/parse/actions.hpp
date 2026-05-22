@@ -9,15 +9,13 @@
 using namespace std;
 
 AST* makebinop(vector<AST*>& reducing) {
-    AST* nn = reducing[1];
-    nn->type = BIN_EXPR;
+    AST* nn = makeExprNode(BIN_EXPR, reducing[1]->token);
     nn->children[0] = reducing[0];
     nn->children[1] = reducing[2];
     return nn; 
 }
 AST* makeunary(vector<AST*>& reducing) {
-    AST* nn = new AST(reducing[0]->token);
-    nn->type = UNARY_EXPR;
+    AST* nn = makeExprNode(UNARY_EXPR, reducing[0]->token);
     nn->children[0] = reducing[1];
     return nn;
 }
@@ -35,23 +33,20 @@ AST* makelist(vector<AST*>& reducing) {
 }
 
 AST* makeprint(vector<AST*>& reducing) {
-    AST* nn = new AST(reducing[0]->token);
-    nn->type = PRINT_STMT;
+    AST* nn = makeStmtNode(PRINT_STMT,reducing[0]->token);
     nn->children[0] = reducing[1];
     return nn;
 }
 
 AST* makeIf(vector<AST*>& reducing) {
-    AST* nn = new AST(reducing[0]->token);
-    nn->type = IF_STMT;
+    AST* nn = makeStmtNode(IF_STMT,reducing[0]->token);
     nn->children[0] = reducing[2];
     nn->children[1] = reducing[4];
     return nn;
 }
 
 AST* makeBlock(vector<AST*>& reducing) {
-    AST* nn = new AST(reducing[0]->token);
-    nn->type = BLOCK_STMT;
+    AST* nn = makeStmtNode(BLOCK_STMT, reducing[0]->token);
     nn->children[0] = reducing[1];
     return nn;
 }
@@ -61,23 +56,26 @@ AST* makeCall(vector<AST*>& reducing) {
     for (auto m : reducing) {
         cout<<m->token.getString()<<endl;
     }
-    AST* nn = new AST(reducing[0]->token);
-    nn->type = FUNC_EXPR;
+    AST* nn = makeExprNode(FUNC_EXPR, reducing[0]->token);
     nn->children[0] = reducing[0];
-    nn->children[0]->type = ID_EXPR;
+    nn->children[0]->attr.type = EXPR_NODE;
+    nn->children[0]->attr.expr = ID_EXPR;
     nn->children[1] = reducing[2];
     return nn;
 }
 
 AST* makeLet(vector<AST*>& reducing) {
-    reducing[0]->type = LET_STMT;
+    reducing[0]->attr.type = STMT_NODE;
+    reducing[0]->attr.stmt = LET_STMT;
     reducing[0]->children[0] = reducing[1];
-    reducing[0]->children[0]->type = ID_EXPR;
+    reducing[0]->children[0]->attr.type = EXPR_NODE;
+    reducing[0]->children[0]->attr.expr = ID_EXPR;
     return reducing[0];
 }
 
 AST* makeRet(vector<AST*>& reducing) {
-    reducing[0]->type = RETURN_STMT;
+    reducing[0]->attr.type = STMT_NODE;
+    reducing[0]->attr.stmt = RETURN_STMT;
     reducing[0]->children[0] = reducing[1];
     return reducing[0];
 }
@@ -85,10 +83,12 @@ AST* makeRet(vector<AST*>& reducing) {
 
 AST* makeFunc(vector<AST*>& reducing) {
     AST* nn = reducing[0];
-    nn->type = DEF_STMT;
+    nn->attr.type = STMT_NODE;
+    nn->attr.stmt = DEF_STMT;
     if (reducing.size() == 6) {
         nn->children[0] = reducing[1];
-        nn->children[0]->type = ID_EXPR;
+        nn->children[0]->attr.type = EXPR_NODE;
+        nn->children[0]->attr.expr = ID_EXPR;
         nn->children[1] = reducing[3];
         nn->children[2] = reducing[5];
     } else {
@@ -98,16 +98,15 @@ AST* makeFunc(vector<AST*>& reducing) {
 }
 
 AST* makeSubScript(vector<AST*>& reducing) {
-    AST* nn = new AST(reducing[1]->token);
-    nn->type = SUBSCRIPT_EXPR;
+    AST* nn = makeExprNode(SUBSCRIPT_EXPR, reducing[1]->token);
     nn->children[0] = reducing[0];
-    nn->children[0]->type = ID_EXPR;
     nn->children[1] = reducing[2];
     return nn;
 }
 
 AST* makeListConstructor(vector<AST*>& reducing) {
-    reducing[0]->type = LIST_EXPR;
+    reducing[0]->attr.type = EXPR_NODE;
+    reducing[0]->attr.expr = LIST_EXPR;
     if (reducing[1]->token.getSymbol() == TK_RPAREN)
         return reducing[0];
     else {
