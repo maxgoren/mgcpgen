@@ -96,7 +96,7 @@ class SLRParser {
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
                 if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
-                    cout<<"Hmm, nothing to do?";
+                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"'?"<<endl;
                     for (auto m : actTab[curr_state]) {
                         cout<<m.first<<": "<<m.second<<endl;
                     }

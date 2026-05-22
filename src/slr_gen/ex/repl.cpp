@@ -7,6 +7,7 @@ int main() {
     StringBuffer* sb = new StringBuffer();
     string expr;
     SLRParser parser;
+    Interpreter terp;
     do {
         cout<<"?> ";
         getline(cin, expr);
@@ -15,7 +16,7 @@ int main() {
         cout<<"Parsing: "<<expr<<endl;
         AST* ast = parser.parse(tokens);
         preorder(ast,1);
-        exec(ast);
+        terp.exec(ast);
     } while (true);
     return 0;
 }

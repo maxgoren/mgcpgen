@@ -12,9 +12,6 @@ class ReturnException : public std::exception {
     }
 };
 
-void exec(AST* ast);
-void evalBinOp(AST* ast);
-
 struct Context {
     vector<unordered_map<string, Object>> symtab;
     unordered_map<string, Object> funcTab;
@@ -24,9 +21,19 @@ struct Context {
     }
 };
 
-Context cxt;
+class Interpreter {
+    private:
+        Context cxt;
+        void eval(AST* ast);
+        void evalBinOp(AST* ast);
+    public:
+        Interpreter() {
 
-void eval(AST* ast) {
+        }
+        void exec(AST* ast);
+};
+
+void Interpreter::eval(AST* ast) {
     if (ast != nullptr) {
         eval(ast->next);
         if (ast->children[0] == nullptr) {
@@ -85,7 +92,7 @@ void eval(AST* ast) {
     }
 }
 
-void evalBinOp(AST* ast) {
+void Interpreter::evalBinOp(AST* ast) {
     if (ast->token.getSymbol() == TK_ASSIGN) {
         eval(ast->children[1]);
         if (ast->children[0]->type == ID_EXPR) {
@@ -128,7 +135,7 @@ void evalBinOp(AST* ast) {
     }
 }
 
-void exec(AST* ast) {
+void Interpreter::exec(AST* ast) {
     Object val = 0.0;
     if (ast != nullptr) {
         switch (ast->type) {
