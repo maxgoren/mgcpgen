@@ -1,0 +1,4 @@
+sp ::= P
+P ::= TK_LPAREN P TK_RPAREN P
+P ::= TK_LCURLY P TK_RCURLY P
+P ::= #

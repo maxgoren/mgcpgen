@@ -16,6 +16,8 @@ struct Transition {
 class DirectedGraph {
     private:
         map<int, Transition*> adjlist;
+        map<int, int> indegree;
+        map<int, int> outdegree;
         int edgecount;
     public:
         DirectedGraph() {
@@ -29,6 +31,16 @@ class DirectedGraph {
         }
         void addEdge(int s, int t, Symbol X) {
             adjlist[s] = new Transition(t, X, adjlist[s]);
+            if (outdegree.find(s) == outdegree.end()) {
+                outdegree[s] = 1;
+            } else {
+                outdegree[s]++;
+            }
+            if (indegree.find(t) == indegree.end()) {
+                indegree[t] = 1;
+            } else {
+                indegree[t]++;
+            }
             edgecount++;
         }
         Transition* adj(int v) {

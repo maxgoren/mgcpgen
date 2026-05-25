@@ -15,8 +15,8 @@ int main() {
         vector<Token> tokens = lexer.lex(sb);
         cout<<"Parsing: "<<expr<<endl;
         AST* ast = parser.parse(tokens);
-        preorder(ast,1);
-        terp.exec(ast);
+        //preorder(ast,1);
+        //terp.exec(ast);
     } while (true);
     return 0;
 }

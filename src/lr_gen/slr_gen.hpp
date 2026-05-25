@@ -109,6 +109,8 @@ class SLRGenerator {
             while (!fq.empty()) {
                 LRState curr = fq.front(); fq.pop();
                 unordered_set<Symbol> valid;
+                cout<<"Current state(I"<<curr.getStateNum()<<"): \n";
+                cout<<curr.key()<<endl;
                 for (auto item : curr.getItems()) {
                     Symbol tmp = item.symbolAfterDot();
                     if (tmp != "<fin>")
@@ -133,8 +135,10 @@ class SLRGenerator {
                             }
                         }
                     }
-                    cfsm.addEdge(curr.getStateNum(), target, X);                    
+                    cfsm.addEdge(curr.getStateNum(), target, X);   
+                    cout<<"Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
                 }
+                cout<<"--------------------------\n";
             }
         }
         void printPrelude(ostream& ofile) {

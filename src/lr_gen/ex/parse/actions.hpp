@@ -45,6 +45,13 @@ AST* makeIf(vector<AST*>& reducing) {
     return nn;
 }
 
+AST* makeWhile(vector<AST*>& reducing) {
+    AST* nn = makeStmtNode(WHILE_STMT, reducing[0]->token);
+    nn->children[0] = reducing[2];
+    nn->children[1] = reducing[4];
+    return nn;
+}
+
 AST* makeBlock(vector<AST*>& reducing) {
     AST* nn = makeStmtNode(BLOCK_STMT, reducing[0]->token);
     nn->children[0] = reducing[1];
@@ -59,7 +66,9 @@ AST* makeCall(vector<AST*>& reducing) {
     AST* nn = makeExprNode(FUNC_EXPR, reducing[0]->token);
     nn->children[0] = reducing[0];
     nn->children[0]->attr.type = EXPR_NODE;
-    nn->children[0]->attr.expr = ID_EXPR;
+    if (nn->children[0]->attr.expr != LAMBDA_EXPR) {
+        nn->children[0]->attr.expr = ID_EXPR;
+    }
     nn->children[1] = reducing[2];
     return nn;
 }
@@ -94,6 +103,25 @@ AST* makeFunc(vector<AST*>& reducing) {
     } else {
         cout<<"Nah man."<<endl;
     }
+    return nn;
+}
+
+AST* makeLambda(vector<AST*>& reducing) {
+    AST* nn = reducing[0];
+    nn->attr.type = EXPR_NODE;
+    nn->attr.expr = LAMBDA_EXPR;
+    cout<<"Make lambda from ";
+    for (auto m : reducing) {
+        cout<<tokenStr[m->token.getSymbol()]<<" "<< m->token.getString()<<endl;
+    }
+    Token tk;
+    tk.setString("lambda");
+    tk.setSymbol(TK_ID);
+        nn->children[0] = new AST(tk);
+        nn->children[0]->attr.type = EXPR_NODE;
+        nn->children[0]->attr.expr = ID_EXPR;
+        nn->children[1] = reducing[2];
+        nn->children[2] = reducing[5];
     return nn;
 }
 

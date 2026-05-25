@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <vector>
+#include <stack>
 using namespace std;
 
 class ReturnException : public std::exception {
@@ -24,6 +25,10 @@ struct Context {
 class Interpreter {
     private:
         Context cxt;
+        bool isbuiltin(string name);
+        void dobuiltin(AST* ast);
+        void evalParams(AST* params, AST* args);
+        void evalLambdaFunc(AST* params, AST* args, AST* body);
         void stmt(AST* ast);
         void eval(AST* ast);
         void evalBinOp(AST* ast);
@@ -33,6 +38,58 @@ class Interpreter {
         }
         void exec(AST* ast);
 };
+
+bool Interpreter::isbuiltin(string name) {
+    if (name == "push")  {
+        return true;
+    }
+    if (name == "size") {
+        return true;
+    }
+    return false;
+}
+void Interpreter::dobuiltin(AST* ast) {
+    string fname = ast->token.getString();
+    AST* args = ast->children[1];
+    if (fname == "push")  {
+        eval(args);
+        eval(args->next);
+        Object tp = cxt.st.top(); cxt.st.pop();
+        cxt.st.top().listval->push_front(tp);
+        cxt.st.pop();
+    }
+    if (fname == "size") {
+        eval(args);
+        int size = cxt.st.top().listval->size();
+        cxt.st.pop();
+        cxt.st.push(Object((double)size));
+    }
+}
+
+
+
+void Interpreter::evalParams(AST* params, AST* args) {
+    unordered_map<string, Object> tmp;
+    while (params != nullptr && args != nullptr) {
+        string nm = params->children[0]->token.getString();
+        eval(args);
+        tmp[nm] = cxt.st.top(); cxt.st.pop();
+        cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
+        params = params->next;
+        args = args->next;
+    }
+    cxt.symtab.push_back(tmp);
+}
+
+void Interpreter::evalLambdaFunc(AST* params, AST* args, AST* body) {
+    evalParams(params, args);
+    try {
+        exec(body);
+    } catch (ReturnException re) {
+
+    }
+    cxt.symtab.pop_back();
+}
 
 void Interpreter::eval(AST* ast) {
     if (ast != nullptr) {
@@ -64,28 +121,28 @@ void Interpreter::eval(AST* ast) {
                 Object idx = cxt.st.top(); cxt.st.pop();
                 cxt.st.push(lv.listval->at(idx.numval));
             } else if (ast->attr.expr == FUNC_EXPR) { 
-                unordered_map<string, Object> tmp;
-                Object t = cxt.funcTab[ast->token.getString()];
-                cout<<"Executing function: "<<t.funcval->name<<endl;
+                string fname = ast->token.getString();
+                if (isbuiltin(fname)) {
+                    cout<<"Executing builtin: "<<fname<<endl;
+                    dobuiltin(ast);
+                    return;
+                }
+                Object t;
+                if (ast->children[0]->attr.expr == ID_EXPR) {
+                    t = cxt.funcTab[fname];
+                    cout<<"Executing function: "<<t.funcval->name<<endl;
+                } else if (ast->children[0]->attr.expr == LAMBDA_EXPR) {
+                    eval(ast->children[0]);
+                    t = cxt.st.top(); cxt.st.pop();
+                }
                 Function* f = t.funcval;
                 AST* params = f->params;
                 AST* args = ast->children[1];
                 cout<<"Evaluating arguments: "<<endl;
-                while (params != nullptr && args != nullptr) {
-                    string nm = params->children[0]->token.getString();
-                    eval(args);
-                    tmp[nm] = cxt.st.top(); cxt.st.pop();
-                    cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
-                    params = params->next;
-                    args = args->next;
-                }
-                cxt.symtab.push_back(tmp);
-                try {
-                    exec(f->body);
-                } catch (ReturnException re) {
-
-                }
-                cxt.symtab.pop_back();
+                evalLambdaFunc(params, args, f->body);
+            } else if (ast->attr.expr == LAMBDA_EXPR) {
+                Function* lf = new Function("&", ast->children[1], ast->children[2]);
+                cxt.st.push(Object(lf));
             } else {
                 evalBinOp(ast);
             }
@@ -108,6 +165,7 @@ void Interpreter::evalBinOp(AST* ast) {
             cxt.symtab.back()[ast->children[0]->children[0]->token.getString()] = lval;
             cxt.st.push(lval);
         }
+        return;
     }
     eval(ast->children[0]);
     Object lho = cxt.st.top(); cxt.st.pop();
@@ -151,6 +209,15 @@ void Interpreter::stmt(AST* ast) {
                 exec(ast->children[1]);
             }
         break;
+        case WHILE_STMT:
+            eval(ast->children[0]);
+            while (cxt.st.top().boolval) {
+                cxt.st.pop();
+                exec(ast->children[1]);
+                eval(ast->children[0]);
+            }
+            cxt.st.pop();
+            break;
         case LET_STMT:
             eval(ast->children[0]);
         break;

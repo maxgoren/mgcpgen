@@ -1,5 +1,5 @@
 #include <iostream>
-#include "slr_gen/slr_gen.hpp"
+#include "lr_gen/slr_gen.hpp"
 #include "ll_gen/ParserGenerator.hpp"
 using namespace std;
 void showUsage(string name) {
