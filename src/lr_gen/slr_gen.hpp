@@ -20,6 +20,7 @@ class SLRGenerator {
         ComputeFollowSets   follows;
         DirectedGraph       cfsm;
         vector<LRState>     states;
+        bool debug_noise;
         GoToTable make_goto_table(Grammar& G) {
             GoToTable tab;
             for (int s = 0; s < cfsm.V(); s++) {
@@ -109,8 +110,10 @@ class SLRGenerator {
             while (!fq.empty()) {
                 LRState curr = fq.front(); fq.pop();
                 unordered_set<Symbol> valid;
-                cout<<"Current state(I"<<curr.getStateNum()<<"): \n";
-                cout<<curr.key()<<endl;
+                if (debug_noise) {
+                    cout<<"Current state(I"<<curr.getStateNum()<<"): \n";
+                    cout<<curr.key()<<endl;
+                }
                 for (auto item : curr.getItems()) {
                     Symbol tmp = item.symbolAfterDot();
                     if (tmp != "<fin>")
@@ -136,9 +139,13 @@ class SLRGenerator {
                         }
                     }
                     cfsm.addEdge(curr.getStateNum(), target, X);   
-                    cout<<"Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
+                    if (debug_noise) {
+                        cout<<"Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
+                    }
                 }
-                cout<<"--------------------------\n";
+                if (debug_noise) {
+                    cout<<"--------------------------\n";
+                }
             }
         }
         void printPrelude(ostream& ofile) {
@@ -218,16 +225,16 @@ class SLRGenerator {
         vector<LRState>& getStates() {
             return states;
         }
-        pair<ActionTable,GoToTable> generate(Grammar& G, Symbol start) {
-            ofstream ofile("mgc_slr_gen.out.hpp");
+        pair<ActionTable,GoToTable> generate(Grammar& G,  string outname, Symbol start) {
+            ofstream ofile(outname);
             auto ret = generate(G, start, ofile);
             ofile.close();
             return ret;
         }
-        pair<ActionTable,GoToTable> generate(string filename, Symbol start) {
+        pair<ActionTable,GoToTable> generate(string filename, string outname,Symbol start) {
             Grammar G;
             G.readGrammarFile(filename);
-            ofstream ofile("mgc_slr_gen.out.hpp");
+            ofstream ofile(outname);
             auto ret = generate(G, start, ofile);
             ofile.close();
             return ret;

@@ -11,13 +11,13 @@ void showUsage(string name) {
 
 void generate_slr_parser(Grammar& G) {
     SLRGenerator slrgen;
-    auto[actTab, goTab] = slrgen.generate(G, "sp");
+    auto[actTab, goTab] = slrgen.generate(G, "mgc_slr_gen.out.hpp", "sp");
 }
 
 void generate_ll_parser(Grammar& G) {
     ParserGenerator pg;
     pg.generate(G, "prog");
-    pg.tableGen.persist("mgc_ll.out.hpp", G);
+    pg.tableGen.persist("mgc_ll_gen.out.hpp", G);
 }
 
 int main(int argc, char* argv[]) {

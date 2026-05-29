@@ -77,8 +77,10 @@ AST* makeLet(vector<AST*>& reducing) {
     reducing[0]->attr.type = STMT_NODE;
     reducing[0]->attr.stmt = LET_STMT;
     reducing[0]->children[0] = reducing[1];
-    reducing[0]->children[0]->attr.type = EXPR_NODE;
-    reducing[0]->children[0]->attr.expr = ID_EXPR;
+    if (reducing[0]->children[0]->attr.expr != BIN_EXPR) {
+        reducing[0]->children[0]->attr.type = EXPR_NODE;
+        reducing[0]->children[0]->attr.expr = ID_EXPR;
+    }
     return reducing[0];
 }
 

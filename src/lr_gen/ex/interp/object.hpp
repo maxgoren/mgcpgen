@@ -26,6 +26,33 @@ struct Object {
     Object(deque<Object>* lv) : listval(lv), type(LIST) { }
     Object(Function* fv) : funcval(fv), type(FUNCTION) { }
     Object() : type(NIL) { }
+    Object(const Object& ob) {
+        type = ob.type;
+        switch (type) {
+            case STRING: strval = ob.strval; break;
+            case NUMBER: numval = ob.numval; break;
+            case LIST: listval = ob.listval; break;
+            case FUNCTION: funcval = ob.funcval; break;
+            case BOOL: boolval = ob.boolval; break;
+            default:
+                break;
+        }
+    }
+    Object& operator=(const Object& ob) {
+        if (this != &ob) {
+            type = ob.type;
+            switch (type) {
+                case STRING: strval = ob.strval; break;
+                case NUMBER: numval = ob.numval; break;
+                case LIST: listval = ob.listval; break;
+                case FUNCTION: funcval = ob.funcval; break;
+                case BOOL: boolval = ob.boolval; break;
+                default:
+                    break;
+            }
+        }
+        return *this;
+    }
     string toString() {
         switch (type) {
             case STRING: return *strval;

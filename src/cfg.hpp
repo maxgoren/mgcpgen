@@ -72,14 +72,14 @@ struct Grammar {
             for (int i = 2; i < parts.size(); i++) {
                 string s = parts[i];
                 if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
-                   terminals.insert(s);
-                } else {
-                    if (s[0] != '@')
-                        nonterminals.insert(s);
-                    else actmaybe = s;
-                }
-                if (s[0] != '@')
+                    terminals.insert(s);
                     ss.push_back(s);
+                } else if (s[0] != '@') {
+                    nonterminals.insert(s);
+                    ss.push_back(s);
+                } else if (s[0] == '@') {
+                    actmaybe = s;
+                }
             }
             if (ss[0] == "#") ss.clear();
             ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
