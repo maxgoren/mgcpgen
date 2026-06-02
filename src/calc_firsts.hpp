@@ -4,13 +4,14 @@
 
 class ComputeFirstSets {
     private:
+        bool debug_noise;
         void initFirsts(Grammar& G);
         bool updateNonTerminal(Grammar& G, Symbol X, Symbol f);
         bool firstClosure(Grammar& G, Symbol X, SymbolString& production);
         bool propagateFirsts(Grammar& G);
     public:
         ComputeFirstSets() {
-
+            debug_noise = false;
         }
         void compute(Grammar& G);
         void printFirsts(Grammar& G);
@@ -26,7 +27,8 @@ void  ComputeFirstSets::initFirsts(Grammar& G) {
     for (Symbol nt : G.nonterminals) {
         G.firsts[nt] = set<Symbol>();
         if (G.isNullable(nt)) {
-            //cout<<nt<<" is nullable..."<<endl;
+            if (debug_noise)
+                cout<<nt<<" is nullable..."<<endl;
             G.firsts[nt].insert("#");
         }
     }

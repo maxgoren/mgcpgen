@@ -55,6 +55,12 @@ bool ComputeFollowSets::firstFromRHS(Grammar& G, Symbol currNonTerm, Symbol curr
     return didchange;
 }
 
+/*
+    For Each Production
+        examing each production rule symbol by symbol
+        If we encounter the Symbol <nonTerm>:
+            call firstFromRhs using current position as index
+*/
 bool ComputeFollowSets::followClosure(Grammar& G, Symbol nonTerm) {
     bool didchange = false;
     for (auto prod : G.productions) {
@@ -74,6 +80,12 @@ bool ComputeFollowSets::followClosure(Grammar& G, Symbol nonTerm) {
     return didchange;
 }
 
+
+/*
+    Loop over the set of non-terminal's, calling the closure operation
+    on each until we go through the list without making any changes.
+    If changes do occur, repeat.
+*/
 void ComputeFollowSets::compute(Grammar& G, Symbol start) {
     for (Symbol t : G.terminals)     { G.follow[t] = set<Symbol>(); }
     for (Symbol nt : G.nonterminals) { G.follow[nt] = set<Symbol>(); }

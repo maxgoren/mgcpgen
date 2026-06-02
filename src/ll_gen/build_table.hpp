@@ -36,7 +36,7 @@ set<Symbol> LLTableGenerator::firstFromString(const vector<Symbol>& rhs, Grammar
         if (X == ACTSYM)
             continue;
         realSym = true;
-        if (find(G.terminals.begin(), G.terminals.end(), X) != G.terminals.end()) {
+        if (G.terminals.find(X) != G.terminals.end()) {
             result.insert(X);
             return result;
         }
