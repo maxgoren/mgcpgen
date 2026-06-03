@@ -14,3 +14,15 @@ mgcpgen has algorithms for:
       3a) the transition table for an LL(1) iterative parser.
       3b) the action/goto tables for an SLR(1) parser
 ```
+
+# Usage
+To generate an LR parser using an SLR(1) grammar:
+```
+  mgcpgen -slr grammar_file.mgrm
+```
+
+To generate an LL parser using LL(1) grammar:
+
+```
+  mgcpgen -ll grammar_file.mgrm
+```
