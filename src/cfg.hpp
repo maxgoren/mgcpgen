@@ -27,6 +27,13 @@ struct ProductionSet : vector<Production> {
     }
 };
 
+struct OpPrec {
+    Symbol sym;
+    int prec_level;
+    string assoc;
+    OpPrec(Symbol s = "", int p = 0, string a = 0) : sym(s), prec_level(p), assoc(a) { }
+};
+
 struct Grammar {
     Symbol startSym;
     set<Symbol> terminals;
@@ -35,6 +42,7 @@ struct Grammar {
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
     map<int, Production> prodById;
+    map<Symbol, OpPrec> precedenceMap;
     Grammar() {
         startSym = "";
     }
@@ -63,31 +71,38 @@ struct Grammar {
         while (infile.good()) {
             getline(infile, buff);
             vector<string> parts = split(buff, ' ');
-            nonterminals.insert(parts[0]);
-            ProductionSet ps = productions[parts[0]];
-            SymbolString ss;
-            terminals.insert(GOAL);
-            terminals.insert(EPS);
-            string actmaybe;
-            for (int i = 2; i < parts.size(); i++) {
-                string s = parts[i];
-                if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
-                    terminals.insert(s);
-                    ss.push_back(s);
-                } else if (s[0] != '@') {
-                    nonterminals.insert(s);
-                    ss.push_back(s);
-                } else if (s[0] == '@') {
-                    actmaybe = s;
+            if (parts[0] == "set_token_prec") {
+                string symbol = parts[1];
+                int prec = stoi(parts[2]);
+                string assoc = parts.size() == 4 ? parts[3]:"none";
+                precedenceMap.insert(make_pair(symbol,OpPrec(symbol, prec, assoc)));
+            } else {
+                nonterminals.insert(parts[0]);
+                ProductionSet ps = productions[parts[0]];
+                SymbolString ss;
+                terminals.insert(GOAL);
+                terminals.insert(EPS);
+                string actmaybe;
+                for (int i = 2; i < parts.size(); i++) {
+                    string s = parts[i];
+                    if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
+                        terminals.insert(s);
+                        ss.push_back(s);
+                    } else if (s[0] != '@') {
+                        nonterminals.insert(s);
+                        ss.push_back(s);
+                    } else if (s[0] == '@') {
+                        actmaybe = s;
+                    }
                 }
-            }
-            if (ss[0] == "#") ss.clear();
-            ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
-            productions[parts[0]] = ps;
-            prodById[ps.back().pid] = ps.back();
-            lastrule = parts[0];
-            if (startSym == "") {
-                startSym = lastrule;
+                if (ss[0] == "#") ss.clear();
+                ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
+                productions[parts[0]] = ps;
+                prodById[ps.back().pid] = ps.back();
+                lastrule = parts[0];
+                if (startSym == "") {
+                    startSym = lastrule;
+                }
             }
         }
     }
