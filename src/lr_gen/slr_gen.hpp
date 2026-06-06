@@ -43,7 +43,7 @@ class SLRGenerator {
                 }
             }
             return tab;
-        } 
+        }
         ActionTable make_action_table(Grammar& G, Symbol ss) {
             ActionTable tab;
             for (int s = 0; s < cfsm.V(); s++) {
@@ -74,28 +74,27 @@ class SLRGenerator {
                                 if (!G.precedenceMap.count(prod_sym) || !G.precedenceMap.count(a)) {
                                     cout<<"No way to resolve Shift/Reduce conflict: [";
                                     cout<<s<<"]["<<a<<"] "<<existing<<endl;
-                                    break;
-                                }
-                                OpPrec pr = G.precedenceMap[prod_sym];
-                                OpPrec la = G.precedenceMap[a];
-                                cout<<"Shift/Reduce conflict: [";
-                                cout<<s<<"]["<<a<<"] "<<existing<<": ";
-                                if (la.prec_level > pr.prec_level) {
-                                    cout<<"Keeping the shift"<<endl;
-                                } else if (pr.prec_level > la.prec_level) {
-                                    tab[s][a] = "r" + to_string(p.pid);
-                                    cout<<"Made to reduce on precedence for "<<a<<endl;
                                 } else {
-                                    if (la.assoc == "left") {
+                                    OpPrec pr = G.precedenceMap[prod_sym];
+                                    OpPrec la = G.precedenceMap[a];
+                                    cout<<"Shift/Reduce conflict: [";
+                                    cout<<s<<"]["<<a<<"] "<<existing<<": ";
+                                    if (la.prec_level > pr.prec_level) {
+                                        cout<<"Keeping the shift"<<endl;
+                                    } else if (pr.prec_level > la.prec_level) {
                                         tab[s][a] = "r" + to_string(p.pid);
-                                        cout<<"Reduced on associativity"<<endl;
+                                        cout<<"Made to reduce on precedence for "<<a<<endl;
                                     } else {
-                                        cout<<"Keeping shift."<<endl;
+                                        if (la.assoc == "left") {
+                                            tab[s][a] = "r" + to_string(p.pid);
+                                            cout<<"Reduced on associativity"<<endl;
+                                        } else {
+                                            cout<<"Keeping shift."<<endl;
+                                        }
                                     }
                                 }
                             } else {
-                                cout<<"Reduce/Reduce conflict: [";
-                                cout<<s<<"]["<<a<<"] "<<existing<<endl;
+                                cout<<"Reduce/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
                             }
                         }
                     }
