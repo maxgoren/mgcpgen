@@ -54,7 +54,10 @@ void preorder(AST* ast, int d) {
         } else {
             cout<<stmtTypeStr[ast->attr.stmt]<<" ";
         }
-        cout<<ast->token.getString()<<endl;
+        cout<<ast->token.getString();
+        if (ast->attr.type == EXPR_NODE)
+            cout<<" scope "<< ast->token.scopeLevel();
+        cout<<endl;
         for (AST* n : ast->children) {
             preorder(n, d+1);
         }

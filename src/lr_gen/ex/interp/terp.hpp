@@ -14,12 +14,166 @@ class ReturnException : public std::exception {
 };
 
 struct Context {
+    unordered_map<string, Object> globals;
     vector<unordered_map<string, Object>> symtab;
     unordered_map<string, Object> funcTab;
     stack<Object> st;
     Context() {
         symtab.push_back(unordered_map<string,Object>());
     }
+    void get(string name, int d) {
+        if (d == -1) {
+            st.push(globals[name]);
+            return;
+        }
+        auto it = symtab.rbegin();
+        int i = 0;
+        while (i < d && it != symtab.rend()) {
+            i++;
+            it++;
+        }
+        if (i != d) {
+            std::cout<<"Couldn't find "<<name<<" at level "<<d<<endl;
+            st.push(Object());
+        } else {
+            st.push((*it)[name]);
+        }
+    }
+    void put(string name, int d, Object obj) {
+        if (d == -1) {
+            globals[name] = obj;
+            return;
+        }
+        auto it = symtab.rbegin();
+        int i = 0;
+        while (i < d && it != symtab.rend()) {
+            i++;
+            it++;
+        }
+        if (i == d) {
+            (*it)[name] = obj;
+        }
+    }
+};
+
+class Resolver {
+    private:
+        vector<unordered_map<string,bool>> scopes;
+        static string blockName() {
+            static int num = 0;
+            return "block"+to_string(num++);
+        }
+        static string lambdaName() {
+            static int num = 0;
+            return "lambda"+to_string(num++);
+        }
+        void openScope() {
+            scopes.push_back(unordered_map<string,bool>());
+        }
+        void closeScope() {
+            scopes.pop_back();
+        }
+        void resolveName(AST* ast, string name) {
+            if (scopes.empty())
+                return;
+            int i = 0;
+            auto it = scopes.rbegin();
+            while (it != scopes.rend()) {
+                if ((*it).find(name) != (*it).end()) {
+                    ast->token.setScopeLevel(scopes.size() - 1 - i);
+                    cout<<name<<" at "<< scopes.size() - 1 - i <<endl;
+                    return;
+                }
+                it++;
+                i++;
+            }
+            cout<<name<<" aint got no gas in it!"<<endl;
+            ast->token.setScopeLevel(-1);
+        }
+        void declareName(string name) {
+            if (scopes.empty())
+                return;
+            if (scopes.back().find(name) != scopes.back().end()) {
+                cout<<"Attempted to declare already declared name: "<<name<<endl;
+                return;
+            }
+            scopes.back()[name] = true;
+        }
+        void resolveStmt(AST* ast) {
+            if (ast == nullptr)
+                return;
+            switch (ast->attr.stmt) {
+                case LET_STMT: {
+                    resolveExpr(ast->children[0], true);
+                } break;
+                case EXPR_STMT:
+                case RETURN_STMT:
+                case PRINT_STMT:
+                    resolveExpr(ast->children[0], false);
+                    break;
+                case IF_STMT: {
+                    resolveExpr(ast->children[0], false);
+                    resolve(ast->children[1]);
+                    resolve(ast->children[2]);
+                } break;
+                case WHILE_STMT: {
+                    resolveExpr(ast->children[0], false);
+                    resolve(ast->children[1]);
+                } break;
+                case BLOCK_STMT: {
+                    openScope();
+                    for (auto it = ast->children[0]; it != nullptr; it = it->next)
+                        resolve(it);
+                    closeScope();
+                } break;
+                case DEF_STMT: {
+                    declareName(ast->children[0]->token.getString());   
+                    openScope();
+                    for (auto i = 1; i < 3; i++) {
+                        resolve(ast->children[i]);
+                    }
+                    closeScope();
+                } break;
+                default:
+                    break;
+            }
+            resolve(ast->next);
+        }
+        void resolveExpr(AST* ast, bool fromLet) {
+            if (ast == nullptr)
+                return;
+            switch (ast->attr.expr) {
+                case ID_EXPR: {
+                    if (fromLet) {
+                        cout<<"Coming from Let, declaring "<<ast->token.getString()<<endl;
+                        declareName(ast->token.getString());
+                    }
+                    cout<<"Resolving "<<ast->token.getString()<<endl;
+                    resolveName(ast, ast->token.getString());
+                } break;
+                default:
+                    for (int i = 0; i < 3; i++) {
+                        resolveExpr(ast->children[i], fromLet);
+                    }
+            }
+            resolve(ast->next);
+        }
+    public:
+        Resolver() {
+
+        }
+        void resolve(AST*& ast) {
+            if (ast == nullptr)
+                return;
+            cout<<nodeTypeStr[ast->attr.type]<<" ";
+            if (ast->attr.type == EXPR_NODE) {
+                cout<<exprTypeStr[ast->attr.expr]<<endl;
+                resolveExpr(ast, false);
+            } else {
+                cout<<stmtTypeStr[ast->attr.expr]<<endl;
+                resolveStmt(ast);
+            }
+        }
 };
 
 class Interpreter {
@@ -34,7 +188,7 @@ class Interpreter {
         void evalBinOp(AST* ast);
     public:
         Interpreter() {
-
+            cxt.symtab.push_back(unordered_map<string,Object>());
         }
         void exec(AST* ast);
 };
@@ -98,7 +252,7 @@ void Interpreter::eval(AST* ast) {
             if (ast->token.getSymbol() == TK_NUM) {
                 cxt.st.push( Object(stod(ast->token.getString())));
             } else if (ast->token.getSymbol() == TK_ID) {
-                cxt.st.push(cxt.symtab.back()[ast->token.getString()]);
+                cxt.get(ast->token.getString(), ast->token.scopeLevel());
             } else if (ast->token.getSymbol() == TK_STRING) {
                 cxt.st.push(Object(new string(ast->token.getString())));
             } else {
@@ -154,8 +308,7 @@ void Interpreter::evalBinOp(AST* ast) {
     if (ast->token.getSymbol() == TK_ASSIGN) {
         eval(ast->children[1]);
         if (ast->children[0]->attr.expr == ID_EXPR) {
-            cxt.symtab.back()[ast->children[0]->token.getString()] = cxt.st.top(); cxt.st.pop();
-            cxt.st.push(cxt.symtab.back()[ast->children[0]->token.getString()]);
+            cxt.put(ast->children[0]->token.getString(), ast->children[0]->token.scopeLevel(), cxt.st.top());
         } else if (ast->children[0]->attr.expr == SUBSCRIPT_EXPR) {
             eval(ast->children[0]->children[0]);
             eval(ast->children[0]->children[1]);
@@ -196,13 +349,15 @@ void Interpreter::evalBinOp(AST* ast) {
 
 void Interpreter::stmt(AST* ast) {
     switch (ast->attr.stmt) {
-            case PRINT_STMT:
+        case PRINT_STMT:
                 exec(ast->children[0]);
                 cout<<cxt.st.top().toString()<<endl;
             break;
-        case BLOCK_STMT:
+        case BLOCK_STMT: {
+            cxt.symtab.push_back(unordered_map<string, Object>());
             exec(ast->children[0]);
-        break;
+            cxt.symtab.pop_back();
+        } break;
         case IF_STMT:
             eval(ast->children[0]);
             if (cxt.st.top().boolval) {
