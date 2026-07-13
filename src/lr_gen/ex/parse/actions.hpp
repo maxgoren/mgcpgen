@@ -102,6 +102,12 @@ AST* makeFunc(vector<AST*>& reducing) {
         nn->children[0]->attr.expr = ID_EXPR;
         nn->children[1] = reducing[3];
         nn->children[2] = reducing[5];
+        for (auto m = nn->children[1]; m != nullptr; m = m->next) {
+            if (m->token.getSymbol() == TK_LET) {
+                m->children[0]->attr.type = EXPR_NODE;
+                m->children[0]->attr.expr = ID_EXPR;
+            }
+        }
     } else {
         cout<<"Nah man."<<endl;
     }
@@ -124,6 +130,12 @@ AST* makeLambda(vector<AST*>& reducing) {
         nn->children[0]->attr.expr = ID_EXPR;
         nn->children[1] = reducing[2];
         nn->children[2] = reducing[5];
+        for (auto m = nn->children[1]; m != nullptr; m = m->next) {
+            if (m->token.getSymbol() == TK_LET) {
+                m->children[0]->attr.type = EXPR_NODE;
+                m->children[0]->attr.expr = ID_EXPR;
+            }
+        }
     return nn;
 }
 

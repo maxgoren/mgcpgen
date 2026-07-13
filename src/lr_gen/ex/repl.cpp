@@ -8,7 +8,6 @@ int main() {
     string expr;
     SLRParser parser;
     Interpreter terp;
-    Resolver resolver;
     do {
         cout<<"?> ";
         getline(cin, expr);
@@ -16,7 +15,6 @@ int main() {
         vector<Token> tokens = lexer.lex(sb);
         cout<<"Parsing: "<<expr<<endl;
         AST* ast = parser.parse(tokens);
-        resolver.resolve(ast);
         preorder(ast,1);
         terp.exec(ast);
     } while (true);

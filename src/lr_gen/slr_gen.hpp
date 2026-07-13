@@ -5,9 +5,11 @@
 #include "../../src/cfg.hpp"
 #include "../../src/calc_firsts.hpp"
 #include "../../src/calc_follows.hpp"
-#include "lr_item_set.hpp"
+#include "lr_item.hpp"
+#include "lr_state.hpp"
 #include "directed_graph.hpp"
 #include <stack>
+#include <unordered_set>
 using namespace std;
 
 
