@@ -16,12 +16,27 @@ struct Transition {
 class DirectedGraph {
     private:
         map<int, Transition*> adjlist;
-        map<int, int> indegree;
-        map<int, int> outdegree;
         int edgecount;
     public:
         DirectedGraph() {
             edgecount = 0;
+        }
+        DirectedGraph(const DirectedGraph& dg) {
+            edgecount = 0;
+            for (auto m : dg.adjlist) {
+                for (auto it = m.second; it != nullptr; it = it->next)
+                    addEdge(m.first, it->dest, it->edgeLabel);
+            }
+        }
+        ~DirectedGraph() {
+            for (auto m : adjlist) {
+                auto it = m.second;
+                while (it != nullptr) {
+                    Transition* tmp = it;
+                    it = it->next;
+                    delete tmp;
+                }
+            }
         }
         int V() {
             return adjlist.size();
@@ -31,16 +46,6 @@ class DirectedGraph {
         }
         void addEdge(int s, int t, Symbol X) {
             adjlist[s] = new Transition(t, X, adjlist[s]);
-            if (outdegree.find(s) == outdegree.end()) {
-                outdegree[s] = 1;
-            } else {
-                outdegree[s]++;
-            }
-            if (indegree.find(t) == indegree.end()) {
-                indegree[t] = 1;
-            } else {
-                indegree[t]++;
-            }
             edgecount++;
         }
         Transition* adj(int v) {
@@ -52,6 +57,15 @@ class DirectedGraph {
                     cout<<e.first<<" -("<<it->edgeLabel<<")-> "<<it->dest<<endl;
                 }
             }
+        }
+        DirectedGraph& operator=(const DirectedGraph& dg) {
+            if (this != &dg) {
+                edgecount = 0;
+                for (auto m : dg.adjlist)
+                    for (auto it = m.second; it != nullptr; it = it->next)
+                        addEdge(m.first, it->dest, it->edgeLabel);
+            }
+            return *this;
         }
 };
 

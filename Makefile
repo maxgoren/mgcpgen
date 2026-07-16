@@ -5,6 +5,7 @@ mgcpgen:
 	g++ -c src/production.cpp
 	g++ -c src/lr_gen/lr_item.cpp
 	g++ -c src/lr_gen/lr_state.cpp
+	g++ -c src/lr_gen/slr_gen.cpp
 	g++ -c src/mgcpgen.cpp 
 	g++ *.o -o mgcpgen
 

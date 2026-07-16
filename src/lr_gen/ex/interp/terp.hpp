@@ -7,22 +7,31 @@
 #include <stack>
 using namespace std;
 
+typedef unordered_map<string, Object> Environment;
+
+struct Frame {
+    Environment bindings;
+    Frame* dynamicLink;
+    Frame(Environment e, Frame* p) : bindings(e), dynamicLink(p) { }
+    Frame() { }
+};
+
 struct Context {
     unordered_map<string, Object> globals;
-    vector<unordered_map<string, Object>> symtab;
+    Frame* symtab;
     unordered_map<string, Object> funcTab;
     stack<Object> st;
     Context() {
-        
+        symtab = new Frame(Environment(), nullptr);
     }
     void get(string name, int d) {
-        auto it = symtab.rbegin();
-        while (it != symtab.rend()) {
-            if ((*it).find(name) != (*it).end()) {
-                st.push((*it)[name]);
+        auto it = symtab;
+        while (it != nullptr) {
+            if ((it)->bindings.find(name) != (it)->bindings.end()) {
+                st.push((it)->bindings[name]);
                 return;
             }
-            it++;
+            it = it->dynamicLink;
         }
         if (globals.find(name) != globals.end()) {
             st.push(globals[name]);
@@ -31,20 +40,105 @@ struct Context {
         std::cout<<"Couldn't find "<<name<<endl;
     }
     void put(string name, int d, Object obj) {
-        auto it = symtab.rbegin();
-        while (it != symtab.rend()) {
-            if ((*it).find(name) != (*it).end()) {
-                (*it)[name] = obj;
+        auto it = symtab;
+        while (it != nullptr) {
+            if ((it)->bindings.find(name) != (it)->bindings.end()) {
+                (it)->bindings[name] = obj;
                 return;
             }
-            it++;
+            it = it->dynamicLink;
         }
         if (globals.find(name) != globals.end()) {
             globals[name] = obj;
             return;
         }
-        symtab.back()[name] = obj;
+        if (symtab)
+            symtab->bindings[name] = obj;
+        else globals[name] = obj;
     }
+    void openScope() {
+        openScope(Environment());
+    }
+    void openScope(Environment e) {
+        symtab = new Frame(e, symtab);
+    }
+    void closeScope() {
+        if (symtab) {
+            auto t = symtab;
+            symtab = symtab->dynamicLink;
+        }
+    }
+};
+
+class ScopeResolution {
+    private:
+        vector<unordered_map<string, bool>> scopes;
+        void openScope() {
+            scopes.push_back(unordered_map<string,bool>());
+        }
+        void closeScope() {
+            scopes.pop_back();
+        }
+        void defineId(string name) {
+            if (scopes.empty())
+                return;
+            if (scopes.back().find(name) == scopes.back().end()) {
+                scopes.back()[name] = true;
+            }
+        }
+        void resolveName(AST* ast, string name) {
+            for (int i = scopes.size()-1; i >= 0; i--) {
+                if (scopes[i].find(name) != scopes[i].end()) {
+                    ast->token.setScopeLevel(scopes.size() - 1 - i);
+                    cout<<"Resolved "<<name<<" at scope depth "<<scopes.size()-1-i<<endl;
+                    return;
+                }
+            }
+        }
+        void resolveExpr(AST* ast) {
+            switch (ast->attr.expr) {
+                case ID_EXPR: {
+                    resolveName(ast, ast->token.getString());
+                } break;
+                default: break;
+            }
+            for (int i = 0; i < 3; i++)
+                traverse(ast->children[i]);
+        }
+        void resolveStmt(AST* ast) {
+            switch (ast->attr.stmt) {
+                case BLOCK_STMT: {
+                    openScope();
+                    traverse(ast->children[0]);
+                    closeScope();
+                } break;
+                case DEF_STMT: {
+                    defineId(ast->children[0]->token.getString());
+                    openScope();
+                    for (int i = 0; i < 3; i++) 
+                        traverse(ast->children[i]);
+                    closeScope();
+                } break;
+                default: break;
+            }
+        }
+        void traverse(AST* ast) {
+            if (ast != nullptr) {
+                if (ast->attr.type == EXPR_NODE) {
+                    resolveExpr(ast);
+                } else {
+                    resolveStmt(ast);
+                }
+                traverse(ast->next);
+            }
+        }
+    public:
+        ScopeResolution() {
+
+        }
+        void resolveScopes(AST* ast) {
+            
+        }
 };
 
 class Interpreter {
@@ -60,7 +154,7 @@ class Interpreter {
         void evalBinOp(AST* ast);
     public:
         Interpreter() {
-            cxt.symtab.push_back(unordered_map<string,Object>());
+
         }
         void exec(AST* ast);
 };
@@ -106,14 +200,14 @@ void Interpreter::evalParams(AST* par, AST* ar) {
         params = params->next;
         args = args->next;
     }
-    cxt.symtab.push_back(tmp);
+    cxt.openScope(tmp);
 }
 
 void Interpreter::evalLambdaFunc(AST* params, AST* args, AST* body) {
     evalParams(params, args);
     exec(body);
     bail = false;
-    cxt.symtab.pop_back();
+    cxt.closeScope();
 }
 
 void Interpreter::eval(AST* ast) {
@@ -154,7 +248,13 @@ void Interpreter::eval(AST* ast) {
                 }
                 Object t;
                 if (ast->children[0]->attr.expr == ID_EXPR) {
-                    t = cxt.funcTab[fname];
+                    if (cxt.funcTab.find(fname) != cxt.funcTab.end())
+                        t = cxt.funcTab[fname];
+                    else {
+                        cxt.get(fname, 0);
+                        t = cxt.st.top();
+                        cxt.st.pop();
+                    }
                     cout<<"Executing function: "<<t.funcval->name<<endl;
                 } else if (ast->children[0]->attr.expr == LAMBDA_EXPR) {
                     eval(ast->children[0]);
@@ -186,7 +286,7 @@ void Interpreter::evalBinOp(AST* ast) {
             Object idx = cxt.st.top(); cxt.st.pop();
             Object lval = cxt.st.top(); cxt.st.pop();
             lval.listval->at(idx.numval) = cxt.st.top(); cxt.st.pop();
-            cxt.symtab.back()[ast->children[0]->children[0]->token.getString()] = lval;
+            cxt.symtab->bindings[ast->children[0]->children[0]->token.getString()] = lval;
             cxt.st.push(lval);
         }
         return;
@@ -223,12 +323,11 @@ void Interpreter::stmt(AST* ast) {
         case PRINT_STMT:
                 eval(ast->children[0]);
                 cout<<cxt.st.top().toString()<<endl;
-                //cxt.st.pop();
             break;
         case BLOCK_STMT: {
-            cxt.symtab.push_back(unordered_map<string, Object>());
+            cxt.openScope();
             exec(ast->children[0]);
-            cxt.symtab.pop_back();
+            cxt.closeScope();
         } break;
         case IF_STMT:
             eval(ast->children[0]);
