@@ -2,8 +2,8 @@
 
 namespace std {
         std::size_t hash<LRItem>::operator()(const LRItem& item) const {
-            size_t h1 = hash<int>()(item.production.pid);
-            size_t h2 = hash<int>()(item.dotPosition);
+            size_t h1 = hash<int>()(item.getProduction().pid);
+            size_t h2 = hash<int>()(item.getDotPosition());
             return h1 ^ (h2 << 1);
         }
 }
@@ -21,6 +21,14 @@ LRItem& LRItem::operator=(const LRItem& lri) {
             dotPosition = lri.dotPosition;
     }
     return *this;
+}
+
+int LRItem::getDotPosition() const {
+    return dotPosition;
+}
+
+Production LRItem::getProduction() const {
+    return production;
 }
 
 Symbol LRItem::symbolAfterDot() {

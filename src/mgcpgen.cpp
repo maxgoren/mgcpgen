@@ -1,11 +1,10 @@
 #include <iostream>
 #include "lr_gen/slr_gen.hpp"
-#include "ll_gen/ParserGenerator.hpp"
 using namespace std;
+
 void showUsage(string name) {
     cout<<"MGCPGen (c) 2026 MaxGCoding.com"<<endl;
-    cout<<name<<" -ll <filename> for LL(1) grammars"<<endl;
-    cout<<name<<" -slr <filename> for SLR(1) grammars"<<endl;
+    cout<<name<<" <filename>"<<endl;
 }
 
 
@@ -14,22 +13,13 @@ void generate_slr_parser(Grammar& G) {
     auto[actTab, goTab] = slrgen.generate(G, "mgc_slr_gen.out.hpp", "sp");
 }
 
-void generate_ll_parser(Grammar& G) {
-    ParserGenerator pg;
-    pg.generate(G, "prog");
-    pg.tableGen.persist("mgc_ll_gen.out.hpp", G);
-}
-
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
+    if (argc < 2) {
         showUsage(argv[0]);
         return 1;
     }
     Grammar G;
-    G.readGrammarFile(argv[2]);
-    switch (argv[1][1]) {
-        case 's': generate_slr_parser(G); break;
-        case 'l': generate_ll_parser(G);  break;
-    }
+    G.readGrammarFile(argv[1]);
+    generate_slr_parser(G);
     return 0;
 }

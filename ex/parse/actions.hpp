@@ -114,6 +114,17 @@ AST* makeFunc(vector<AST*>& reducing) {
     return nn;
 }
 
+AST* makeStruct(vector<AST*>& reducing) {
+    AST* nn = reducing[0];
+    nn->attr.type = STMT_NODE;
+    nn->attr.stmt = STRUCT_STMT;
+    reducing[1]->attr.type = EXPR_NODE;
+    reducing[1]->attr.expr = ID_EXPR;
+    nn->children[0] = reducing[1];
+    nn->children[1] = reducing[2];
+    return nn;
+}
+
 AST* makeLambda(vector<AST*>& reducing) {
     AST* nn = reducing[0];
     nn->attr.type = EXPR_NODE;

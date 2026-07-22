@@ -5,6 +5,7 @@
 {"else",TK_ELSE}
 {"print",TK_PRINT}
 {"while",TK_WHILE}
+{"struct",TK_STRUCT}
 {"return",TK_RETURN}
 {"\+",TK_PLUS}
 {"-",TK_MINUS}

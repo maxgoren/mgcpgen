@@ -2,9 +2,9 @@
 #define slr_gen_hpp
 #include <iostream>
 #include <functional>
-#include "../../src/cfg.hpp"
-#include "../../src/calc_firsts.hpp"
-#include "../../src/calc_follows.hpp"
+#include "../../src/cfg/cfg.hpp"
+#include "../../src/cfg/calc_firsts.hpp"
+#include "../../src/cfg/calc_follows.hpp"
 #include "lr_item.hpp"
 #include "lr_state.hpp"
 #include "directed_graph.hpp"

@@ -47,6 +47,7 @@ class SLRParser {
             actions.insert(make_pair("mksubscript", [](auto& a) { return makeSubScript(a); }));
             actions.insert(make_pair("mkwhile", [](auto& a) { return makeWhile(a); }));
             actions.insert(make_pair("mklambda", [](auto& a) { return makeLambda(a); }));
+            actions.insert(make_pair("mkstruct", [](auto& a) { return makeStruct(a); }));
         }
         void doShift(int next) {
             cout<<"SHIFT"<<endl;

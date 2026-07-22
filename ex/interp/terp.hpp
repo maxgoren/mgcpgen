@@ -20,6 +20,7 @@ struct Context {
     unordered_map<string, Object> globals;
     Frame* symtab;
     unordered_map<string, Object> funcTab;
+    unordered_map<string, AST*> userTypes;
     stack<Object> st;
     Context() {
         symtab = new Frame(Environment(), nullptr);
@@ -335,6 +336,9 @@ void Interpreter::stmt(AST* ast) {
                 exec(ast->children[1]);
             }
         break;
+        case STRUCT_STMT: {
+            cxt.userTypes[ast->children[0]->token.getString()] = ast;
+        } break;
         case WHILE_STMT:
             eval(ast->children[0]);
             while (cxt.st.top().boolval) {

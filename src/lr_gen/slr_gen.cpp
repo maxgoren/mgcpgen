@@ -34,7 +34,7 @@ ActionTable SLRGenerator::make_action_table(Grammar& G, Symbol ss) {
     for (int s = 0; s < states.size(); s++) {
         for (const LRItem& item : states[s].getItems()) {
             if (!item.complete()) continue;
-            Production p = item.production;
+            Production p = item.getProduction();
             if (p.lhs == ss) {
                 tab[s]["$"] = "accept";
                 continue;
