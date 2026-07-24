@@ -1,20 +1,24 @@
 #include "lr_state.hpp"
 
-LRState::LRState() : state_num(-1) {
+LRState::LRState() : state_num(-1), re_key(true) {
 
 }
 
 string LRState::key() const {
-    vector<string> strs;
-    for (const auto& item : items) {
-        strs.push_back(item.toString());
+    if (re_key) {
+        vector<string> strs;
+        for (const auto& item : items) {
+            strs.push_back(item.toString());
+        }
+        sort(strs.begin(), strs.end());
+        string result;
+        for (const auto& s : strs) {
+            result += s + "\n";
+        }
+        cached_key = result;
+        re_key = false;
     }
-    sort(strs.begin(), strs.end());
-    string result;
-    for (const auto& s : strs) {
-        result += s + "\n";
-    }
-    return result;
+    return cached_key;
 }
 
 int LRState::getStateNum() {
@@ -31,6 +35,7 @@ bool LRState::hasItem(const LRItem& item) {
 
 void LRState::addItem(LRItem item) {
     items.insert(item);
+    re_key = true;
 }
 
 unordered_set<LRItem> LRState::getItems() const {

@@ -9,6 +9,8 @@ class LRState {
     private:
     int state_num;
     unordered_set<LRItem> items;
+    mutable string cached_key;
+    mutable bool re_key;
     public:
     LRState();
     string key() const;
