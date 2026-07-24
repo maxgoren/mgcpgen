@@ -124,6 +124,31 @@ LRState SLRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     return closure(G, next);
 }
 
+unordered_set<Symbol> SLRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
+    unordered_set<Symbol> result;
+    for (Symbol X : seq) {
+        if (G.terminals.count(X)) {
+            result.insert(X);
+        }
+        if (G.nonterminals.count(X)) {
+            auto x_first = G.firsts[X];
+            bool has_eps = false;
+            for (auto f : x_first) {
+                if (f == EPS) {
+                    has_eps = true;
+                } else {
+                    result.insert(f);
+                }
+            }
+            if (!has_eps)
+                return result;
+        }
+    }
+    result.insert(EPS);
+    return result;
+} 
+
+
 void SLRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     LRState start;
     queue<LRState> fq;
@@ -230,17 +255,21 @@ void SLRGenerator::printTables(ostream& os, Iterable table, string tableName) {
 }
 
 pair<ActionTable, GoToTable> SLRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
+    cout<<"[*] Calculating Firsts"<<endl;
     firsts.compute(G);
+    cout<<"[*] Calculating Follows"<<endl;
     follows.compute(G, ss);
+    cout<<"[*] Building LR NFA"<<endl;
     generate_CFSM(G, ss);
-    ActionTable actTable;
-    GoToTable goTab;                                                                                                                                                                               
-    goTab = make_goto_table(G);
-    actTable = make_action_table(G, ss);
+    cout<<"[*] Generating Go To table"<<endl;
+    GoToTable   goTab = make_goto_table(G);
+    cout<<"[*] Generating Action table"<<endl;
+    ActionTable actTable = make_action_table(G, ss);
     printPrelude(ofile);
     printProductions(ofile, G, "prod");
     printTables(ofile, goTab, "goTab");
     printTables(ofile, actTable, "actTab");
+    cout<<"[*] Done!"<<endl;
     return make_pair(actTable, goTab);
 }
 
@@ -261,9 +290,12 @@ pair<ActionTable,GoToTable> SLRGenerator::generate(Grammar& G,  string outname, 
 
 pair<ActionTable,GoToTable> SLRGenerator::generate(string filename, string outname,Symbol start) {
     Grammar G;
+    cout<<"[*] Reading Grammar File: "<<filename<<endl;
     G.readGrammarFile(filename);
     ofstream ofile(outname);
+    cout<<"[*] Generating Parser..."<<endl;
     auto ret = generate(G, start, ofile);
     ofile.close();
+    cout<<"[*] Done."<<endl;
     return ret;
 }

@@ -11,7 +11,7 @@ using namespace std;
 
 using Symbol = string;
 
-const Symbol ACTSYM = "@@";
+const Symbol ACTSYM = "@";
 const Symbol EPS = "#";
 const Symbol GOAL = "TK_EOI";
 vector<string> split(string input, char delim);

@@ -32,6 +32,7 @@ class SLRGenerator {
         ActionTable make_action_table(Grammar& G, Symbol ss);
         LRState closure(const Grammar& G, const LRState& state);
         LRState lr_goto(Grammar& G, const LRState& state, Symbol X);
+        unordered_set<Symbol> firstFromSequence(Grammar& G, SymbolString seq); 
         void generate_CFSM(Grammar& G, Symbol ss);
         void printPrelude(ostream& ofile);
         void printProductions(ostream& os, Grammar& G, string name);

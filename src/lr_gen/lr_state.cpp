@@ -1,11 +1,11 @@
 #include "lr_state.hpp"
 
-LRState::LRState() : state_num(-1), re_key(true) {
+LRState::LRState() : state_num(-1), re_calc_key(true) {
 
 }
 
 string LRState::key() const {
-    if (re_key) {
+    if (re_calc_key) {
         vector<string> strs;
         for (const auto& item : items) {
             strs.push_back(item.toString());
@@ -16,7 +16,7 @@ string LRState::key() const {
             result += s + "\n";
         }
         cached_key = result;
-        re_key = false;
+        re_calc_key = false;
     }
     return cached_key;
 }
@@ -35,7 +35,7 @@ bool LRState::hasItem(const LRItem& item) {
 
 void LRState::addItem(LRItem item) {
     items.insert(item);
-    re_key = true;
+    re_calc_key = true;
 }
 
 unordered_set<LRItem> LRState::getItems() const {
