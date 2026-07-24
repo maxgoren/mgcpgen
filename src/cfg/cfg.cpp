@@ -55,11 +55,17 @@ void Grammar::readGrammarFile(string filename) {
             terminals.insert(GOAL);
             terminals.insert(EPS);
             string actmaybe;
+            Symbol precOverSym;
             for (int i = 2; i < parts.size(); i++) {
                 string s = parts[i];
                 if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
                     terminals.insert(s);
                     ss.push_back(s);
+                } else if (s == "prec_override") {
+                    cout<<"Got an override directive: ";
+                    precOverSym = parts[i+1];
+                    cout<<precOverSym<<endl;
+                    break;
                 } else if (s[0] != '@') {
                     nonterminals.insert(s);
                     ss.push_back(s);
@@ -69,6 +75,9 @@ void Grammar::readGrammarFile(string filename) {
             }
             if (ss[0] == "#") ss.clear();
             ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
+            if (!precOverSym.empty()) {
+                ps.back().precOverride = precOverSym;
+            }
             productions[parts[0]] = ps;
             prodById[ps.back().pid] = ps.back();
             lastrule = parts[0];

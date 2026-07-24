@@ -153,6 +153,7 @@ class Interpreter {
         void stmt(AST* ast);
         void eval(AST* ast);
         void evalBinOp(AST* ast);
+        void evalUnaryOp(AST* ast);
     public:
         Interpreter() {
 
@@ -269,11 +270,20 @@ void Interpreter::eval(AST* ast) {
             } else if (ast->attr.expr == LAMBDA_EXPR) {
                 Function* lf = new Function("&", ast->children[1], ast->children[2]);
                 cxt.st.push(Object(lf));
+            } else if (ast->attr.expr == UNARY_EXPR) {
+                evalUnaryOp(ast);
             } else {
                 evalBinOp(ast);
             }
         }
     }
+}
+
+void Interpreter::evalUnaryOp(AST* ast) {
+    eval(ast->children[0]);
+    Object v = cxt.st.top(); cxt.st.pop();
+    v.numval = -v.numval;
+    cxt.st.push(v);
 }
 
 void Interpreter::evalBinOp(AST* ast) {

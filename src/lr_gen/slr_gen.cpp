@@ -1,10 +1,23 @@
 #include "slr_gen.hpp"
-
+//For handling shift/reduce conflicts via precedence rules. 
+// 1) First we check to see if production has an overriding symbol.
+// 2) failing to find that a production inherits the precedence of  it's rightmost terminal. 
+//  if there are no terminals we return the empty string.
 Symbol SLRGenerator::get_production_precedence_symbol(const Production& p, const Grammar& G) {
-    for (Symbol sym : p.rhs) {
-        if (G.terminals.count(sym))
-            return sym;
+    cout<<"Production prec symbol: ";
+    if (!p.precOverride.empty()) {
+        cout<<" (override)"<<p.precOverride<<endl;
+        return p.precOverride;
     }
+    //productions inherit the precedence of the _right_ most terminal symbol
+    //as such, we scan the production _backwards_ so we can exit on the first terminal encountered.
+    for (auto it = p.rhs.rbegin(); it != p.rhs.rend(); ++it) {
+        if (G.terminals.count(*it)) {
+            cout<<*it<<endl;
+            return *it;
+        }
+    }
+    cout<<"None."<<endl;
     return "";
 }
 
@@ -114,12 +127,12 @@ LRState SLRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
 void SLRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     LRState start;
     queue<LRState> fq;
-    unordered_set<string> seen;   
+    unordered_map<string,int> seen;   
     start.addItem(LRItem(G.productions[ss][0], 0));
     LRState I0 = closure(G, start);
     I0.setStateNum(0);
     fq.push(I0);
-    seen.insert(I0.key());
+    seen.insert({I0.key(),I0.getStateNum()});
     states.push_back(I0);
     while (!fq.empty()) {
         LRState curr = fq.front(); fq.pop();
@@ -142,15 +155,10 @@ void SLRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
                 gt.setStateNum(states.size());
                 fq.push(gt);
                 states.push_back(gt);
-                seen.insert(gt.key());
+                seen.insert({gt.key(),gt.getStateNum()});
                 target = gt.getStateNum();
             } else {
-                for (auto s : states) {
-                    if (gt.key() == s.key()) {
-                        target = s.getStateNum();
-                        break;
-                    }
-                }
+                target = seen[gt.key()];
             }
             cfsm.addEdge(curr.getStateNum(), target, X);   
             if (debug_noise) {

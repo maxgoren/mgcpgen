@@ -22,6 +22,7 @@ struct Production {
     Symbol lhs;
     SymbolString rhs;
     string action;
+    Symbol precOverride;
     Production(int id, Symbol l, SymbolString r, string a) ;
     Production(int id, Symbol l, SymbolString r) ;
     Production();
