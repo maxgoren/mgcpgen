@@ -1,9 +1,9 @@
-#include "slr_gen.hpp"
+#include "lr_gen.hpp"
 //For handling shift/reduce conflicts via precedence rules. 
 // 1) First we check to see if production has an overriding symbol.
 // 2) failing to find that a production inherits the precedence of  it's rightmost terminal. 
 //  if there are no terminals we return the empty string.
-Symbol SLRGenerator::get_production_precedence_symbol(const Production& p, const Grammar& G) {
+Symbol LRGenerator::get_production_precedence_symbol(const Production& p, const Grammar& G) {
     cout<<"Production prec symbol: ";
     if (!p.precOverride.empty()) {
         cout<<" (override)"<<p.precOverride<<endl;
@@ -21,7 +21,7 @@ Symbol SLRGenerator::get_production_precedence_symbol(const Production& p, const
     return "";
 }
 
-GoToTable SLRGenerator::make_goto_table(Grammar& G) {
+GoToTable LRGenerator::make_goto_table(Grammar& G) {
     GoToTable tab;
     for (int s = 0; s < cfsm.V(); s++) {
         for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
@@ -32,7 +32,7 @@ GoToTable SLRGenerator::make_goto_table(Grammar& G) {
     return tab;
 }
 
-ActionTable SLRGenerator::make_action_table(Grammar& G, Symbol ss) {
+ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
     ActionTable tab;
     for (int s = 0; s < cfsm.V(); s++) {
         for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
@@ -91,7 +91,7 @@ ActionTable SLRGenerator::make_action_table(Grammar& G, Symbol ss) {
     return tab;
 }
 
-LRState SLRGenerator::closure(const Grammar& G, const LRState& state) {
+LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
     LRState ret;
     queue<LRItem> work;
     for (const LRItem& item : state.getItems()) {
@@ -114,7 +114,7 @@ LRState SLRGenerator::closure(const Grammar& G, const LRState& state) {
     return ret;
 }
 
-LRState SLRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
+LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     LRState next;
     for (LRItem item : state.getItems()) {
         if (item.symbolAfterDot() == X) {
@@ -124,7 +124,7 @@ LRState SLRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     return closure(G, next);
 }
 
-unordered_set<Symbol> SLRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
+unordered_set<Symbol> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
     unordered_set<Symbol> result;
     for (Symbol X : seq) {
         if (G.terminals.count(X)) {
@@ -149,7 +149,7 @@ unordered_set<Symbol> SLRGenerator::firstFromSequence(Grammar& G, SymbolString s
 } 
 
 
-void SLRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
+void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     LRState start;
     queue<LRState> fq;
     unordered_map<string,int> seen;   
@@ -196,14 +196,14 @@ void SLRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     }
 }
 
-void SLRGenerator::printPrelude(ostream& ofile) {
+void LRGenerator::printPrelude(ostream& ofile) {
     ofile<<"#include <vector>\n";
     ofile<<"#include <map>\n";
     ofile<<"#include <set>\n";
     ofile<<"#include \"production.hpp\"\n";
     ofile<<"using namespace std; \n";
 }
-void SLRGenerator::printProductions(ostream& os, Grammar& G, string name) {
+void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
     os<<"enum NTSYMBOL {\n";
     int i = 0;
     for (auto t : G.nonterminals) {
@@ -237,7 +237,7 @@ void SLRGenerator::printProductions(ostream& os, Grammar& G, string name) {
 }
 
 template <class Iterable>
-void SLRGenerator::printTables(ostream& os, Iterable table, string tableName) {
+void LRGenerator::printTables(ostream& os, Iterable table, string tableName) {
     os<<"map<int,map<string,string>> "<<tableName<<";\n";
     os<<"void init"<<tableName<<"() {\n";
     for (auto e : table) {
@@ -254,7 +254,9 @@ void SLRGenerator::printTables(ostream& os, Iterable table, string tableName) {
     os<<"}"<<endl;
 }
 
-pair<ActionTable, GoToTable> SLRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
+pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
+    FirstSetCalculator    firsts;
+    FollowSetCalculator   follows;
     cout<<"[*] Calculating Firsts"<<endl;
     firsts.compute(G);
     cout<<"[*] Calculating Follows"<<endl;
@@ -273,22 +275,22 @@ pair<ActionTable, GoToTable> SLRGenerator::generate(Grammar& G, Symbol ss, ofstr
     return make_pair(actTable, goTab);
 }
 
-SLRGenerator::SLRGenerator(bool noise) {
+LRGenerator::LRGenerator(bool noise) {
     debug_noise = noise;
 }
 
-vector<LRState>& SLRGenerator::getStates() {
+vector<LRState>& LRGenerator::getStates() {
     return states;
 }
 
-pair<ActionTable,GoToTable> SLRGenerator::generate(Grammar& G,  string outname, Symbol start) {
+pair<ActionTable,GoToTable> LRGenerator::generate(Grammar& G,  string outname, Symbol start) {
     ofstream ofile(outname);
     auto ret = generate(G, start, ofile);
     ofile.close();
     return ret;
 }
 
-pair<ActionTable,GoToTable> SLRGenerator::generate(string filename, string outname,Symbol start) {
+pair<ActionTable,GoToTable> LRGenerator::generate(string filename, string outname,Symbol start) {
     Grammar G;
     cout<<"[*] Reading Grammar File: "<<filename<<endl;
     G.readGrammarFile(filename);

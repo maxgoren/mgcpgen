@@ -1,5 +1,5 @@
 #include <iostream>
-#include "lr_gen/slr_gen.hpp"
+#include "lr_gen/lr_gen.hpp"
 using namespace std;
 
 void showUsage(string name) {
@@ -9,7 +9,7 @@ void showUsage(string name) {
 
 
 void generate_slr_parser(Grammar& G) {
-    SLRGenerator slrgen;
+    LRGenerator slrgen;
     auto[actTab, goTab] = slrgen.generate(G, "mgc_slr_gen.out.hpp", "sp");
 }
 

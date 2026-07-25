@@ -1,10 +1,10 @@
 #include "calc_firsts.hpp"
 
-ComputeFirstSets::ComputeFirstSets() {
+FirstSetCalculator::FirstSetCalculator() {
     debug_noise = false;
 }
 
-void  ComputeFirstSets::initFirsts(Grammar& G) {
+void  FirstSetCalculator::initFirsts(Grammar& G) {
     //For all terminal symbols, first(t) -> {t}
     for (Symbol t : G.terminals) {
         G.firsts[t] = {t};
@@ -21,7 +21,7 @@ void  ComputeFirstSets::initFirsts(Grammar& G) {
     }
 }
 
-bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
+bool FirstSetCalculator::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     bool didchange = false;
     for (auto k : G.firsts[f]) {
         if (G.firsts[X].find(k) == G.firsts[X].end() && k != EPS) {
@@ -32,7 +32,7 @@ bool ComputeFirstSets::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     return didchange;
 }
 
-bool ComputeFirstSets::firstClosure(Grammar& G, Symbol X, SymbolString& production) {
+bool FirstSetCalculator::firstClosure(Grammar& G, Symbol X, SymbolString& production) {
     bool didchange = false;
      // Check if the first symbol of this production is epsilon
      if (production.empty()) {
@@ -51,7 +51,7 @@ bool ComputeFirstSets::firstClosure(Grammar& G, Symbol X, SymbolString& producti
     return didchange;
 }
 
-bool ComputeFirstSets::propagateFirsts(Grammar& G) {
+bool FirstSetCalculator::propagateFirsts(Grammar& G) {
     bool didchange = false;
     for (auto prod : G.productions) {
         Symbol X = prod.first;  // Left-hand side non-terminal
@@ -65,7 +65,7 @@ bool ComputeFirstSets::propagateFirsts(Grammar& G) {
     return didchange;
 }
 
-void ComputeFirstSets::compute(Grammar& G) {
+void FirstSetCalculator::compute(Grammar& G) {
     // Initialize FIRST sets for terminals and non-terminals
     initFirsts(G);
     
@@ -76,7 +76,7 @@ void ComputeFirstSets::compute(Grammar& G) {
     }
 } 
 
-void ComputeFirstSets::printFirsts(Grammar& G) {
+void FirstSetCalculator::printFirsts(Grammar& G) {
     for (auto f : G.firsts) {
         if (G.isNonTerminal(f.first)) {
             cout<<"FIRST("<<f.first<<")"<<": { ";

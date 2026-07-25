@@ -1,8 +1,8 @@
 #include "calc_follows.hpp"
 
-ComputeFollowSets::ComputeFollowSets() { }
+FollowSetCalculator::FollowSetCalculator() { }
 
-bool ComputeFollowSets::firstFromRHS(Grammar& G, Symbol currNonTerm, Symbol currLHS, SymbolString alt, int index) {
+bool FollowSetCalculator::firstFromRHS(Grammar& G, Symbol currNonTerm, Symbol currLHS, SymbolString alt, int index) {
     bool betaEps = true;
     bool didchange = false;
     bool realSym = false;
@@ -39,7 +39,7 @@ bool ComputeFollowSets::firstFromRHS(Grammar& G, Symbol currNonTerm, Symbol curr
         If we encounter the Symbol <nonTerm>:
             call firstFromRhs using current position as index
 */
-bool ComputeFollowSets::followClosure(Grammar& G, Symbol nonTerm) {
+bool FollowSetCalculator::followClosure(Grammar& G, Symbol nonTerm) {
     bool didchange = false;
     for (auto prod : G.productions) {
         Symbol LHS = prod.first;
@@ -64,7 +64,7 @@ bool ComputeFollowSets::followClosure(Grammar& G, Symbol nonTerm) {
     on each until we go through the list without making any changes.
     If changes do occur, repeat.
 */
-void ComputeFollowSets::compute(Grammar& G, Symbol start) {
+void FollowSetCalculator::compute(Grammar& G, Symbol start) {
     for (Symbol t : G.terminals)     { G.follow[t] = set<Symbol>(); }
     for (Symbol nt : G.nonterminals) { G.follow[nt] = set<Symbol>(); }
     G.follow[start].insert(GOAL);
@@ -78,7 +78,7 @@ void ComputeFollowSets::compute(Grammar& G, Symbol start) {
     }
 }
 
-void ComputeFollowSets::printFollows(Grammar& G) {
+void FollowSetCalculator::printFollows(Grammar& G) {
     for (auto f : G.follow) {
         if (G.isNonTerminal(f.first)) {
             cout<<"Follows("<<f.first<<"): { ";

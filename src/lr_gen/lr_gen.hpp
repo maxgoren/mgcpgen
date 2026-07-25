@@ -1,5 +1,5 @@
-#ifndef slr_gen_hpp
-#define slr_gen_hpp
+#ifndef lr_gen_hpp
+#define lr_gen_hpp
 #include <iostream>
 #include <functional>
 #include "../../src/cfg/cfg.hpp"
@@ -19,11 +19,9 @@ const int right_assoc = 20;
 using GoToTable = map<int,map<Symbol,int>>;
 using ActionTable = map<int,map<Symbol,string>>;
 
-class SLRGenerator {
+class LRGenerator {
     private:
         unordered_set<Symbol> symbols;
-        ComputeFirstSets    firsts;
-        ComputeFollowSets   follows;
         DirectedGraph       cfsm;
         vector<LRState>     states;
         bool debug_noise;
@@ -40,7 +38,7 @@ class SLRGenerator {
         void printTables(ostream& os, Iterable table, string tableName);
         pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) ;
     public:
-        SLRGenerator(bool debug_noise = false);
+        LRGenerator(bool debug_noise = false);
         vector<LRState>& getStates();
         pair<ActionTable,GoToTable> generate(Grammar& G,  string outname, Symbol start);
         pair<ActionTable,GoToTable> generate(string filename, string outname,Symbol start);

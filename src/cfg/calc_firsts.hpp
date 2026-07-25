@@ -2,7 +2,7 @@
 #define calc_firsts_hpp
 #include "cfg.hpp"
 
-class ComputeFirstSets {
+class FirstSetCalculator {
     private:
         bool debug_noise;
         void initFirsts(Grammar& G);
@@ -10,7 +10,7 @@ class ComputeFirstSets {
         bool firstClosure(Grammar& G, Symbol X, SymbolString& production);
         bool propagateFirsts(Grammar& G);
     public:
-        ComputeFirstSets();
+        FirstSetCalculator();
         void compute(Grammar& G);
         void printFirsts(Grammar& G);
 };

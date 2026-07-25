@@ -14,12 +14,12 @@
  *   then everything in FOLLOW(A) is in FOLLOW(B)
  */
 
-class ComputeFollowSets {
+class FollowSetCalculator {
     private:
         bool firstFromRHS(Grammar& G, Symbol A, Symbol X, SymbolString alt, int index);
         bool followClosure(Grammar& G, Symbol A);
     public:
-        ComputeFollowSets();
+        FollowSetCalculator();
         void compute(Grammar& G, Symbol start);
         void printFollows(Grammar& G);
 };
