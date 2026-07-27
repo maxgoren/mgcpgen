@@ -26,6 +26,7 @@ class LRGenerator {
         vector<LRState>     states;
         bool debug_noise;
         Symbol get_production_precedence_symbol(const Production& p, const Grammar& G);
+        string resolve_with_precedence(Grammar& G, ActionTable& tab, Production& p, int state, Symbol a);
         GoToTable make_goto_table(Grammar& G);
         ActionTable make_action_table(Grammar& G, Symbol ss);
         LRState closure(const Grammar& G, const LRState& state);

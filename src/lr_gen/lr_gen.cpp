@@ -32,6 +32,36 @@ GoToTable LRGenerator::make_goto_table(Grammar& G) {
     return tab;
 }
 
+string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Production& p, int s, Symbol a) {
+    string existing = tab[s][a];
+    if (existing[0] == 's') {
+        Symbol prod_sym = get_production_precedence_symbol(p, G);
+        if (!G.precedenceMap.count(prod_sym) || !G.precedenceMap.count(a)) {
+            cout<<"No way to resolve Shift/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
+        } else {
+            OpPrec pr = G.precedenceMap[prod_sym];
+            OpPrec la = G.precedenceMap[a];
+            cout<<"Shift/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<": ";
+            if (la.prec_level > pr.prec_level) {
+                cout<<"Keeping the shift"<<endl;
+            } else if (pr.prec_level > la.prec_level) {
+                cout<<"Made to reduce on precedence for "<<a<<endl;
+                return "r" + to_string(p.pid);
+            } else {
+                if (la.assoc == "left") {
+                    cout<<"Reduced on associativity"<<endl;
+                    return "r" + to_string(p.pid);
+                } else {
+                    cout<<"Keeping shift."<<endl;
+                }
+            }
+        }
+    } else {
+        cout<<"Reduce/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
+    }
+    return existing;
+}
+
 ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
     ActionTable tab;
     for (int s = 0; s < cfsm.V(); s++) {
@@ -56,34 +86,7 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
                 if (!tab[s].count(a)) {
                     tab[s][a] = "r"+to_string(p.pid);
                 } else {
-                    string existing = tab[s][a];
-                    if (existing[0] == 's') {
-                        Symbol prod_sym = get_production_precedence_symbol(p, G);
-                        if (!G.precedenceMap.count(prod_sym) || !G.precedenceMap.count(a)) {
-                            cout<<"No way to resolve Shift/Reduce conflict: [";
-                            cout<<s<<"]["<<a<<"] "<<existing<<endl;
-                        } else {
-                            OpPrec pr = G.precedenceMap[prod_sym];
-                            OpPrec la = G.precedenceMap[a];
-                            cout<<"Shift/Reduce conflict: [";
-                            cout<<s<<"]["<<a<<"] "<<existing<<": ";
-                            if (la.prec_level > pr.prec_level) {
-                                cout<<"Keeping the shift"<<endl;
-                            } else if (pr.prec_level > la.prec_level) {
-                                tab[s][a] = "r" + to_string(p.pid);
-                                cout<<"Made to reduce on precedence for "<<a<<endl;
-                            } else {
-                                if (la.assoc == "left") {
-                                    tab[s][a] = "r" + to_string(p.pid);
-                                    cout<<"Reduced on associativity"<<endl;
-                                } else {
-                                    cout<<"Keeping shift."<<endl;
-                                }
-                            }
-                        }
-                    } else {
-                        cout<<"Reduce/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
-                    }
+                    tab[s][a] = resolve_with_precedence(G, tab, p, s, a);
                 }
             }
         }
