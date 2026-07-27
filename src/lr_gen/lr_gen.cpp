@@ -78,15 +78,15 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
         for (const LRItem& item : states[s].getItems()) {
             if (!item.complete()) continue;
             Production p = item.getProduction();
-            if (p.lhs == ss) {
-                tab[s]["$"] = "accept";
-                continue;
-            }
-            for (Symbol a : G.follow.at(p.lhs)) {
-                if (!tab[s].count(a)) {
-                    tab[s][a] = "r"+to_string(p.pid);
+            for (Symbol a : item.lookaheads()) {
+                if (p.lhs == ss && a == "$") {
+                    tab[s]["$"] = "accept";
                 } else {
-                    tab[s][a] = resolve_with_precedence(G, tab, p, s, a);
+                    if (!tab[s].count(a)) {
+                        tab[s][a] = "r"+to_string(p.pid);
+                    } else {
+                        tab[s][a] = resolve_with_precedence(G, tab, p, s, a);
+                    }
                 }
             }
         }
@@ -102,11 +102,19 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
         ret.addItem(item);
     }
     while (!work.empty()) {
-        Symbol X = work.front().symbolAfterDot();
+        LRItem item = work.front();
+        Symbol X = item.symbolAfterDot();
         work.pop();
         if (G.nonterminals.count(X)) {
+            SymbolString beta = item.betaSymbols();
+            unordered_set<Symbol> betaFirst = firstFromSequence(G, beta);
+            if (betaFirst.count(EPS)) {
+                betaFirst.erase(EPS);
+                betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
+            }
             for (const Production& p : G.productions.at(X)) {
                 LRItem newItem(p, 0);
+                newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
                 if (!ret.hasItem(newItem)) {
                     work.push(newItem);
                     ret.addItem(newItem);
@@ -120,21 +128,23 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
 LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     LRState next;
     for (LRItem item : state.getItems()) {
-        if (item.symbolAfterDot() == X) {
-            next.addItem(item.advance());
+        if (!item.complete() && item.symbolAfterDot() == X) {
+            LRItem nextItem = item.advance();
+            nextItem.lookaheads().insert(item.lookaheads().begin(), item.lookaheads().end());
+            next.addItem(nextItem);
         }
     }
     return closure(G, next);
 }
 
-unordered_set<Symbol> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
+unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolString seq) {
     unordered_set<Symbol> result;
     for (Symbol X : seq) {
         if (G.terminals.count(X)) {
             result.insert(X);
         }
         if (G.nonterminals.count(X)) {
-            auto x_first = G.firsts[X];
+            auto x_first = G.firsts.at(X);
             bool has_eps = false;
             for (auto f : x_first) {
                 if (f == EPS) {
