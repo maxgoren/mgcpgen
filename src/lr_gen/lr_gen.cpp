@@ -87,9 +87,8 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
             Production p = item.getProduction();
             for (Symbol a : item.lookaheads()) {
                 Symbol targetToken = (a == "$") ? "TK_EOI":a;
-                if (p.lhs == ss && (a == "$" || a == "TK_EOI")) {
+                if (p.lhs == ss && a == "$") {
                     tab[s]["$"] = "accept";
-                    tab[s]["TK_EOI"] = "accept";
                 } else {
                     if (!tab[s].count(targetToken)) {
                         tab[s][targetToken] = "r"+to_string(p.pid);

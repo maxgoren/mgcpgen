@@ -8,9 +8,9 @@ void showUsage(string name) {
 }
 
 
-void generate_slr_parser(Grammar& G) {
-    LRGenerator slrgen;
-    auto[actTab, goTab] = slrgen.generate(G, "mgc_slr_gen.out.hpp", "sp");
+void generate_lr_parser(Grammar& G) {
+    LRGenerator lrgen;
+    auto[actTab, goTab] = lrgen.generate(G, "mgcpgen_out.hpp", "sp");
 }
 
 int main(int argc, char* argv[]) {
@@ -20,6 +20,6 @@ int main(int argc, char* argv[]) {
     }
     Grammar G;
     G.readGrammarFile(argv[1]);
-    generate_slr_parser(G);
+    generate_lr_parser(G);
     return 0;
 }

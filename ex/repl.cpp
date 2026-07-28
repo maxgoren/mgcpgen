@@ -1,4 +1,4 @@
-#include "parse/slr_parser.hpp"
+#include "parse/lr_parser.hpp"
 #include "lex/lexer.hpp"
 #include "interp/terp.hpp"
 
@@ -6,7 +6,7 @@ int main() {
     Lexer lexer;
     StringBuffer* sb = new StringBuffer();
     string expr;
-    SLRParser parser;
+    LRParser parser;
     Interpreter terp;
     do {
         cout<<"?> ";

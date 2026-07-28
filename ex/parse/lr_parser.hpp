@@ -1,14 +1,13 @@
-#ifndef slr_parser_hpp
-#define slr_parser_hpp
+#ifndef lr_parser_hpp
+#define lr_parser_hpp
 #include <iostream>
 #include <functional>
 #include <stack>
 #include "actions.hpp"
-#include "mgc_slr_gen.out.hpp"
-
+#include "mgcpgen_out.hpp"
 using namespace std;
 
-class SLRParser {
+class LRParser {
     private:
         stack<AST*> semStack;
         stack<int> st;
@@ -24,7 +23,7 @@ class SLRParser {
             }
         }
     public:
-        SLRParser() {
+        LRParser() {
             initprod();
             initactTab();
             initgoTab();
@@ -82,7 +81,7 @@ class SLRParser {
             cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][T.getString()]<<endl<<"Action: ";
         }
         bool checkAccept(int state_num, Token& T) {
-            if (T.getSymbol() == TK_EOI && (actTab[state_num]["$"] == "accept" || actTab[state_num]["TK_EOI"] == "accept")) {
+            if (T.getSymbol() == TK_EOI && actTab[state_num]["$"] == "accept") {
                 cout<<"ACCEPT"<<endl;
                 return true;
             }
