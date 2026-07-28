@@ -114,8 +114,8 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
         Symbol X = item.symbolAfterDot();
         work.pop();
         if (G.nonterminals.count(X)) {
-            SymbolString beta = item.betaSymbols();
-            unordered_set<Symbol> betaFirst = firstFromSequence(G, beta);
+            
+            unordered_set<Symbol> betaFirst = firstFromSequence(G, item.betaSymbols());
             if (betaFirst.count(EPS)) {
                 betaFirst.erase(EPS);
                 betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
@@ -153,16 +153,8 @@ unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolStr
             return result;
         }
         if (G.nonterminals.count(X)) {
-            auto x_first = G.firsts.at(X);
-            bool has_eps = false;
-            for (auto f : x_first) {
-                if (f == EPS) {
-                    has_eps = true;
-                } else {
-                    result.insert(f);
-                }
-            }
-            if (!has_eps)
+            result.insert(G.firsts.at(X).begin(), G.firsts.at(X).end());
+            if (result.find(EPS) == result.end())
                 return result;
         }
     }
@@ -186,14 +178,12 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     while (!fq.empty()) {
         LRState curr = states[fq.front()]; fq.pop();
         unordered_set<Symbol> valid;
-        if (debug_noise) {
-            cout<<"Current state: I"<<curr.getStateNum()<<" \n";
-        }
         for (auto item : curr.getItems()) {
             Symbol tmp = item.symbolAfterDot();
             if (tmp != "<fin>")
                 valid.insert(tmp);
         }
+        cout<<"Current state: I"<<curr.getStateNum()<<" \n";
         for (auto X : valid) {
             LRState gt = lr_goto(G, curr, X);
             if (gt.getItems().empty())
@@ -205,10 +195,13 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
                 states.push_back(gt);
                 seen.insert({gt.coreKey(),gt.getStateNum()});
                 target = gt.getStateNum();
+                cout<<"\t + Created new state: I"<<gt.getStateNum()<<endl;
             } else {
                 target = seen[gt.coreKey()];
+                // Merge equivelant cores == LALR(1), create new state = LR(1)
                 if (states[target].mergeLookaheadsFrom(gt)) {
                     fq.push(states[target].getStateNum()); 
+                    cout<<"\t - I"<<target<<" merged lookaheads"<<endl;
                 }
             }
             if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
@@ -289,7 +282,7 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     firsts.compute(G);
     cout<<"[*] Calculating Follows"<<endl;
     follows.compute(G, ss);
-    cout<<"[*] Building LR NFA"<<endl;
+    cout<<"[*] Building LALR NFA"<<endl;
     generate_CFSM(G, ss);
     cout<<"[*] Generating Go To table"<<endl;
     GoToTable   goTab = make_goto_table(G);
