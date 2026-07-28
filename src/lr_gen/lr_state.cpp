@@ -21,6 +21,40 @@ string LRState::key() const {
     return cached_key;
 }
 
+string LRState::coreKey() const {
+    set<string> item_keys;
+    for (const LRItem& item : items) {
+        item_keys.insert(to_string(item.getProduction().pid) + "@" + to_string(item.getDotPosition()));
+    }    
+    string result;
+    for (const string& ik : item_keys) {
+        result += ik + "|";
+    }
+    return result;
+}
+
+bool LRState::mergeLookaheadsFrom(const LRState& other) {
+    bool changed = false;
+    for (const LRItem& incomingItem : other.getItems()) {
+        // Find the matching item core in our current state
+        auto it = items.begin();
+        while (it != items.end()) {
+            // Safe cast: modifying lookaheads does not change the hash or equality of LRItem
+            if (incomingItem.getDotPosition() == (*it).getDotPosition() && incomingItem.getProduction() == (*it).getProduction()) {
+                LRItem& existingItem = const_cast<LRItem&>(*it);
+                size_t oldSize = existingItem.lookaheads().size();
+                existingItem.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
+                if (existingItem.lookaheads().size() > oldSize) {
+                    changed = true;
+                }
+                break;
+            }
+            it++;
+        }
+    }
+    return changed;
+}
+
 int LRState::getStateNum() {
     return state_num;
 }
@@ -39,6 +73,9 @@ void LRState::addItem(LRItem item) {
 }
 
 unordered_set<LRItem> LRState::getItems() const {
+    return items;
+}
+unordered_set<LRItem>& LRState::mutableItems() {
     return items;
 }
 

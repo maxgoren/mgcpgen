@@ -57,7 +57,14 @@ string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Produc
             }
         }
     } else {
-        cout<<"Reduce/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
+        string curr =  "r"+to_string(p.pid);
+        if (tab[s][a] != curr) {
+            cout<<"Reduce/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
+            cout << "LALR Reduce/Reduce Conflict in State " << s << " on lookahead token '" << a << "':" << endl;
+            cout << "  -> Cannot decide between " << tab[s][a] << " and r" << p.pid << endl;
+            cout << "  State Items:" << endl;
+            cout<<states[s].key()<<endl; 
+        }
     }
     return existing;
 }
@@ -78,15 +85,16 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
         for (const LRItem& item : states[s].getItems()) {
             if (!item.complete()) continue;
             Production p = item.getProduction();
-            if (p.lhs == ss) {
-                tab[s]["$"] = "accept";
-                continue;
-            }
-            for (Symbol a : G.follow.at(p.lhs)) {
-                if (!tab[s].count(a)) {
-                    tab[s][a] = "r"+to_string(p.pid);
+            for (Symbol a : item.lookaheads()) {
+                Symbol targetToken = (a == "$") ? "TK_EOI":a;
+                if (p.lhs == ss && a == "$") {
+                    tab[s]["$"] = "accept";
                 } else {
-                    tab[s][a] = resolve_with_precedence(G, tab, p, s, a);
+                    if (!tab[s].count(targetToken)) {
+                        tab[s][targetToken] = "r"+to_string(p.pid);
+                    } else {
+                        tab[s][targetToken] = resolve_with_precedence(G, tab, p, s, targetToken);
+                    }
                 }
             }
         }
@@ -102,11 +110,19 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
         ret.addItem(item);
     }
     while (!work.empty()) {
-        Symbol X = work.front().symbolAfterDot();
+        LRItem item = work.front();
+        Symbol X = item.symbolAfterDot();
         work.pop();
         if (G.nonterminals.count(X)) {
+            SymbolString beta = item.betaSymbols();
+            unordered_set<Symbol> betaFirst = firstFromSequence(G, beta);
+            if (betaFirst.count(EPS)) {
+                betaFirst.erase(EPS);
+                betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
+            }
             for (const Production& p : G.productions.at(X)) {
                 LRItem newItem(p, 0);
+                newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
                 if (!ret.hasItem(newItem)) {
                     work.push(newItem);
                     ret.addItem(newItem);
@@ -120,21 +136,24 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
 LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     LRState next;
     for (LRItem item : state.getItems()) {
-        if (item.symbolAfterDot() == X) {
-            next.addItem(item.advance());
+        if (!item.complete() && item.symbolAfterDot() == X) {
+            LRItem nextItem = item.advance();
+            nextItem.lookaheads().insert(item.lookaheads().begin(), item.lookaheads().end());
+            next.addItem(nextItem);
         }
     }
     return closure(G, next);
 }
 
-unordered_set<Symbol> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
+unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolString seq) {
     unordered_set<Symbol> result;
     for (Symbol X : seq) {
         if (G.terminals.count(X)) {
             result.insert(X);
+            return result;
         }
         if (G.nonterminals.count(X)) {
-            auto x_first = G.firsts[X];
+            auto x_first = G.firsts.at(X);
             bool has_eps = false;
             for (auto f : x_first) {
                 if (f == EPS) {
@@ -154,20 +173,21 @@ unordered_set<Symbol> LRGenerator::firstFromSequence(Grammar& G, SymbolString se
 
 void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     LRState start;
-    queue<LRState> fq;
-    unordered_map<string,int> seen;   
-    start.addItem(LRItem(G.productions[ss][0], 0));
+    queue<int> fq;
+    unordered_map<string,int> seen;
+    LRItem first_item(G.productions[ss][0], 0); 
+    first_item.lookaheads().insert("$");  
+    start.addItem(first_item);
     LRState I0 = closure(G, start);
     I0.setStateNum(0);
-    fq.push(I0);
-    seen.insert({I0.key(),I0.getStateNum()});
+    fq.push(0);
+    seen.insert({I0.coreKey(),I0.getStateNum()});
     states.push_back(I0);
     while (!fq.empty()) {
-        LRState curr = fq.front(); fq.pop();
+        LRState curr = states[fq.front()]; fq.pop();
         unordered_set<Symbol> valid;
         if (debug_noise) {
-            cout<<"Current state(I"<<curr.getStateNum()<<"): \n";
-            cout<<curr.key()<<endl;
+            cout<<"Current state: I"<<curr.getStateNum()<<" \n";
         }
         for (auto item : curr.getItems()) {
             Symbol tmp = item.symbolAfterDot();
@@ -179,18 +199,23 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             if (gt.getItems().empty())
                 continue;
             int target;
-            if (seen.find(gt.key()) == seen.end()) {
+            if (seen.find(gt.coreKey()) == seen.end()) {
                 gt.setStateNum(states.size());
-                fq.push(gt);
+                fq.push(gt.getStateNum());
                 states.push_back(gt);
-                seen.insert({gt.key(),gt.getStateNum()});
+                seen.insert({gt.coreKey(),gt.getStateNum()});
                 target = gt.getStateNum();
             } else {
-                target = seen[gt.key()];
+                target = seen[gt.coreKey()];
+                if (states[target].mergeLookaheadsFrom(gt)) {
+                    fq.push(states[target].getStateNum()); 
+                }
             }
-            cfsm.addEdge(curr.getStateNum(), target, X);   
-            if (debug_noise) {
-                cout<<"Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
+            if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
+                cfsm.addEdge(curr.getStateNum(), target, X);   
+                if (debug_noise) {
+                    cout<<"Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
+                }
             }
         }
         if (debug_noise) {

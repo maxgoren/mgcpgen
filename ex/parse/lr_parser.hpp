@@ -1,14 +1,13 @@
-#ifndef slr_parser_hpp
-#define slr_parser_hpp
+#ifndef lr_parser_hpp
+#define lr_parser_hpp
 #include <iostream>
 #include <functional>
 #include <stack>
 #include "actions.hpp"
-#include "mgc_slr_gen.out.hpp"
-
+#include "mgcpgen_out.hpp"
 using namespace std;
 
-class SLRParser {
+class LRParser {
     private:
         stack<AST*> semStack;
         stack<int> st;
@@ -24,7 +23,7 @@ class SLRParser {
             }
         }
     public:
-        SLRParser() {
+        LRParser() {
             initprod();
             initactTab();
             initgoTab();
@@ -95,7 +94,7 @@ class SLRParser {
             for (;;) {
                 Token curr_token = current();
                 int curr_state = st.top();
-                //printCurrent(curr_state, curr_token);
+                printCurrent(curr_state, curr_token);
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
                 if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
@@ -106,6 +105,8 @@ class SLRParser {
                     return nullptr;
                 }
                 string act = actTab[curr_state][tokenStr[curr_token.getSymbol()]];
+                if (act == "accept")
+                    return semStack.top();
                 int next = stoi(act.substr(1));
                 switch (act[0]) {
                     case 's': {
