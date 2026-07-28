@@ -4,18 +4,13 @@ namespace std {
         std::size_t hash<LRItem>::operator()(const LRItem& item) const {
             size_t h1 = hash<int>()(item.getProduction().pid);
             size_t h2 = hash<int>()(item.getDotPosition());
-             size_t hash_value = h1 ^ (h2 << 1);
-
-        // --- FIX: Include lookaheads in hash calculation to prevent map collisions ---
-        // Sort or process predictably to ensure consistent hash codes
-        std::vector<Symbol> sorted_la(item.lookaheads().begin(), item.lookaheads().end());
-        std::sort(sorted_la.begin(), sorted_la.end());
-        
-        for (const Symbol& la : sorted_la) {
-            hash_value ^= hash<string>()(la) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
-        }
-        
-        return hash_value;
+            size_t hash_value = h1 ^ (h2 << 1);
+            std::vector<Symbol> sorted_la(item.lookaheads().begin(), item.lookaheads().end());
+            std::sort(sorted_la.begin(), sorted_la.end());
+            for (const Symbol& la : sorted_la) {
+                hash_value ^= hash<string>()(la) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
+            }
+            return hash_value;
         }
 }
 
@@ -69,7 +64,7 @@ LRItem LRItem::advance() {
 }
 
 bool LRItem::operator==(const LRItem& other) const {
-    return production == other.production && dotPosition == other.dotPosition;
+    return production == other.production && dotPosition == other.dotPosition && la_set == other.la_set;
 }
 
 string LRItem::toString() const {

@@ -44,6 +44,13 @@ class DirectedGraph {
         int E() {
             return edgecount;
         }
+        bool hasEdge(int s, int t, Symbol X) {
+            for (auto it = adjlist[s]; it != nullptr; it = it->next) {
+                if (it->dest == t && it->edgeLabel == X)
+                    return true;
+            }
+            return false;
+        }
         void addEdge(int s, int t, Symbol X) {
             adjlist[s] = new Transition(t, X, adjlist[s]);
             edgecount++;

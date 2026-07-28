@@ -82,7 +82,7 @@ class SLRParser {
             cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][T.getString()]<<endl<<"Action: ";
         }
         bool checkAccept(int state_num, Token& T) {
-            if (T.getSymbol() == TK_EOI && actTab[state_num]["$"] == "accept") {
+            if (T.getSymbol() == TK_EOI && (actTab[state_num]["$"] == "accept" || actTab[state_num]["TK_EOI"] == "accept")) {
                 cout<<"ACCEPT"<<endl;
                 return true;
             }
@@ -95,7 +95,7 @@ class SLRParser {
             for (;;) {
                 Token curr_token = current();
                 int curr_state = st.top();
-                //printCurrent(curr_state, curr_token);
+                printCurrent(curr_state, curr_token);
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
                 if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
@@ -106,6 +106,8 @@ class SLRParser {
                     return nullptr;
                 }
                 string act = actTab[curr_state][tokenStr[curr_token.getSymbol()]];
+                if (act == "accept")
+                    return semStack.top();
                 int next = stoi(act.substr(1));
                 switch (act[0]) {
                     case 's': {
