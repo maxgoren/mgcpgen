@@ -26,6 +26,7 @@ class LRItem {
         LRItem& operator=(const LRItem& lri);
         bool operator==(const LRItem& other) const;
 };
+
 namespace std {
     template <> struct hash<LRItem> {
         std::size_t operator()(const LRItem&) const;

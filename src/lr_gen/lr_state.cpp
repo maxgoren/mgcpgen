@@ -7,8 +7,10 @@ LRState::LRState() : state_num(-1), re_calc_key(true) {
 string LRState::key() const {
     if (re_calc_key) {
         vector<string> strs;
+        set<string> item_keys;
         for (const auto& item : items) {
             strs.push_back(item.toString());
+            item_keys.insert(to_string(item.getProduction().pid) + "@" + to_string(item.getDotPosition()));
         }
         sort(strs.begin(), strs.end());
         string result;
@@ -16,29 +18,26 @@ string LRState::key() const {
             result += s + "\n";
         }
         cached_key = result;
+        string cresult;
+        for (const auto& s : item_keys) {
+            cresult += s + "|";
+        }
+        cached_core = cresult;
         re_calc_key = false;
     }
     return cached_key;
 }
 
 string LRState::coreKey() const {
-    set<string> item_keys;
-    for (const LRItem& item : items) {
-        item_keys.insert(to_string(item.getProduction().pid) + "@" + to_string(item.getDotPosition()));
-    }    
-    string result;
-    for (const string& ik : item_keys) {
-        result += ik + "|";
-    }
-    return result;
+    if (re_calc_key) key();
+    return cached_core;
 }
 
 bool LRState::mergeLookaheadsFrom(const LRState& other) {
     bool changed = false;
     for (const LRItem& incomingItem : other.getItems()) {
         // Find the matching item core in our current state
-        auto it = items.begin();
-        while (it != items.end()) {
+        for (auto it = items.begin(); it != items.end(); ++it) {
             // Safe cast: modifying lookaheads does not change the hash or equality of LRItem
             if (incomingItem.getDotPosition() == (*it).getDotPosition() && incomingItem.getProduction() == (*it).getProduction()) {
                 LRItem& existingItem = const_cast<LRItem&>(*it);
@@ -49,7 +48,6 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
                 }
                 break;
             }
-            it++;
         }
     }
     return changed;

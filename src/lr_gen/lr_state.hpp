@@ -10,6 +10,7 @@ class LRState {
     int state_num;
     mutable unordered_set<LRItem> items;
     mutable string cached_key;
+    mutable string cached_core;
     mutable bool re_calc_key;
     public:
     LRState();
