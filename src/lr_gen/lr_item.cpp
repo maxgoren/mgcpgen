@@ -69,17 +69,7 @@ bool LRItem::operator==(const LRItem& other) const {
 
 string LRItem::toString() const {
     int i = 0;
-    string result;
-    result += production.lhs;
-    result += " ::= ";
-    for (i = 0; i < production.rhs.size(); i++) {
-        if (i == dotPosition)
-            result += ". ";
-        result += production.rhs[i];
-        result += " ";
-    }
-    if (dotPosition == production.rhs.size()) 
-        result += ".";
+    string result = to_string(production.pid) + "@" + to_string(dotPosition);
     vector<Symbol> sorted_la(la_set.begin(), la_set.end());
     sort(sorted_la.begin(), sorted_la.end());
     result += " { ";
