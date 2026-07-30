@@ -136,17 +136,17 @@ AST* makeLambda(vector<AST*>& reducing) {
     Token tk;
     tk.setString("lambda");
     tk.setSymbol(TK_ID);
-        nn->children[0] = new AST(tk);
-        nn->children[0]->attr.type = EXPR_NODE;
-        nn->children[0]->attr.expr = ID_EXPR;
-        nn->children[1] = reducing[2];
-        nn->children[2] = reducing[5];
-        for (auto m = nn->children[1]; m != nullptr; m = m->next) {
-            if (m->token.getSymbol() == TK_LET) {
-                m->children[0]->attr.type = EXPR_NODE;
-                m->children[0]->attr.expr = ID_EXPR;
-            }
+    nn->children[0] = new AST(tk);
+    nn->children[0]->attr.type = EXPR_NODE;
+    nn->children[0]->attr.expr = ID_EXPR;
+    nn->children[1] = reducing[2];
+    nn->children[2] = reducing[4];
+    for (auto m = nn->children[1]; m != nullptr; m = m->next) {
+        if (m->token.getSymbol() == TK_LET) {
+            m->children[0]->attr.type = EXPR_NODE;
+            m->children[0]->attr.expr = ID_EXPR;
         }
+    }
     return nn;
 }
 

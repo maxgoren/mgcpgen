@@ -6,22 +6,23 @@ LRState::LRState() : state_num(-1), re_calc_key(true) {
 
 string LRState::key() const {
     if (re_calc_key) {
-        vector<string> strs;
+        set<string> strs;
         set<string> item_keys;
         for (const auto& item : items) {
-            strs.push_back(item.toString());
+            strs.insert(item.toString());
             item_keys.insert(to_string(item.getProduction().pid) + "@" + to_string(item.getDotPosition()));
         }
-        sort(strs.begin(), strs.end());
         string result;
-        for (const auto& s : strs) {
-            result += s + "\n";
+        string cresult;
+        auto rit = strs.begin();
+        auto cit  = item_keys.begin();
+        while (rit != strs.end() && cit != item_keys.end()) {
+            result += *rit + "\n";
+            cresult += *cit + "|";
+            rit++;
+            cit++;
         }
         cached_key = result;
-        string cresult;
-        for (const auto& s : item_keys) {
-            cresult += s + "|";
-        }
         cached_core = cresult;
         re_calc_key = false;
     }
@@ -38,13 +39,13 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
     for (const LRItem& incomingItem : other.getItems()) {
         // Find the matching item core in our current state
         for (auto it = items.begin(); it != items.end(); ++it) {
-            // Safe cast: modifying lookaheads does not change the hash or equality of LRItem
-            if (incomingItem.getDotPosition() == (*it).getDotPosition() && incomingItem.getProduction() == (*it).getProduction()) {
+            if (incomingItem.kernel() == (*it).kernel()) {
                 LRItem& existingItem = const_cast<LRItem&>(*it);
                 size_t oldSize = existingItem.lookaheads().size();
                 existingItem.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
                 if (existingItem.lookaheads().size() > oldSize) {
                     changed = true;
+                    existingItem.rehash();
                 }
                 break;
             }

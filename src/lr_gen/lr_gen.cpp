@@ -114,7 +114,6 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
         Symbol X = item.symbolAfterDot();
         work.pop();
         if (G.nonterminals.count(X)) {
-            
             unordered_set<Symbol> betaFirst = firstFromSequence(G, item.betaSymbols());
             if (betaFirst.count(EPS)) {
                 betaFirst.erase(EPS);
@@ -123,6 +122,7 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
             for (const Production& p : G.productions.at(X)) {
                 LRItem newItem(p, 0);
                 newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
+                newItem.rehash();
                 if (!ret.hasItem(newItem)) {
                     work.push(newItem);
                     ret.addItem(newItem);
@@ -139,6 +139,7 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
         if (!item.complete() && item.symbolAfterDot() == X) {
             LRItem nextItem = item.advance();
             nextItem.lookaheads().insert(item.lookaheads().begin(), item.lookaheads().end());
+            nextItem.rehash();
             next.addItem(nextItem);
         }
     }

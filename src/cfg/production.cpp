@@ -55,12 +55,12 @@ bool SymbolString::operator!=(const SymbolString& ss) {
 
 Production::Production(int id, Symbol l, SymbolString r, string a) : pid(id), lhs(l), rhs(r), action(a) { }
 Production::Production(int id, Symbol l, SymbolString r) : pid(id), lhs(l), rhs(r) { }
-Production::Production() { }
+Production::Production() : pid(0) { }
 string Production::toString() {
     return lhs + " ::= " + rhs.toString(); 
 }
 bool Production::operator==(const Production& op) const {
-    return lhs == op.lhs && rhs == op.rhs;
+    return pid == op.pid;
 }
 bool Production::operator!=(const Production& op) const {
     return !(*this==op);
