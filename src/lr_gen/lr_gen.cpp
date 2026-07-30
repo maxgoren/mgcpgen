@@ -293,7 +293,6 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     printProductions(ofile, G, "prod");
     printTables(ofile, goTab, "goTab");
     printTables(ofile, actTable, "actTab");
-    cout<<"[*] Done!"<<endl;
     return make_pair(actTable, goTab);
 }
 
@@ -305,20 +304,11 @@ vector<LRState>& LRGenerator::getStates() {
     return states;
 }
 
-pair<ActionTable,GoToTable> LRGenerator::generate(Grammar& G,  string outname, Symbol start) {
-    ofstream ofile(outname);
-    auto ret = generate(G, start, ofile);
-    ofile.close();
-    return ret;
-}
 
-pair<ActionTable,GoToTable> LRGenerator::generate(string filename, string outname,Symbol start) {
-    Grammar G;
-    cout<<"[*] Reading Grammar File: "<<filename<<endl;
-    G.readGrammarFile(filename);
+pair<ActionTable,GoToTable> LRGenerator::generate(Grammar& G, string outname) {
     ofstream ofile(outname);
     cout<<"[*] Generating Parser..."<<endl;
-    auto ret = generate(G, start, ofile);
+    auto ret = generate(G, G.startSym, ofile);
     ofile.close();
     cout<<"[*] Done."<<endl;
     return ret;

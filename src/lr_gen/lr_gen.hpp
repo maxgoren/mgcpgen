@@ -41,8 +41,7 @@ class LRGenerator {
     public:
         LRGenerator(bool debug_noise = false);
         vector<LRState>& getStates();
-        pair<ActionTable,GoToTable> generate(Grammar& G,  string outname, Symbol start);
-        pair<ActionTable,GoToTable> generate(string filename, string outname,Symbol start);
+        pair<ActionTable,GoToTable> generate(Grammar& G, string out_name);
 };
 
 #endif
