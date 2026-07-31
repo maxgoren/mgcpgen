@@ -37,7 +37,7 @@ string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Produc
     if (existing[0] == 's') {
         Symbol prod_sym = get_production_precedence_symbol(p, G);
         if (!G.precedenceMap.count(prod_sym) || !G.precedenceMap.count(a)) {
-            cout<<"No way to resolve Shift/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
+            cout<<"!!! No way to resolve Shift/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<endl;
         } else {
             OpPrec pr = G.precedenceMap[prod_sym];
             OpPrec la = G.precedenceMap[a];
@@ -123,6 +123,7 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
             for (const Production& p : G.productions.at(X)) {
                 LRItem newItem(p, 0);
                 newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
+                newItem.rehash();
                 if (!ret.hasItem(newItem)) {
                     work.push(newItem);
                     ret.addItem(newItem);
@@ -139,6 +140,7 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
         if (!item.complete() && item.symbolAfterDot() == X) {
             LRItem nextItem = item.advance();
             nextItem.lookaheads().insert(item.lookaheads().begin(), item.lookaheads().end());
+            nextItem.rehash();
             next.addItem(nextItem);
         }
     }

@@ -10,6 +10,7 @@ class LRItem {
         Production production;
         int dotPosition;
         unordered_set<Symbol> la_set;
+        size_t hash_val;
     public:
         LRItem();
         LRItem(Production p, int dp);
@@ -24,6 +25,8 @@ class LRItem {
         LRItem advance();
         string kernel() const;
         string toString() const;
+        void rehash();
+        size_t hashCode() const;
         void print();
         LRItem& operator=(const LRItem& lri);
         bool operator==(const LRItem& other) const;

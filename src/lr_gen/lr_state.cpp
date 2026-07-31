@@ -45,6 +45,7 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
             existingItem.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
             if (existingItem.lookaheads().size() > oldSize) {
                 changed = true;
+                existingItem.rehash();
             }
             items.insert(existingItem);
         }
