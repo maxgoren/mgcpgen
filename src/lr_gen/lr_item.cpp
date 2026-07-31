@@ -4,7 +4,13 @@ namespace std {
         std::size_t hash<LRItem>::operator()(const LRItem& item) const {
                 size_t h1 = hash<int>()(item.getProduction().pid);
                 size_t h2 = hash<int>()(item.getDotPosition());
-                return h1 ^ (h2 << 1);
+                size_t hv = h1 ^ (h2 << 1);
+                vector<string> sorted_la(item.lookaheads().begin(), item.lookaheads().end());
+                sort(sorted_la.begin(), sorted_la.end());
+                for (auto m : sorted_la) {
+                    hv += hash<string>()(m);
+                }
+                return hv;
         }
 }
 
