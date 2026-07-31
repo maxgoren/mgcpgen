@@ -282,7 +282,16 @@ void Interpreter::eval(AST* ast) {
 void Interpreter::evalUnaryOp(AST* ast) {
     eval(ast->children[0]);
     Object v = cxt.st.top(); cxt.st.pop();
-    v.numval = -v.numval;
+    switch (ast->token.getSymbol()) {
+        case TK_MINUS: 
+            v.numval = -v.numval;
+            break;
+        case TK_NOT:
+            v.boolval = !v.boolval;
+            break;
+        default:
+            break;
+    }
     cxt.st.push(v);
 }
 
@@ -324,6 +333,8 @@ void Interpreter::evalBinOp(AST* ast) {
         case TK_NEQ:  cxt.st.push((bool)(lhs != rhs)); break;
         case TK_LT:   cxt.st.push((bool)(lhs < rhs));  break;
         case TK_GT:   cxt.st.push((bool)(lhs > rhs));  break;
+        case TK_LTE:   cxt.st.push((bool)(lhs <= rhs));  break;
+        case TK_GTE:   cxt.st.push((bool)(lhs >= rhs));  break;
         default:
             break;
     }

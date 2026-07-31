@@ -41,9 +41,9 @@ string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Produc
         } else {
             OpPrec pr = G.precedenceMap[prod_sym];
             OpPrec la = G.precedenceMap[a];
-            cout<<"Shift/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<": ";
+            cout<<"Resolved Shift/Reduce conflict: ["<<s<<"]["<<a<<"] "<<existing<<": ";
             if (la.prec_level > pr.prec_level) {
-                cout<<"Keeping the shift"<<endl;
+                cout<<"Keeping existing shift"<<endl;
             } else if (pr.prec_level > la.prec_level) {
                 cout<<"Made to reduce on precedence for "<<a<<endl;
                 return "r" + to_string(p.pid);
@@ -52,7 +52,7 @@ string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Produc
                     cout<<"Reduced on associativity"<<endl;
                     return "r" + to_string(p.pid);
                 } else {
-                    cout<<"Keeping shift."<<endl;
+                    cout<<"Keeping existing shift."<<endl;
                 }
             }
         }
@@ -76,13 +76,14 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
             if (G.terminals.count(it->edgeLabel)) {
                 if (tab[s].count(it->edgeLabel)) {
                     cout<<"Shift conflict: ["<<s<<"]["<<it->edgeLabel<<"] "<<tab[s][it->edgeLabel]<<endl;
+                } else {
+                    tab[s][it->edgeLabel] = "s"+to_string(it->dest);
                 }
-                tab[s][it->edgeLabel] = "s"+to_string(it->dest);
             }
         }
     }
     for (int s = 0; s < states.size(); s++) {
-        for (const LRItem& item : states[s].getItems()) {
+        for (const LRItem& item : states[s].mutableItems()) {
             if (!item.complete()) continue;
             Production p = item.getProduction();
             for (Symbol a : item.lookaheads()) {
@@ -122,7 +123,6 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
             for (const Production& p : G.productions.at(X)) {
                 LRItem newItem(p, 0);
                 newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
-                newItem.rehash();
                 if (!ret.hasItem(newItem)) {
                     work.push(newItem);
                     ret.addItem(newItem);
@@ -139,7 +139,6 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
         if (!item.complete() && item.symbolAfterDot() == X) {
             LRItem nextItem = item.advance();
             nextItem.lookaheads().insert(item.lookaheads().begin(), item.lookaheads().end());
-            nextItem.rehash();
             next.addItem(nextItem);
         }
     }
@@ -179,15 +178,15 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     while (!fq.empty()) {
         LRState curr = states[fq.front()]; fq.pop();
         unordered_set<Symbol> valid;
-        for (auto item : curr.getItems()) {
+        for (auto item : curr.mutableItems()) {
             Symbol tmp = item.symbolAfterDot();
             if (tmp != "<fin>")
                 valid.insert(tmp);
         }
-        cout<<"Current state: I"<<curr.getStateNum()<<" \n";
+        //cout<<"Current state: I"<<curr.getStateNum()<<" \n";
         for (auto X : valid) {
             LRState gt = lr_goto(G, curr, X);
-            if (gt.getItems().empty())
+            if (gt.mutableItems().empty())
                 continue;
             int target;
             if (seen.find(gt.coreKey()) == seen.end()) {
@@ -199,10 +198,10 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
                 cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
             } else {
                 target = seen[gt.coreKey()];
-                // Merge equivelant cores == LALR(1), create new state = LR(1)
+                //Merge equivelant cores == LALR(1), create new state = LR(1)
                 if (states[target].mergeLookaheadsFrom(gt)) {
                     fq.push(states[target].getStateNum()); 
-                    cout<<"\t - I"<<target<<" merged lookaheads"<<endl;
+                    cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
                 }
             }
             if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
@@ -216,6 +215,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             cout<<"--------------------------\n";
         }
     }
+    cout<<"\n";
 }
 
 void LRGenerator::printPrelude(ostream& ofile) {

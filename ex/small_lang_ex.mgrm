@@ -3,12 +3,16 @@ set_token_prec TK_EQU 2 left
 set_token_prec TK_NEQ 2 left
 set_token_prec TK_LT 3 left
 set_token_prec TK_GT 3 left
+set_token_prec TK_LTE 3 left
+set_token_prec TK_GTE 3 left
 set_token_prec TK_MINUS 5 left
 set_token_prec TK_PLUS 5 left
 set_token_prec TK_MUL 10 left
 set_token_prec TK_DIV 10 left
 set_token_prec TK_UNARY_MINUS 15 left
+set_token_prec TK_NOT 15 left
 set_token_prec TK_LPAREN 16 left
+set_token_prec TK_RPAREN 16 left
 set_token_prec TK_LSQB 16 left
 set_token_prec TK_PRODUCE 17 left
 sp ::= PROG
@@ -43,11 +47,14 @@ AEXPR ::= AEXPR TK_EQU AEXPR @binop
 AEXPR ::= AEXPR TK_NEQ AEXPR @binop
 AEXPR ::= AEXPR TK_LT AEXPR @binop
 AEXPR ::= AEXPR TK_GT AEXPR @binop
+AEXPR ::= AEXPR TK_LTE AEXPR @binop
+AEXPR ::= AEXPR TK_GTE AEXPR @binop
 AEXPR ::= AEXPR TK_PLUS AEXPR @binop
 AEXPR ::= AEXPR TK_MINUS AEXPR @binop
 AEXPR ::= AEXPR TK_MUL AEXPR @binop
 AEXPR ::= AEXPR TK_DIV AEXPR @binop
 AEXPR ::= TK_MINUS AEXPR @unary prec_override TK_UNARY_MINUS
+AEXPR ::= TK_NOT AEXPR @unary
 AEXPR ::= AEXPR TK_LSQB PRI TK_RSQB @mksubscript
 AEXPR ::= AEXPR TK_LPAREN EXPLIST TK_RPAREN @mkcall
 AEXPR ::= PRI

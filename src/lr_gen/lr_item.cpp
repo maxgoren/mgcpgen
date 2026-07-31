@@ -2,17 +2,18 @@
 
 namespace std {
         std::size_t hash<LRItem>::operator()(const LRItem& item) const {
-            return item.hashCode();
+                size_t h1 = hash<int>()(item.getProduction().pid);
+                size_t h2 = hash<int>()(item.getDotPosition());
+                return h1 ^ (h2 << 1);
         }
 }
 
-LRItem::LRItem(Production p, int dp) : production(p), dotPosition(dp) { rehash(); }
+LRItem::LRItem(Production p, int dp) : production(p), dotPosition(dp) {  }
 LRItem::LRItem() : dotPosition(-1) { }
 LRItem::LRItem(const LRItem& lri) {
     production = lri.production;
     dotPosition = lri.dotPosition;
     la_set = lri.la_set;
-    rehash();
 }
 
 LRItem& LRItem::operator=(const LRItem& lri) {
@@ -20,7 +21,6 @@ LRItem& LRItem::operator=(const LRItem& lri) {
         production = lri.production;
         dotPosition = lri.dotPosition;
         la_set = lri.la_set;
-        rehash();
     }
     return *this;
 }
@@ -51,21 +51,6 @@ unordered_set<Symbol>& LRItem::lookaheads() {
 
 bool LRItem::complete() const {
     return dotPosition >= production.rhs.size();
-}
-
-void LRItem::rehash() {
-    size_t h1 = hash<int>()(production.pid);
-    size_t h2 = hash<int>()(dotPosition);
-    hash_value = h1 ^ (h2 << 1);
-    std::vector<Symbol> sorted_la(la_set.begin(), la_set.end());
-    std::sort(sorted_la.begin(), sorted_la.end());
-    for (const Symbol& la : sorted_la) {
-        hash_value ^= hash<string>()(la) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
-    }
-}
-
-std::size_t LRItem::hashCode() const {
-    return hash_value;
 }
 
 string LRItem::kernel() const {
