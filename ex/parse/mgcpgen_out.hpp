@@ -1,4 +1,4 @@
-#include <vector>
+r#include <vector>
 #include <map>
 #include <set>
 #include "production.hpp"
@@ -71,7 +71,7 @@ map<int,map<string,string>> goTab;
 void initgoTab() {
 	 goTab[0] = {{"AEXPR", "17"}, {"BLESSEXPR", "18"}, {"BLOCKSTMT", "20"}, {"DEFSTMT", "26"}, {"EXPSTMT", "23"}, {"IFSTMT", "24"}, {"LAMBDAEXPR", "13"}, {"LETSTMT", "3"}, {"LISTCON", "14"}, {"PRI", "19"}, {"PRINTSTMT", "27"}, {"PROG", "1"}, {"RETSTMT", "16"}, {"STMT", "21"}, {"STMTLIST", "28"}, {"STRUCTSTMT", "30"}, {"WHILESTMT", "25"}};
 	 goTab[6] = {{"AEXPR", "36"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
-	 goTab[7] = {{"AEXPR", "38"}, {"BLESSEXPR", "18"}, {"EXPLIST", "37"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
+	 goTab[7] = {{"AEXPR", "37"}, {"BLESSEXPR", "18"}, {"EXPLIST", "38"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[10] = {{"AEXPR", "41"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[11] = {{"AEXPR", "42"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[21] = {{"AEXPR", "17"}, {"BLESSEXPR", "18"}, {"BLOCKSTMT", "20"}, {"DEFSTMT", "26"}, {"EXPSTMT", "23"}, {"IFSTMT", "24"}, {"LAMBDAEXPR", "13"}, {"LETSTMT", "3"}, {"LISTCON", "14"}, {"PRI", "19"}, {"PRINTSTMT", "27"}, {"RETSTMT", "16"}, {"STMT", "21"}, {"STMTLIST", "56"}, {"STRUCTSTMT", "30"}, {"WHILESTMT", "25"}};
@@ -80,10 +80,10 @@ void initgoTab() {
 	 goTab[33] = {{"AEXPR", "60"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[34] = {{"AEXPR", "61"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[35] = {{"BLOCKSTMT", "62"}};
-	 goTab[39] = {{"DECLLIST", "65"}, {"DECLSTMT", "66"}, {"PARAMLIST", "67"}};
+	 goTab[39] = {{"DECLLIST", "66"}, {"DECLSTMT", "65"}, {"PARAMLIST", "68"}};
 	 goTab[44] = {{"AEXPR", "73"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[45] = {{"AEXPR", "74"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
-	 goTab[46] = {{"AEXPR", "38"}, {"BLESSEXPR", "18"}, {"EXPLIST", "75"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
+	 goTab[46] = {{"AEXPR", "37"}, {"BLESSEXPR", "18"}, {"EXPLIST", "75"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[47] = {{"AEXPR", "76"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[48] = {{"AEXPR", "77"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[49] = {{"AEXPR", "78"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
@@ -93,12 +93,12 @@ void initgoTab() {
 	 goTab[54] = {{"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "82"}};
 	 goTab[55] = {{"AEXPR", "83"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[59] = {{"AEXPR", "86"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
-	 goTab[64] = {{"AEXPR", "38"}, {"BLESSEXPR", "18"}, {"EXPLIST", "90"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
-	 goTab[69] = {{"DECLLIST", "65"}, {"DECLSTMT", "66"}, {"PARAMLIST", "94"}};
-	 goTab[72] = {{"AEXPR", "38"}, {"BLESSEXPR", "18"}, {"EXPLIST", "95"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
+	 goTab[63] = {{"AEXPR", "37"}, {"BLESSEXPR", "18"}, {"EXPLIST", "90"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
+	 goTab[69] = {{"DECLLIST", "66"}, {"DECLSTMT", "65"}, {"PARAMLIST", "94"}};
+	 goTab[72] = {{"AEXPR", "37"}, {"BLESSEXPR", "18"}, {"EXPLIST", "95"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[88] = {{"BLOCKSTMT", "99"}};
-	 goTab[91] = {{"DECLLIST", "100"}, {"DECLSTMT", "66"}};
-	 goTab[92] = {{"BLOCKSTMT", "102"}, {"LAMBDAEXPRT", "101"}};
+	 goTab[91] = {{"DECLLIST", "100"}, {"DECLSTMT", "65"}};
+	 goTab[93] = {{"BLOCKSTMT", "102"}, {"LAMBDAEXPRT", "101"}};
 	 goTab[98] = {{"BLOCKSTMT", "106"}};
 	 goTab[103] = {{"AEXPR", "107"}, {"BLESSEXPR", "18"}, {"LAMBDAEXPR", "13"}, {"LISTCON", "14"}, {"PRI", "19"}};
 	 goTab[104] = {{"BLOCKSTMT", "108"}};
@@ -142,9 +142,9 @@ void initactTab() {
 	 actTab[34] = {{"TK_AMPER", "s8"}, {"TK_ID", "s31"}, {"TK_LPAREN", "s10"}, {"TK_LSQB", "s7"}, {"TK_MINUS", "s6"}, {"TK_NEW", "s15"}, {"TK_NUM", "s5"}, {"TK_STRING", "s12"}};
 	 actTab[35] = {{"TK_LCURLY", "s22"}};
 	 actTab[36] = {{"TK_ASSIGN", "r37"}, {"TK_COMMA", "r37"}, {"TK_DIV", "r37"}, {"TK_EQU", "r37"}, {"TK_GT", "r37"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "r37"}, {"TK_MINUS", "r37"}, {"TK_MUL", "r37"}, {"TK_NEQ", "r37"}, {"TK_PLUS", "r37"}, {"TK_RPAREN", "r37"}, {"TK_RSQB", "r37"}, {"TK_SEMI", "r37"}};
-	 actTab[37] = {{"TK_RSQB", "s63"}};
-	 actTab[38] = {{"TK_ASSIGN", "s48"}, {"TK_COMMA", "s64"}, {"TK_DIV", "s52"}, {"TK_EQU", "s45"}, {"TK_GT", "s49"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "s55"}, {"TK_MINUS", "s50"}, {"TK_MUL", "s47"}, {"TK_NEQ", "s44"}, {"TK_PLUS", "s53"}, {"TK_RPAREN", "r49"}, {"TK_RSQB", "r49"}};
-	 actTab[39] = {{"TK_LET", "s68"}, {"TK_RPAREN", "r15"}};
+	 actTab[37] = {{"TK_ASSIGN", "s48"}, {"TK_COMMA", "s63"}, {"TK_DIV", "s52"}, {"TK_EQU", "s45"}, {"TK_GT", "s49"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "s55"}, {"TK_MINUS", "s50"}, {"TK_MUL", "s47"}, {"TK_NEQ", "s44"}, {"TK_PLUS", "s53"}, {"TK_RPAREN", "r49"}, {"TK_RSQB", "r49"}};
+	 actTab[38] = {{"TK_RSQB", "s64"}};
+	 actTab[39] = {{"TK_LET", "s67"}, {"TK_RPAREN", "r15"}};
 	 actTab[40] = {{"TK_LPAREN", "s69"}};
 	 actTab[41] = {{"TK_ASSIGN", "s48"}, {"TK_DIV", "s52"}, {"TK_EQU", "s45"}, {"TK_GT", "s49"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "s55"}, {"TK_MINUS", "s50"}, {"TK_MUL", "s47"}, {"TK_NEQ", "s44"}, {"TK_PLUS", "s53"}, {"TK_RPAREN", "s70"}};
 	 actTab[42] = {{"TK_ASSIGN", "s48"}, {"TK_DIV", "s52"}, {"TK_EQU", "s45"}, {"TK_GT", "s49"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "s55"}, {"TK_MINUS", "s50"}, {"TK_MUL", "s47"}, {"TK_NEQ", "s44"}, {"TK_PLUS", "s53"}, {"TK_SEMI", "s71"}};
@@ -168,13 +168,13 @@ void initactTab() {
 	 actTab[60] = {{"TK_ASSIGN", "s48"}, {"TK_DIV", "s52"}, {"TK_EQU", "s45"}, {"TK_GT", "s49"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "s55"}, {"TK_MINUS", "s50"}, {"TK_MUL", "s47"}, {"TK_NEQ", "s44"}, {"TK_PLUS", "s53"}, {"TK_SEMI", "s87"}};
 	 actTab[61] = {{"TK_ASSIGN", "s48"}, {"TK_DIV", "s52"}, {"TK_EQU", "s45"}, {"TK_GT", "s49"}, {"TK_LPAREN", "s46"}, {"TK_LSQB", "s54"}, {"TK_LT", "s55"}, {"TK_MINUS", "s50"}, {"TK_MUL", "s47"}, {"TK_NEQ", "s44"}, {"TK_PLUS", "s53"}, {"TK_RPAREN", "s88"}};
 	 actTab[62] = {{"TK_SEMI", "s89"}};
-	 actTab[63] = {{"TK_ASSIGN", "r50"}, {"TK_COMMA", "r50"}, {"TK_DIV", "r50"}, {"TK_EQU", "r50"}, {"TK_GT", "r50"}, {"TK_LPAREN", "r50"}, {"TK_LSQB", "r50"}, {"TK_LT", "r50"}, {"TK_MINUS", "r50"}, {"TK_MUL", "r50"}, {"TK_NEQ", "r50"}, {"TK_PLUS", "r50"}, {"TK_RPAREN", "r50"}, {"TK_RSQB", "r50"}, {"TK_SEMI", "r50"}};
-	 actTab[64] = {{"TK_AMPER", "s8"}, {"TK_ID", "s31"}, {"TK_LPAREN", "s10"}, {"TK_LSQB", "s7"}, {"TK_MINUS", "s6"}, {"TK_NEW", "s15"}, {"TK_NUM", "s5"}, {"TK_STRING", "s12"}};
-	 actTab[65] = {{"TK_RPAREN", "r14"}};
-	 actTab[66] = {{"TK_COMMA", "s91"}, {"TK_RPAREN", "r18"}};
-	 actTab[67] = {{"TK_RPAREN", "s92"}};
-	 actTab[68] = {{"TK_ID", "s93"}};
-	 actTab[69] = {{"TK_LET", "s68"}, {"TK_RPAREN", "r15"}};
+	 actTab[63] = {{"TK_AMPER", "s8"}, {"TK_ID", "s31"}, {"TK_LPAREN", "s10"}, {"TK_LSQB", "s7"}, {"TK_MINUS", "s6"}, {"TK_NEW", "s15"}, {"TK_NUM", "s5"}, {"TK_STRING", "s12"}};
+	 actTab[64] = {{"TK_ASSIGN", "r50"}, {"TK_COMMA", "r50"}, {"TK_DIV", "r50"}, {"TK_EQU", "r50"}, {"TK_GT", "r50"}, {"TK_LPAREN", "r50"}, {"TK_LSQB", "r50"}, {"TK_LT", "r50"}, {"TK_MINUS", "r50"}, {"TK_MUL", "r50"}, {"TK_NEQ", "r50"}, {"TK_PLUS", "r50"}, {"TK_RPAREN", "r50"}, {"TK_RSQB", "r50"}, {"TK_SEMI", "r50"}};
+	 actTab[65] = {{"TK_COMMA", "s91"}, {"TK_RPAREN", "r18"}};
+	 actTab[66] = {{"TK_RPAREN", "r14"}};
+	 actTab[67] = {{"TK_ID", "s92"}};
+	 actTab[68] = {{"TK_RPAREN", "s93"}};
+	 actTab[69] = {{"TK_LET", "s67"}, {"TK_RPAREN", "r15"}};
 	 actTab[70] = {{"TK_ASSIGN", "r41"}, {"TK_COMMA", "r41"}, {"TK_DIV", "r41"}, {"TK_EQU", "r41"}, {"TK_GT", "r41"}, {"TK_LPAREN", "r41"}, {"TK_LSQB", "r41"}, {"TK_LT", "r41"}, {"TK_MINUS", "r41"}, {"TK_MUL", "r41"}, {"TK_NEQ", "r41"}, {"TK_PLUS", "r41"}, {"TK_RPAREN", "r41"}, {"TK_RSQB", "r41"}, {"TK_SEMI", "r41"}};
 	 actTab[71] = {{"TK_AMPER", "r26"}, {"TK_DEF", "r26"}, {"TK_EOI", "r26"}, {"TK_ID", "r26"}, {"TK_IF", "r26"}, {"TK_LCURLY", "r26"}, {"TK_LET", "r26"}, {"TK_LPAREN", "r26"}, {"TK_LSQB", "r26"}, {"TK_MINUS", "r26"}, {"TK_NEW", "r26"}, {"TK_NUM", "r26"}, {"TK_PRINT", "r26"}, {"TK_RCURLY", "r26"}, {"TK_RETURN", "r26"}, {"TK_STRING", "r26"}, {"TK_STRUCT", "r26"}, {"TK_WHILE", "r26"}};
 	 actTab[72] = {{"TK_AMPER", "s8"}, {"TK_ID", "s31"}, {"TK_LPAREN", "s10"}, {"TK_LSQB", "s7"}, {"TK_MINUS", "s6"}, {"TK_NEW", "s15"}, {"TK_NUM", "s5"}, {"TK_STRING", "s12"}};
@@ -196,9 +196,9 @@ void initactTab() {
 	 actTab[88] = {{"TK_LCURLY", "s22"}};
 	 actTab[89] = {{"TK_AMPER", "r25"}, {"TK_DEF", "r25"}, {"TK_EOI", "r25"}, {"TK_ID", "r25"}, {"TK_IF", "r25"}, {"TK_LCURLY", "r25"}, {"TK_LET", "r25"}, {"TK_LPAREN", "r25"}, {"TK_LSQB", "r25"}, {"TK_MINUS", "r25"}, {"TK_NEW", "r25"}, {"TK_NUM", "r25"}, {"TK_PRINT", "r25"}, {"TK_RCURLY", "r25"}, {"TK_RETURN", "r25"}, {"TK_STRING", "r25"}, {"TK_STRUCT", "r25"}, {"TK_WHILE", "r25"}};
 	 actTab[90] = {{"TK_RPAREN", "r48"}, {"TK_RSQB", "r48"}};
-	 actTab[91] = {{"TK_LET", "s68"}};
-	 actTab[92] = {{"TK_LCURLY", "s22"}, {"TK_PRODUCE", "s103"}};
-	 actTab[93] = {{"TK_COMMA", "r16"}, {"TK_RPAREN", "r16"}};
+	 actTab[91] = {{"TK_LET", "s67"}};
+	 actTab[92] = {{"TK_COMMA", "r16"}, {"TK_RPAREN", "r16"}};
+	 actTab[93] = {{"TK_LCURLY", "s22"}, {"TK_PRODUCE", "s103"}};
 	 actTab[94] = {{"TK_RPAREN", "s104"}};
 	 actTab[95] = {{"TK_RPAREN", "s105"}};
 	 actTab[96] = {{"TK_ASSIGN", "r39"}, {"TK_COMMA", "r39"}, {"TK_DIV", "r39"}, {"TK_EQU", "r39"}, {"TK_GT", "r39"}, {"TK_LPAREN", "r39"}, {"TK_LSQB", "r39"}, {"TK_LT", "r39"}, {"TK_MINUS", "r39"}, {"TK_MUL", "r39"}, {"TK_NEQ", "r39"}, {"TK_PLUS", "r39"}, {"TK_RPAREN", "r39"}, {"TK_RSQB", "r39"}, {"TK_SEMI", "r39"}};

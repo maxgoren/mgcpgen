@@ -196,7 +196,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
                 states.push_back(gt);
                 seen.insert({gt.coreKey(),gt.getStateNum()});
                 target = gt.getStateNum();
-                cout<<"\t + Created new state: I"<<gt.getStateNum()<<endl;
+                cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
             } else {
                 target = seen[gt.coreKey()];
                 // Merge equivelant cores == LALR(1), create new state = LR(1)

@@ -38,17 +38,24 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
     bool changed = false;
     for (const LRItem& incomingItem : other.getItems()) {
         // Find the matching item core in our current state
+        LRItem existing;
+        bool found_match = false;
         for (auto it = items.begin(); it != items.end(); ++it) {
             if (incomingItem.kernel() == (*it).kernel()) {
-                LRItem& existingItem = const_cast<LRItem&>(*it);
-                size_t oldSize = existingItem.lookaheads().size();
-                existingItem.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
-                if (existingItem.lookaheads().size() > oldSize) {
-                    changed = true;
-                    existingItem.rehash();
-                }
+                existing = *it;
+                found_match = true;
                 break;
             }
+        }
+        if (found_match) {
+            items.erase(existing);
+            size_t oldSize = existing.lookaheads().size();
+            existing.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
+            if (existing.lookaheads().size() > oldSize) {
+                changed = true;
+                existing.rehash();
+            }
+            items.insert(existing);
         }
     }
     return changed;

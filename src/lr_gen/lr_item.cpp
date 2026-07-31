@@ -7,7 +7,7 @@ namespace std {
 }
 
 LRItem::LRItem(Production p, int dp) : production(p), dotPosition(dp) { rehash(); }
-
+LRItem::LRItem() : dotPosition(-1) { }
 LRItem::LRItem(const LRItem& lri) {
     production = lri.production;
     dotPosition = lri.dotPosition;
@@ -82,7 +82,7 @@ bool LRItem::operator==(const LRItem& other) const {
 
 string LRItem::toString() const {
     int i = 0;
-    string result = to_string(production.pid) + "@" + to_string(dotPosition);
+    string result = kernel();
     vector<Symbol> sorted_la(la_set.begin(), la_set.end());
     sort(sorted_la.begin(), sorted_la.end());
     result += " { ";

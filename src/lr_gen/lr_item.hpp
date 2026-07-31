@@ -12,7 +12,8 @@ class LRItem {
         unordered_set<Symbol> la_set;
         std::size_t hash_value;
     public:
-        LRItem(Production p, int dp) ;
+        LRItem();
+        LRItem(Production p, int dp);
         LRItem(const LRItem& lri);
         int getDotPosition() const;
         Production getProduction() const;
