@@ -37,25 +37,17 @@ string LRState::coreKey() const {
 bool LRState::mergeLookaheadsFrom(const LRState& other) {
     bool changed = false;
     for (const LRItem& incomingItem : other.getItems()) {
-        // Find the matching item core in our current state
-        LRItem existing;
-        bool found_match = false;
-        for (auto it = items.begin(); it != items.end(); ++it) {
-            if (incomingItem.kernel() == (*it).kernel()) {
-                existing = *it;
-                found_match = true;
-                break;
-            }
-        }
-        if (found_match) {
+        auto existing = find_if(items.begin(), items.end(), [&](const LRItem& lri) { return lri.kernel() == incomingItem.kernel(); });
+        if (existing != items.end()) {
+            LRItem existingItem = *existing;
             items.erase(existing);
-            size_t oldSize = existing.lookaheads().size();
-            existing.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
-            if (existing.lookaheads().size() > oldSize) {
+            size_t oldSize = existingItem.lookaheads().size();
+            existingItem.lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
+            if (existingItem.lookaheads().size() > oldSize) {
                 changed = true;
-                existing.rehash();
+                existingItem.rehash();
             }
-            items.insert(existing);
+            items.insert(existingItem);
         }
     }
     return changed;
