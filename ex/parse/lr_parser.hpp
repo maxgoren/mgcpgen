@@ -11,7 +11,6 @@ class LRParser {
     private:
         stack<AST*> semStack;
         stack<int> st;
-        map<string, function<AST*(vector<AST*>&)>> actions;
         int tpos;
         vector<Token> tokens;
         Token& current() {
@@ -27,26 +26,26 @@ class LRParser {
             initprod();
             initactTab();
             initgoTab();
-            actions.insert(make_pair("binop", [](auto& a) { return makebinop(a); }));
-            actions.insert(make_pair("unary", [](auto& a) { return makeunary(a); }));
+            actions.insert(make_pair("binop", makebinop)); 
+            actions.insert(make_pair("unary", makeunary));
             actions.insert(make_pair("num", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = NUM_EXPR; return a[0]; }));
             actions.insert(make_pair("id", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = ID_EXPR; return a[0]; }));
             actions.insert(make_pair("string", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = STRING_EXPR; return a[0]; }));
-            actions.insert(make_pair("pass", [](auto& a) { return a[1]; }));
-            actions.insert(make_pair("mklist", [](auto& a) { return makelist(a); }));
-            actions.insert(make_pair("mkprint", [](auto& a) { return makeprint(a); }));
-            actions.insert(make_pair("mkif", [](auto& a) { return makeIf(a); }));
-            actions.insert(make_pair("mkblock", [](auto& a) { return makeBlock(a); }));
-            actions.insert(make_pair("mkfunc", [](auto& a) { return makeFunc(a); }));
-            actions.insert(make_pair("mkcall", [](auto& a) { return makeCall(a); }));
-            actions.insert(make_pair("mklet", [](auto& a) { return makeLet(a); }));
-            actions.insert(make_pair("mkret", [](auto& a) { return makeRet(a); }));
             actions.insert(make_pair("mkexprstmt", [](auto& a) { return a[0]; }));
-            actions.insert(make_pair("mklistcon", [](auto& a) { return makeListConstructor(a); }));
-            actions.insert(make_pair("mksubscript", [](auto& a) { return makeSubScript(a); }));
-            actions.insert(make_pair("mkwhile", [](auto& a) { return makeWhile(a); }));
-            actions.insert(make_pair("mklambda", [](auto& a) { return makeLambda(a); }));
-            actions.insert(make_pair("mkstruct", [](auto& a) { return makeStruct(a); }));
+            actions.insert(make_pair("pass", [](auto& a) { return a[1]; }));
+            actions.insert(make_pair("mklist",  makelist));
+            actions.insert(make_pair("mkprint", makeprint)); 
+            actions.insert(make_pair("mkif", makeIf)); 
+            actions.insert(make_pair("mkblock", makeBlock)); 
+            actions.insert(make_pair("mkfunc", makeFunc)); 
+            actions.insert(make_pair("mkcall", makeCall)); 
+            actions.insert(make_pair("mklet", makeLet));
+            actions.insert(make_pair("mkret", makeRet)); 
+            actions.insert(make_pair("mklistcon", makeListConstructor));
+            actions.insert(make_pair("mksubscript",makeSubScript));
+            actions.insert(make_pair("mkwhile", makeWhile)); 
+            actions.insert(make_pair("mklambda", makeLambda));
+            actions.insert(make_pair("mkstruct", makeStruct));
         }
         void doShift(int next) {
             cout<<"SHIFT"<<endl;

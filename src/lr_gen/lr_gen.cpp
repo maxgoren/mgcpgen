@@ -281,6 +281,10 @@ void LRGenerator::printTables(ostream& os, Iterable table, string tableName) {
     os<<"}"<<endl;
 }
 
+void LRGenerator::printActionRegistrar(ostream& os) {
+    os<<"map<string, function<AST*(vector<AST*>&)>> actions;";
+}
+
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
@@ -299,6 +303,7 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     printProductions(ofile, G, "prod");
     printTables(ofile, goTab, "goTab");
     printTables(ofile, actTable, "actTab");
+    printActionRegistrar(ofile);
     return make_pair(actTable, goTab);
 }
 
