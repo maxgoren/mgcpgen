@@ -31,12 +31,12 @@ bool Grammar::isNullable(Symbol nt) {
     }
     return false;
 }
-void Grammar::readGrammarFile(string filename) {
+bool Grammar::readGrammarFile(string filename) {
     string buff;
     ifstream infile(filename, ios::in);
     if (!infile.is_open()) {
         cout<<"Error: Couldn't open '"<<filename<<"' - unknown file."<<endl;
-        return;
+        return false;
     }
     int rulenum = 1;
     string lastrule = "";
@@ -86,6 +86,7 @@ void Grammar::readGrammarFile(string filename) {
             }
         }
     }
+    return true;
 }
 
 ProductionSet::ProductionSet(vector<Production> rhs) {

@@ -165,6 +165,10 @@ unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolStr
 } 
 
 
+string& LRGenerator::getKey(const LRState& st) const {
+    return PARSER_TYPE == CLR ? st.key():st.coreKey();
+}
+
 void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     LRState start;
     queue<int> fq;
@@ -175,7 +179,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     LRState I0 = closure(G, start);
     I0.setStateNum(0);
     fq.push(0);
-    seen.insert({I0.coreKey(),I0.getStateNum()});
+    seen.insert({getKey(I0),I0.getStateNum()});
     states.push_back(I0);
     while (!fq.empty()) {
         LRState curr = states[fq.front()]; fq.pop();
@@ -191,17 +195,16 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             if (gt.getItems().empty())
                 continue;
             int target;
-            if (seen.find(gt.coreKey()) == seen.end()) {
+            if (seen.find(getKey(gt)) == seen.end()) {
                 gt.setStateNum(states.size());
                 fq.push(gt.getStateNum());
                 states.push_back(gt);
-                seen.insert({gt.coreKey(),gt.getStateNum()});
+                seen.insert({getKey(gt),gt.getStateNum()});
                 target = gt.getStateNum();
                 cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
             } else {
-                target = seen[gt.coreKey()];
-                //Merge equivelant cores == LALR(1), create new state = LR(1)
-                if (states[target].mergeLookaheadsFrom(gt)) {
+                target = seen[getKey(gt)];
+                if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
                     fq.push(states[target].getStateNum()); 
                     cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
                 }
@@ -285,7 +288,7 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     firsts.compute(G);
     cout<<"[*] Calculating Follows"<<endl;
     follows.compute(G, ss);
-    cout<<"[*] Building LALR NFA"<<endl;
+    cout<<"[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" NFA"<<endl;
     generate_CFSM(G, ss);
     cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;
@@ -299,8 +302,9 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     return make_pair(actTable, goTab);
 }
 
-LRGenerator::LRGenerator(bool noise) {
+LRGenerator::LRGenerator(bool noise, ParserType pt) {
     debug_noise = noise;
+    PARSER_TYPE = pt;
 }
 
 vector<LRState>& LRGenerator::getStates() {

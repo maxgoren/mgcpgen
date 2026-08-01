@@ -13,6 +13,10 @@
 using namespace std;
 
 
+enum ParserType {
+    CLR, LALR
+};
+
 const int left_assoc = 10;
 const int right_assoc = 20;
 
@@ -21,10 +25,12 @@ using ActionTable = map<int,map<Symbol,string>>;
 
 class LRGenerator {
     private:
+        ParserType PARSER_TYPE;
         unordered_set<Symbol> symbols;
         DirectedGraph       cfsm;
         vector<LRState>     states;
         bool debug_noise;
+        string& getKey(const LRState& state) const;
         Symbol get_production_precedence_symbol(const Production& p, const Grammar& G);
         string resolve_with_precedence(Grammar& G, ActionTable& tab, Production& p, int state, Symbol a);
         GoToTable make_goto_table(Grammar& G);
@@ -39,7 +45,7 @@ class LRGenerator {
         void printTables(ostream& os, Iterable table, string tableName);
         pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) ;
     public:
-        LRGenerator(bool debug_noise = false);
+        LRGenerator(bool debug_noise = false, ParserType type = LALR);
         vector<LRState>& getStates();
         pair<ActionTable,GoToTable> generate(Grammar& G, string out_name);
 };
