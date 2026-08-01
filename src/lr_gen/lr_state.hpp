@@ -20,12 +20,11 @@ class LRState {
         string& coreKey() const;
         void update_cache() const;
         bool mergeLookaheadsFrom(const LRState& other);
-        int getStateNum();
+        int getStateNum() const;
         void setStateNum(int sn);
         bool hasItem(const LRItem& item);
         void addItem(LRItem item);
         vector<LRItem>& getItems() const;
-        vector<LRItem>& mutableItems();
         bool operator==(const LRState& other) const;
         bool operator!=(const LRState& other) const;
 };

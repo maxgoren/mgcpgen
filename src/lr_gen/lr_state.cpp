@@ -51,7 +51,7 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
     return changed;
 }
 
-int LRState::getStateNum() {
+int LRState::getStateNum() const {
     return state_num;
 }
 
@@ -70,9 +70,6 @@ void LRState::addItem(LRItem item) {
 }
 
 vector<LRItem>& LRState::getItems() const {
-    return items;
-}
-vector<LRItem>& LRState::mutableItems() {
     return items;
 }
 

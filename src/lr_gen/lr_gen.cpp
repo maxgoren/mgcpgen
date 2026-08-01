@@ -83,7 +83,7 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
         }
     }
     for (int s = 0; s < states.size(); s++) {
-        for (const LRItem& item : states[s].mutableItems()) {
+        for (const LRItem& item : states[s].getItems()) {
             if (!item.complete()) continue;
             Production p = item.getProduction();
             for (Symbol a : item.lookaheads()) {
@@ -180,15 +180,15 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     while (!fq.empty()) {
         LRState curr = states[fq.front()]; fq.pop();
         unordered_set<Symbol> valid;
-        for (auto item : curr.mutableItems()) {
+        for (auto item : curr.getItems()) {
             Symbol tmp = item.symbolAfterDot();
             if (tmp != "<fin>")
                 valid.insert(tmp);
         }
-        //cout<<"Current state: I"<<curr.getStateNum()<<" \n";
+        cout<<"Current state: I"<<curr.getStateNum()<<" \n";
         for (auto X : valid) {
             LRState gt = lr_goto(G, curr, X);
-            if (gt.mutableItems().empty())
+            if (gt.getItems().empty())
                 continue;
             int target;
             if (seen.find(gt.coreKey()) == seen.end()) {
@@ -287,6 +287,7 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     follows.compute(G, ss);
     cout<<"[*] Building LALR NFA"<<endl;
     generate_CFSM(G, ss);
+    cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;
     GoToTable   goTab = make_goto_table(G);
     cout<<"[*] Generating Action table"<<endl;
