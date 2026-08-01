@@ -2,7 +2,7 @@
 
 `mgcpgen` is a Parser Generator designed to be used with the lexer generator `mgclex`.
 It reads in a grammar specification in BNF format and outputs 
-a table-driven, LALR(1) parser. 
+a table-driven, CLR(1) or LALR(1) parser. 
 
 Examples can be found in the `ex/` folder.
 
