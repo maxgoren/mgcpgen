@@ -11,11 +11,22 @@ mgcpgen has algorithms for:
   1)  Computing First Sets of a Grammar
   2)  Computing Follow Sets of a Grammar
   3)  Generate Parsing Tables for:
-      3a) the action/goto tables for an LALR(1) parser
+      3a) LALR(1) parser
+      3b) CLR(1) parser
 ```
 
 # Usage
 To generate an LR parser from a BNF grammar:
 ```
-  mgcpgen grammar_file.mgrm
+  mgcpgen <parser type> <input file name> [output file name]
+```
+
+Create CLR parser using default output name
+```
+  mgcpgen -c ex/simple_expr.mgrm
+```
+
+Create LALR parser into `my_header.hpp`
+```
+  mgcpgen -l ex/simple_expr.mgrm my_header.hpp
 ```
