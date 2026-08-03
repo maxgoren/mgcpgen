@@ -58,6 +58,8 @@ bool Grammar::readGrammarFile(string filename) {
             Symbol precOverSym;
             for (int i = 2; i < parts.size(); i++) {
                 string s = parts[i];
+                if (s.empty())
+                    continue;
                 if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
                     terminals.insert(s);
                     ss.push_back(s);
@@ -71,6 +73,7 @@ bool Grammar::readGrammarFile(string filename) {
                     ss.push_back(s);
                 } else if (s[0] == '@') {
                     actmaybe = s;
+                    actionMap.insert({s.substr(1), s.substr(1)});
                 }
             }
             if (ss[0] == "#") ss.clear();

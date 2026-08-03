@@ -4,12 +4,12 @@ set_token_prec TK_MUL 10 left
 set_token_prec TK_DIV 10 left
 set_token_prec TK_UNARY_MINUS 15 left
 sp ::= STMT
-STMT ::= TK_PRINT EXP @mkprint
-STMT ::= EXP @mkexprstmt
-EXP ::= EXP TK_PLUS EXP @binop
-EXP ::= EXP TK_MINUS EXP @binop
-EXP ::= EXP TK_MUL EXP @binop
-EXP ::= EXP TK_DIV EXP @binop
+STMT ::= TK_PRINT EXP           @mkPrint
+STMT ::= EXP                    @through
+EXP ::= EXP TK_PLUS EXP         @binop
+EXP ::= EXP TK_MINUS EXP        @binop
+EXP ::= EXP TK_MUL EXP          @binop
+EXP ::= EXP TK_DIV EXP          @binop
 EXP ::= TK_LPAREN EXP TK_RPAREN @pass
-EXP ::= TK_MINUS EXP @unary prec_override TK_UNARY_MINUS
-EXP ::= TK_NUM @num
+EXP ::= TK_MINUS EXP            @unary prec_override TK_UNARY_MINUS
+EXP ::= TK_NUM                  @mkNum

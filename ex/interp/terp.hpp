@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <stack>
+#include <cmath>
 using namespace std;
 
 typedef unordered_map<string, Object> Environment;
@@ -329,6 +330,7 @@ void Interpreter::evalBinOp(AST* ast) {
         case TK_PLUS: cxt.st.push(lhs+rhs); break;
         case TK_MUL:  cxt.st.push(lhs*rhs); break;
         case TK_DIV:  cxt.st.push(lhs/rhs); break;
+        case TK_MOD:  cxt.st.push(fmod(lhs, rhs)); break;
         case TK_EQU:  cxt.st.push((bool)(lhs == rhs)); break;
         case TK_NEQ:  cxt.st.push((bool)(lhs != rhs)); break;
         case TK_LT:   cxt.st.push((bool)(lhs < rhs));  break;

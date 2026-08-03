@@ -73,8 +73,8 @@ AST* mkIf(vector<AST*>& reducing) {
 
 AST* mkWhile(vector<AST*>& reducing) {
     AST* nn = makeStmtNode(WHILE_STMT, reducing[0]->token);
-    nn->children[0] = reducing[1];
-    nn->children[1] = reducing[3];
+    nn->children[0] = reducing[2];
+    nn->children[1] = reducing[4];
     return nn;
 }
 
@@ -136,6 +136,42 @@ AST* mkFunc(vector<AST*>& reducing) {
         }
     } else {
         cout<<"Nah man."<<endl;
+    }
+    return nn;
+}
+
+AST* mkStruct(vector<AST*>& reducing) {
+    AST* nn = reducing[0];
+    nn->attr.type = STMT_NODE;
+    nn->attr.stmt = STRUCT_STMT;
+    reducing[1]->attr.type = EXPR_NODE;
+    reducing[1]->attr.expr = ID_EXPR;
+    nn->children[0] = reducing[1];
+    nn->children[1] = reducing[2];
+    return nn;
+}
+
+AST* mkLambda(vector<AST*>& reducing) {
+    AST* nn = reducing[0];
+    nn->attr.type = EXPR_NODE;
+    nn->attr.expr = LAMBDA_EXPR;
+    cout<<"mk lambda from ";
+    for (auto m : reducing) {
+        cout<<tokenStr[m->token.getSymbol()]<<" "<< m->token.getString()<<endl;
+    }
+    Token tk;
+    tk.setString("lambda");
+    tk.setSymbol(TK_ID);
+    nn->children[0] = new AST(tk);
+    nn->children[0]->attr.type = EXPR_NODE;
+    nn->children[0]->attr.expr = ID_EXPR;
+    nn->children[1] = reducing[2];
+    nn->children[2] = reducing[4];
+    for (auto m = nn->children[1]; m != nullptr; m = m->next) {
+        if (m->token.getSymbol() == TK_LET) {
+            m->children[0]->attr.type = EXPR_NODE;
+            m->children[0]->attr.expr = ID_EXPR;
+        }
     }
     return nn;
 }

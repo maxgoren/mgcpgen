@@ -26,26 +26,7 @@ class LRParser {
             initprod();
             initactTab();
             initgoTab();
-            actions.insert(make_pair("binop", makebinop)); 
-            actions.insert(make_pair("unary", makeunary));
-            actions.insert(make_pair("num", makeNum));
-            actions.insert(make_pair("id", makeId));
-            actions.insert(make_pair("string", makeString));
-            actions.insert(make_pair("mkexprstmt", fallThrough));
-            actions.insert(make_pair("pass", passThrough));
-            actions.insert(make_pair("mklist",  makelist));
-            actions.insert(make_pair("mkprint", makeprint)); 
-            actions.insert(make_pair("mkif", makeIf)); 
-            actions.insert(make_pair("mkblock", makeBlock)); 
-            actions.insert(make_pair("mkfunc", makeFunc)); 
-            actions.insert(make_pair("mkcall", makeCall)); 
-            actions.insert(make_pair("mklet", makeLet));
-            actions.insert(make_pair("mkret", makeRet)); 
-            actions.insert(make_pair("mklistcon", makeListConstructor));
-            actions.insert(make_pair("mksubscript",makeSubScript));
-            actions.insert(make_pair("mkwhile", makeWhile)); 
-            actions.insert(make_pair("mklambda", makeLambda));
-            actions.insert(make_pair("mkstruct", makeStruct));
+            initActions();
         }
         void doShift(int next) {
             cout<<"SHIFT"<<endl;
@@ -76,7 +57,6 @@ class LRParser {
             st.push(stoi(goTab[st.top()][X.lhs]));
         }
         void printCurrent(int state_num, Token& T) {
-            //cout<<S.key()<<endl;
             cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][T.getString()]<<endl<<"Action: ";
         }
         bool checkAccept(int state_num, Token& T) {

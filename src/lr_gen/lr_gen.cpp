@@ -225,6 +225,7 @@ void LRGenerator::printPrelude(ostream& ofile) {
     ofile<<"#include <vector>\n";
     ofile<<"#include <map>\n";
     ofile<<"#include <set>\n";
+    ofile<<"#include <functional>\n";
     ofile<<"#include \"production.hpp\"\n";
     ofile<<"using namespace std; \n";
 }
@@ -279,8 +280,13 @@ void LRGenerator::printTables(ostream& os, Iterable table, string tableName) {
     os<<"}"<<endl;
 }
 
-void LRGenerator::printActionRegistrar(ostream& os) {
-    os<<"map<string, function<AST*(vector<AST*>&)>> actions;";
+void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
+    os<<"map<string, function<AST*(vector<AST*>&)>> actions;\n";
+    os<<"void initActions() {\n";
+    for (auto actions : G.actionMap) {
+        os<<"\t actions.insert({\""<<actions.first<<"\","<<actions.second<<"});\n";
+    }
+    os<<"}"<<endl;
 }
 
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
@@ -301,7 +307,7 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     printProductions(ofile, G, "prod");
     printTables(ofile, goTab, "goTab");
     printTables(ofile, actTable, "actTab");
-    printActionRegistrar(ofile);
+    printActionRegistrar(ofile, G);
     return make_pair(actTable, goTab);
 }
 

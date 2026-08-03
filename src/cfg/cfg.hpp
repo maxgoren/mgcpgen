@@ -37,6 +37,7 @@ struct Grammar {
     map<Symbol, set<Symbol>> follow;
     map<int, Production> prodById;
     map<Symbol, OpPrec> precedenceMap;
+    map<string, string> actionMap;
     Grammar() ;
     bool isNonTerminal(Symbol s);
     bool isTerminal(Symbol s);
