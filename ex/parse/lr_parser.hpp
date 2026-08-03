@@ -28,11 +28,11 @@ class LRParser {
             initgoTab();
             actions.insert(make_pair("binop", makebinop)); 
             actions.insert(make_pair("unary", makeunary));
-            actions.insert(make_pair("num", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = NUM_EXPR; return a[0]; }));
-            actions.insert(make_pair("id", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = ID_EXPR; return a[0]; }));
-            actions.insert(make_pair("string", [](auto& a) { a[0]->attr.type = EXPR_NODE; a[0]->attr.expr = STRING_EXPR; return a[0]; }));
-            actions.insert(make_pair("mkexprstmt", [](auto& a) { return a[0]; }));
-            actions.insert(make_pair("pass", [](auto& a) { return a[1]; }));
+            actions.insert(make_pair("num", makeNum));
+            actions.insert(make_pair("id", makeId));
+            actions.insert(make_pair("string", makeString));
+            actions.insert(make_pair("mkexprstmt", fallThrough));
+            actions.insert(make_pair("pass", passThrough));
             actions.insert(make_pair("mklist",  makelist));
             actions.insert(make_pair("mkprint", makeprint)); 
             actions.insert(make_pair("mkif", makeIf)); 

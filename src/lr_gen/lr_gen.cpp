@@ -21,17 +21,6 @@ Symbol LRGenerator::get_production_precedence_symbol(const Production& p, const 
     return "";
 }
 
-GoToTable LRGenerator::make_goto_table(Grammar& G) {
-    GoToTable tab;
-    for (int s = 0; s < cfsm.V(); s++) {
-        for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
-            if (G.nonterminals.count(it->edgeLabel))
-                tab[s][it->edgeLabel] = it->dest;
-        }
-    }
-    return tab;
-}
-
 string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Production& p, int s, Symbol a) {
     string existing = tab[s][a];
     if (existing[0] == 's') {
@@ -67,6 +56,17 @@ string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Produc
         }
     }
     return existing;
+}
+
+GoToTable LRGenerator::make_goto_table(Grammar& G) {
+    GoToTable tab;
+    for (int s = 0; s < cfsm.V(); s++) {
+        for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
+            if (G.nonterminals.count(it->edgeLabel))
+                tab[s][it->edgeLabel] = it->dest;
+        }
+    }
+    return tab;
 }
 
 ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
@@ -211,9 +211,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             }
             if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
                 cfsm.addEdge(curr.getStateNum(), target, X);   
-                if (debug_noise) {
-                    cout<<"Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
-                }
+                cout<<"\t + Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
             }
         }
         if (debug_noise) {
@@ -234,11 +232,11 @@ void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
     os<<"enum NTSYMBOL {\n";
     int i = 0;
     for (auto t : G.nonterminals) {
-        if (t != "#") {
+        if (t != "#" && !t.empty()) {
             os<<t;
             if (i+1 < G.nonterminals.size())
                 os<<", ";
-            if (i % 5 == 0) 
+            if (i > 1 && i % 5 == 0) 
                 os<<endl;
         }
         i++;

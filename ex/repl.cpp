@@ -2,7 +2,7 @@
 #include "lex/lexer.hpp"
 #include "interp/terp.hpp"
 
-int main() {
+void terp() {
     Lexer lexer;
     StringBuffer* sb = new StringBuffer();
     string expr;
@@ -18,5 +18,26 @@ int main() {
         preorder(ast,1);
         terp.exec(ast);
     } while (true);
+}
+
+void runfile(string filename) {
+    FileStringBuffer* fsb = new FileStringBuffer();
+    if (fsb->readFile(filename)) {
+        Lexer lexer;
+        LRParser parser;
+        Interpreter interpreter;
+        auto tokens = lexer.lex(fsb);
+        auto ast = parser.parse(tokens);
+        interpreter.exec(ast); 
+    }
+}
+
+int main(int argc, char* argv[]) {
+	if (argc < 2) {
+		terp();
+	}
+    runfile(argv[1]);
     return 0;
 }
+
+

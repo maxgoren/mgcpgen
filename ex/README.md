@@ -8,6 +8,7 @@ included are a number of grammar files to use as examples
 plain_expr.mgrm - simple expression grammar with +, -, *, /, unary minus and assignment
 ambig_expr.mgrm - an example of using the set_token_prec keywork to for controlled ambiguity
 balpar.mgrm - balanced parens grammar examples.
+pascal_sub.mgrm - Pascal Subset grammar from appendix of "dragon book"
 small_lang_ex.mgrm - an example grammar file for a simple imperative toy language
 ```
 

@@ -8,6 +8,32 @@
 #include "ast.hpp"
 using namespace std;
 
+AST* makeNum(vector<AST*>& a) {
+    a[0]->attr.type = EXPR_NODE; 
+    a[0]->attr.expr = NUM_EXPR; 
+    return a[0]; 
+}
+
+AST* fallThrough(vector<AST*>& a) {
+    return a[0];
+}
+
+AST* passThrough(vector<AST*>& a) {
+    return a[1];
+}
+
+AST* makeId(vector<AST*>& a) {
+    a[0]->attr.type = EXPR_NODE; 
+    a[0]->attr.expr = ID_EXPR; 
+    return a[0];
+}
+
+AST* makeString(vector<AST*>& a) {
+    a[0]->attr.type = EXPR_NODE; 
+    a[0]->attr.expr = STRING_EXPR; 
+    return a[0]; 
+}
+
 AST* makebinop(vector<AST*>& reducing) {
     AST* nn = makeExprNode(BIN_EXPR, reducing[1]->token);
     nn->children[0] = reducing[0];
