@@ -51,8 +51,10 @@ void preorder(AST* ast, int d) {
         cout<<nodeTypeStr[ast->attr.type]<<" ";
         if (ast->attr.type == EXPR_NODE) {
             cout<<exprTypeStr[ast->attr.expr]<<" ";
-        } else {
+        } else if (ast->attr.type == STMT_NODE) {
             cout<<stmtTypeStr[ast->attr.stmt]<<" ";
+        } else {
+            cout<<" [tmp] ";
         }
         cout<<ast->token.getString();
         if (ast->attr.type == EXPR_NODE)

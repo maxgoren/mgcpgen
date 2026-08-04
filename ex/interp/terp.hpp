@@ -357,6 +357,8 @@ void Interpreter::stmt(AST* ast) {
             eval(ast->children[0]);
             if (cxt.st.top().boolval) {
                 exec(ast->children[1]);
+            } else {
+                exec(ast->children[2]);
             }
         break;
         case STRUCT_STMT: {

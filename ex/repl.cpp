@@ -28,6 +28,7 @@ void runfile(string filename) {
         Interpreter interpreter;
         auto tokens = lexer.lex(fsb);
         auto ast = parser.parse(tokens);
+        preorder(ast, 1);
         interpreter.exec(ast); 
     }
 }
