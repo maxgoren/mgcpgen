@@ -17,7 +17,7 @@ sp
 map<int, Production> prod;
 void initprod() {
 	 prod[1]  = Production(1,"sp", SymbolString({"PROG"}),"");
-	 prod[2]  = Production(2,"PROG", SymbolString({"PROGHEADER","DECLLIST","SUBDECLLIST","PROGT"}),"@mkList");
+	 prod[2]  = Production(2,"PROG", SymbolString({"PROGHEADER","DECLLIST","SUBDECLLIST","PROGT"}),"@mkProgram");
 	 prod[3]  = Production(3,"PROGHEADER", SymbolString({"TK_PROGRAM","TK_ID","TK_LPAREN","IDENTLIST","TK_RPAREN","TK_SEMI"}),"@mkProgramHeader");
 	 prod[4]  = Production(4,"PROGT", SymbolString({"COMPOUNDSTMT","TK_PERIOD"}),"@through");
 	 prod[5]  = Production(5,"IDENTLIST", SymbolString({"PRI","TK_COMMA","IDENTLIST"}),"@mkList");
@@ -264,6 +264,7 @@ void initActions() {
 	 actions.insert({"mkList",mkList});
 	 actions.insert({"mkNum",mkNum});
 	 actions.insert({"mkPrint",mkPrint});
+	 actions.insert({"mkProgram",mkProgram});
 	 actions.insert({"mkProgramHeader",mkProgramHeader});
 	 actions.insert({"mkRet",mkRet});
 	 actions.insert({"mkString",mkString});

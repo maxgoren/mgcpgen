@@ -1,8 +1,8 @@
 // Example Pascal Subset Grammar, modified to use return statement instead of assigning to func name.
 sp ::= PROG
-PROG ::= PROGHEADER DECLLIST SUBDECLLIST PROGT          @mkList
+PROG ::= PROGHEADER DECLLIST SUBDECLLIST PROGT                        @mkProgram
 PROGHEADER ::= TK_PROGRAM TK_ID TK_LPAREN IDENTLIST TK_RPAREN TK_SEMI @mkProgramHeader
-PROGT ::= COMPOUNDSTMT TK_PERIOD                        @through
+PROGT ::= COMPOUNDSTMT TK_PERIOD                                      @through
 IDENTLIST ::= PRI TK_COMMA IDENTLIST                    @mkList
 IDENTLIST ::= PRI                            
 DECLLIST ::= DECLSTMT TK_SEMI DECLLIST                  @mkList

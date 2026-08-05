@@ -73,7 +73,7 @@ class LRParser {
             for (;;) {
                 Token curr_token = current();
                 int curr_state = st.top();
-                //printCurrent(curr_state, curr_token);
+                printCurrent(curr_state, curr_token);
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
                 if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {

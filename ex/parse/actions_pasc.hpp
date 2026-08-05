@@ -90,10 +90,6 @@ AST* mkBlock(vector<AST*>& reducing) {
 }
 
 AST* mkCall(vector<AST*>& reducing) {
-    cout<<"mk call from: ";
-    for (auto m : reducing) {
-        cout<<m->token.getString()<<endl;
-    }
     AST* nn = makeExprNode(FUNC_EXPR, reducing[0]->token);
     nn->children[0] = reducing[0];
     nn->children[0]->attr.type = EXPR_NODE;
@@ -132,7 +128,6 @@ AST* mkFunc(vector<AST*>& reducing) {
     nn->children[2] = reducing[2];
     AST* header = nullptr;
     for (auto it = nn->children[1]; it != nullptr; it = it->next) {
-        cout<<"\n\n"<<it->token.getString()<<endl;
         AST* tmp = makeStmtNode(LET_STMT, it->token);
         tmp->children[0] = it;
         if (header == nullptr) {
@@ -156,7 +151,7 @@ AST* mkFuncHeader(vector<AST*>& reducing) {
         nn->children[0]->attr.type = EXPR_NODE;
         nn->children[0]->attr.expr = ID_EXPR;
         nn->children[1] = reducing[2];
-        nn->children[2] = reducing[3];
+        //nn->children[2] = reducing[3];
     }
     return nn;
 }
@@ -176,7 +171,7 @@ AST* mkListCon(vector<AST*>& reducing) {
     else {
         for (int i = 1; i < reducing.size()-1; i++) {
             if (reducing[0]->children[0] == nullptr) {
-                reducing[0]->children[0] = reducing[1];
+                reducing[0]->children[0] = reducing[i];
             } else {
                 AST* itr = reducing[0]->children[0];
                 while (itr->next != nullptr) itr = itr->next;
@@ -189,9 +184,20 @@ AST* mkListCon(vector<AST*>& reducing) {
 
 AST* mkProgramHeader(vector<AST*>& reducing) {
     AST* ast = makeStmtNode(PROGRAM_STMT, reducing[0]->token);
+    reducing[1]->attr = {EXPR_NODE, ID_EXPR};
     ast->children[0] = reducing[1];
     ast->children[1] = reducing[3];
     return ast;
+}
+
+AST* mkProgram(vector<AST*>& reducing) {
+    AST* program = reducing[0];
+    for (int i = 1; i < reducing.size(); i++) {
+        auto it = program;
+        while (it->next != nullptr) it = it->next;
+        it->next = reducing[i];
+    }
+    return program;
 }
 
 #endif
