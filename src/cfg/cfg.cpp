@@ -43,6 +43,8 @@ bool Grammar::readGrammarFile(string filename) {
     while (infile.good()) {
         getline(infile, buff);
         vector<string> parts = split(buff, ' ');
+        if (parts[0][0] == '/' && parts[0][1] == '/') 
+            continue;
         if (parts[0] == "set_token_prec") {
             string symbol = parts[1];
             int prec = stoi(parts[2]);

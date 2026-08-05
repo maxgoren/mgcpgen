@@ -46,7 +46,7 @@ AST* unary(vector<AST*>& reducing) {
     return nn;
 }
 
-bool isSep(TKSymbol symbol) {
+bool isSeperator(TKSymbol symbol) {
     return symbol == TK_COMMA || symbol == TK_SEMI;
 }
 
@@ -57,7 +57,7 @@ AST* mkList(vector<AST*>& reducing) {
     for (int i = 1; i < reducing.size(); i++) {
             AST* itr = reducing[0];
             while (itr->next) itr = itr->next;
-            itr->next = isSep(reducing[i]->token.getSymbol()) ? reducing[i]->children[0]:reducing[i];
+        itr->next = isSeperator(reducing[i]->token.getSymbol()) ? reducing[i]->children[0]:reducing[i];
     }
     return reducing[0];
 }
@@ -124,11 +124,6 @@ AST* mkRet(vector<AST*>& reducing) {
 
 
 AST* mkFunc(vector<AST*>& reducing) {
-    cout<<"Making function from: "<<endl;
-    for (auto m : reducing) {
-        preorder(m, 0);
-        cout<<"\n---------------------------"<<endl;
-    }
     AST* nn = reducing[1];
     nn->token.setString(reducing[0]->token.getString());
     nn->children.insert(nn->children.begin(),reducing[0]);
@@ -157,11 +152,6 @@ AST* mkFuncHeader(vector<AST*>& reducing) {
     nn->attr.type = STMT_NODE;
     nn->attr.stmt = DEF_STMT;
     if (reducing.size() == 6) {
-
-        cout<<"Making function header from: ";
-        for (auto m : reducing) {
-            cout<<m->token.getString()<<endl;
-    }
         nn->children[0] = reducing[1];
         nn->children[0]->attr.type = EXPR_NODE;
         nn->children[0]->attr.expr = ID_EXPR;
@@ -195,6 +185,13 @@ AST* mkListCon(vector<AST*>& reducing) {
         }
     }
     return reducing[0];
+}
+
+AST* mkProgramHeader(vector<AST*>& reducing) {
+    AST* ast = makeStmtNode(PROGRAM_STMT, reducing[0]->token);
+    ast->children[0] = reducing[1];
+    ast->children[1] = reducing[3];
+    return ast;
 }
 
 #endif

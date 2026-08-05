@@ -29,13 +29,13 @@ class LRParser {
             initActions();
         }
         void doShift(int next) {
-            cout<<"SHIFT"<<endl;
+            //cout<<"SHIFT"<<endl;
             st.push(next);
             semStack.push(new AST(current()));
             advance();
         }
         void doReduce(Production& X) {
-            cout<<"REDUCE"<<endl;
+            //cout<<"REDUCE"<<endl;
             vector<AST*> tmp;
             for (int i = 0; i < X.rhs.size(); i++) {
                 st.pop();
@@ -44,9 +44,9 @@ class LRParser {
             }
             reverse(tmp.begin(), tmp.end());
             if (X.action.empty() == false) {
-                cout<<"And do: "<<X.action<<endl;
+                //cout<<"And do: "<<X.action<<endl;
                 semStack.push(actions[X.action.substr(1)](tmp));
-                preorder(semStack.top(), 1);
+                //preorder(semStack.top(), 1);
             } else {
                 for (auto m : tmp) {
                     if (m != nullptr) {
@@ -84,8 +84,6 @@ class LRParser {
                     return nullptr;
                 }
                 string act = actTab[curr_state][tokenStr[curr_token.getSymbol()]];
-                if (act == "accept")
-                    return semStack.top();
                 int next = stoi(act.substr(1));
                 switch (act[0]) {
                     case 's': {

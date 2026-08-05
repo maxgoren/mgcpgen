@@ -147,6 +147,7 @@ class Interpreter {
     private:
         bool bail;
         Context cxt;
+        bool isoperator(TKSymbol symbol);
         bool isbuiltin(string name);
         void dobuiltin(AST* ast);
         void evalParams(AST* params, AST* args);
@@ -161,6 +162,26 @@ class Interpreter {
         }
         void exec(AST* ast);
 };
+
+bool Interpreter::isoperator(TKSymbol symbol) {
+    switch (symbol) {
+        case TK_ASSIGN:
+        case TK_MINUS:
+        case TK_PLUS: 
+        case TK_MUL:  
+        case TK_DIV:  
+        case TK_MOD:  
+        case TK_EQU:  
+        case TK_NEQ:  
+        case TK_LT:   
+        case TK_GT:   
+        case TK_LTE:  
+        case TK_GTE:  return true;
+        default:
+            break;
+    }
+    return false;
+}
 
 bool Interpreter::isbuiltin(string name) {
     if (name == "push")  {
@@ -215,7 +236,6 @@ void Interpreter::evalLambdaFunc(AST* params, AST* args, AST* body) {
 
 void Interpreter::eval(AST* ast) {
     if (ast != nullptr) {
-        eval(ast->next);
         if (ast->children[0] == nullptr) {
             if (ast->token.getSymbol() == TK_NUM) {
                 cxt.st.push( Object(stod(ast->token.getString())));
@@ -245,7 +265,7 @@ void Interpreter::eval(AST* ast) {
             } else if (ast->attr.expr == FUNC_EXPR) { 
                 string fname = ast->token.getString();
                 if (isbuiltin(fname)) {
-                    cout<<"Executing builtin: "<<fname<<endl;
+                    cout<<"[f()] Executing builtin: "<<fname<<endl;
                     dobuiltin(ast);
                     return;
                 }
@@ -258,7 +278,7 @@ void Interpreter::eval(AST* ast) {
                         t = cxt.st.top();
                         cxt.st.pop();
                     }
-                    cout<<"Executing function: "<<t.funcval->name<<endl;
+                    cout<<"[(f x)] Executing function: "<<t.funcval->name<<endl;
                 } else if (ast->children[0]->attr.expr == LAMBDA_EXPR) {
                     eval(ast->children[0]);
                     t = cxt.st.top(); cxt.st.pop();
@@ -273,8 +293,12 @@ void Interpreter::eval(AST* ast) {
                 cxt.st.push(Object(lf));
             } else if (ast->attr.expr == UNARY_EXPR) {
                 evalUnaryOp(ast);
-            } else {
+            } else if (isoperator(ast->token.getSymbol())) {
                 evalBinOp(ast);
+            } else {
+                cout<<"[Err?] ";
+                eval(ast->children[0]);
+                cout<<endl;
             }
         }
     }
@@ -312,38 +336,43 @@ void Interpreter::evalBinOp(AST* ast) {
         }
         return;
     }
-    eval(ast->children[0]);
-    Object lho = cxt.st.top(); cxt.st.pop();
-    eval(ast->children[1]);
-    Object rho = cxt.st.top(); cxt.st.pop();
-    double lhs = lho.numval;
-    double rhs = rho.numval;
-    cout<<"Performing "<<ast->token.getString()<<" to "<<lhs<<" and "<<rhs<<endl;
-    switch (ast->token.getSymbol()) {
-        case TK_MINUS: {
-            if (ast->children[1] == nullptr) {
-                cxt.st.push(-lhs);
-            } else {
-                cxt.st.push(lhs-rhs);
-            }
-        } break;
-        case TK_PLUS: cxt.st.push(lhs+rhs); break;
-        case TK_MUL:  cxt.st.push(lhs*rhs); break;
-        case TK_DIV:  cxt.st.push(lhs/rhs); break;
-        case TK_MOD:  cxt.st.push(fmod(lhs, rhs)); break;
-        case TK_EQU:  cxt.st.push((bool)(lhs == rhs)); break;
-        case TK_NEQ:  cxt.st.push((bool)(lhs != rhs)); break;
-        case TK_LT:   cxt.st.push((bool)(lhs < rhs));  break;
-        case TK_GT:   cxt.st.push((bool)(lhs > rhs));  break;
-        case TK_LTE:   cxt.st.push((bool)(lhs <= rhs));  break;
-        case TK_GTE:   cxt.st.push((bool)(lhs >= rhs));  break;
-        default:
-            break;
+    if (isoperator(ast->token.getSymbol())) {
+        eval(ast->children[0]);
+        Object lho = cxt.st.top(); cxt.st.pop();
+        eval(ast->children[1]);
+        Object rho = cxt.st.top(); cxt.st.pop();
+        double lhs = lho.numval;
+        double rhs = rho.numval;
+        cout<<"["<<ast->token.getString() <<"] Performing "<<ast->token.getString()<<" op on "<<lhs<<" and "<<rhs<<endl;
+        switch (ast->token.getSymbol()) {
+            case TK_MINUS: {
+                if (ast->children[1] == nullptr) {
+                    cxt.st.push(-lhs);
+                } else {
+                    cxt.st.push(lhs-rhs);
+                }
+            } break;
+            case TK_PLUS: cxt.st.push(lhs+rhs); break;
+            case TK_MUL:  cxt.st.push(lhs*rhs); break;
+            case TK_DIV:  cxt.st.push(lhs/rhs); break;
+            case TK_MOD:  cxt.st.push(fmod(lhs, rhs)); break;
+            case TK_EQU:  cxt.st.push((bool)(lhs == rhs)); break;
+            case TK_NEQ:  cxt.st.push((bool)(lhs != rhs)); break;
+            case TK_LT:   cxt.st.push((bool)(lhs < rhs));  break;
+            case TK_GT:   cxt.st.push((bool)(lhs > rhs));  break;
+            case TK_LTE:   cxt.st.push((bool)(lhs <= rhs));  break;
+            case TK_GTE:   cxt.st.push((bool)(lhs >= rhs));  break;
+            default:
+                break;
+        }
     }
 }
 
 void Interpreter::stmt(AST* ast) {
     switch (ast->attr.stmt) {
+        case PROGRAM_STMT: {
+            cout<<"Executing: "<<ast->children[0]->token.getString()<<endl;
+        } break;
         case PRINT_STMT:
                 eval(ast->children[0]);
                 cout<<cxt.st.top().toString()<<endl;
@@ -374,6 +403,7 @@ void Interpreter::stmt(AST* ast) {
             cxt.st.pop();
             break;
         case LET_STMT:
+            cxt.symtab->bindings.insert({ast->children[0]->token.getString(), 0.0});
             eval(ast->children[0]);
         break;
         case RETURN_STMT:
