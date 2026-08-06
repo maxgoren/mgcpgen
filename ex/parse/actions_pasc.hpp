@@ -200,4 +200,8 @@ AST* mkProgram(vector<AST*>& reducing) {
     return program;
 }
 
+AST* mkArray(vector<AST*>& reducing) {
+    return reducing[0];
+}
+
 #endif

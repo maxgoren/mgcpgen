@@ -1,6 +1,7 @@
 {"[0-9]+((\.)?[0-9]+)*",TK_NUM}
 {"if",TK_IF}
 {"do",TK_DO}
+{"of",TK_OF}
 {"or",TK_OR}
 {"and",TK_AND}
 {"end",TK_END}
@@ -40,5 +41,6 @@
 {"&",TK_AMPER}
 {"[,]",TK_COMMA}
 {"[.]",TK_PERIOD}
+{"[.][.]",TK_RANGE}
 {"\"(.*)\"",TK_STRING}
 {"[A-Za-z]([A-Za-z][-]*)*",TK_ID}
