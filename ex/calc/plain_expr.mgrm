@@ -1,5 +1,5 @@
 sp ::= STMT
-STMT ::= TK_PRINT EXP           @mkprint
+STMT ::= TK_PRINT EXP           @mkPrint
 STMT ::= AEXP                   @through
 AEXP ::= AEXP TK_ASSIGN EXP     @binop
 AEXP ::= EXP

@@ -42,6 +42,10 @@ bool Grammar::readGrammarFile(string filename) {
     string lastrule = "";
     while (infile.good()) {
         getline(infile, buff);
+        if (buff.size() && buff.back() == '\r')
+            buff.pop_back();
+        if (buff.empty())
+            continue;
         vector<string> parts = split(buff, ' ');
         if (parts[0][0] == '/' && parts[0][1] == '/') 
             continue;

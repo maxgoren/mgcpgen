@@ -80,6 +80,8 @@ class FileStringBuffer : public CharBuffer {
             string buff;
             while (gfile.good()) {
                 getline(gfile, buff);
+                if (buff.size() && buff.back() == '\r')
+                    buff.pop_back();
                 lines.push_back(buff);
             }
             line_pos = 0;

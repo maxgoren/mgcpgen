@@ -14,6 +14,5 @@ begin
 	x := 125;
 	y := 75;
 	z := 6;
-	print gcd(x, y);
-	print fib(z)
+	writeln gcd(x, y)
 end.

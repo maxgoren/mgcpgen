@@ -76,9 +76,11 @@ class ScopeResolution {
     private:
         vector<unordered_map<string, bool>> scopes;
         void openScope() {
+            cout<<"Open scope"<<endl;
             scopes.push_back(unordered_map<string,bool>());
         }
         void closeScope() {
+            cout<<"Close scope"<<endl;
             scopes.pop_back();
         }
         void defineId(string name) {
@@ -121,7 +123,10 @@ class ScopeResolution {
                         traverse(ast->children[i]);
                     closeScope();
                 } break;
-                default: break;
+                default: 
+                    for (int i = 0; i < 3; i++)
+                        traverse(ast->children[i]);
+                break;
             }
         }
         void traverse(AST* ast) {
@@ -139,7 +144,7 @@ class ScopeResolution {
 
         }
         void resolveScopes(AST* ast) {
-            
+            traverse(ast);
         }
 };
 
@@ -220,7 +225,7 @@ void Interpreter::evalParams(AST* par, AST* ar) {
         string nm = params->children[0]->token.getString();
         eval(args);
         tmp[nm] = cxt.st.top(); cxt.st.pop();
-        cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
+        //cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
         params = params->next;
         args = args->next;
     }
@@ -265,7 +270,7 @@ void Interpreter::eval(AST* ast) {
             } else if (ast->attr.expr == FUNC_EXPR) { 
                 string fname = ast->token.getString();
                 if (isbuiltin(fname)) {
-                    cout<<"[f()] Executing builtin: "<<fname<<endl;
+                //    cout<<"[f()] Executing builtin: "<<fname<<endl;
                     dobuiltin(ast);
                     return;
                 }
@@ -278,7 +283,7 @@ void Interpreter::eval(AST* ast) {
                         t = cxt.st.top();
                         cxt.st.pop();
                     }
-                    cout<<"[(f x)] Executing function: "<<t.funcval->name<<endl;
+                //    cout<<"[(f x)] Executing function: "<<t.funcval->name<<endl;
                 } else if (ast->children[0]->attr.expr == LAMBDA_EXPR) {
                     eval(ast->children[0]);
                     t = cxt.st.top(); cxt.st.pop();
@@ -286,7 +291,7 @@ void Interpreter::eval(AST* ast) {
                 Function* f = t.funcval;
                 AST* params = f->params;
                 AST* args = ast->children[1];
-                cout<<"Evaluating arguments: "<<endl;
+              //  cout<<"Evaluating arguments: "<<endl;
                 evalLambdaFunc(params, args, f->body);
             } else if (ast->attr.expr == LAMBDA_EXPR) {
                 Function* lf = new Function("&", ast->children[1], ast->children[2]);

@@ -61,9 +61,9 @@ string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Produc
 GoToTable LRGenerator::make_goto_table(Grammar& G) {
     GoToTable tab;
     for (int s = 0; s < cfsm.V(); s++) {
-        for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
-            if (G.nonterminals.count(it->edgeLabel))
-                tab[s][it->edgeLabel] = it->dest;
+        for (auto it : cfsm.adj(s)) {
+            if (G.nonterminals.count(it.edgeLabel))
+                tab[s][it.edgeLabel] = it.dest;
         }
     }
     return tab;
@@ -72,12 +72,12 @@ GoToTable LRGenerator::make_goto_table(Grammar& G) {
 ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
     ActionTable tab;
     for (int s = 0; s < cfsm.V(); s++) {
-        for (auto it = cfsm.adj(s); it != nullptr; it = it->next) {
-            if (G.terminals.count(it->edgeLabel)) {
-                if (tab[s].count(it->edgeLabel)) {
-                    cout<<"Shift conflict: ["<<s<<"]["<<it->edgeLabel<<"] "<<tab[s][it->edgeLabel]<<endl;
+        for (auto it : cfsm.adj(s)) {
+            if (G.terminals.count(it.edgeLabel)) {
+                if (tab[s].count(it.edgeLabel)) {
+                    cout<<"Shift conflict: ["<<s<<"]["<<it.edgeLabel<<"] "<<tab[s][it.edgeLabel]<<endl;
                 } else {
-                    tab[s][it->edgeLabel] = "s"+to_string(it->dest);
+                    tab[s][it.edgeLabel] = "s"+to_string(it.dest);
                 }
             }
         }

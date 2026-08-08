@@ -108,6 +108,8 @@ AST* mkLet(vector<AST*>& reducing) {
         reducing[0]->children[0]->attr.type = EXPR_NODE;
         reducing[0]->children[0]->attr.expr = ID_EXPR;
     }
+    if (reducing.size() > 1)
+        reducing[0]->children[1] = reducing.back();
     return reducing[0];
 }
 
@@ -129,7 +131,7 @@ AST* mkFunc(vector<AST*>& reducing) {
     AST* header = nullptr;
     for (auto it = nn->children[1]; it != nullptr; it = it->next) {
         AST* tmp = makeStmtNode(LET_STMT, it->token);
-        tmp->children[0] = it;
+        tmp->children[0] = makeExprNode(ID_EXPR, it->token);
         if (header == nullptr) {
             header = tmp;
         } else {
@@ -139,6 +141,10 @@ AST* mkFunc(vector<AST*>& reducing) {
         }
     }
     nn->children[1] = header;
+    for (auto v : reducing) {
+        preorder(v,1);
+        cout<<endl;
+    }
     return nn;
 }
 
@@ -201,7 +207,13 @@ AST* mkProgram(vector<AST*>& reducing) {
 }
 
 AST* mkArray(vector<AST*>& reducing) {
-    return reducing[0];
+    //7 Items
+    // TK_ARRAY TK_LSQB EXPR TK_RANGE EXPR TK_RSQB TK_OF STANDTYPE 
+    AST* nn = makeExprNode(ARRAY_CON_EXPR, reducing[0]->token);
+    nn->children[0] = reducing[2];
+    nn->children[1] = reducing[4];
+    nn->children[2] = reducing.back();
+    return nn;
 }
 
 #endif

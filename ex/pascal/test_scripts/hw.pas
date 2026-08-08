@@ -1,4 +1,4 @@
 program HelloWorld(input,output);
 begin
-    print ("Hello, World!")
+    writeln ("Hello, World!")
 end.
