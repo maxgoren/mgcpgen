@@ -11,9 +11,11 @@
 {"else",TK_ELSE}
 {"real",TK_REAL}
 {"then",TK_THEN}
+{"type",TK_TYPE}
 {"array",TK_ARRAY}
 {"begin",TK_BEGIN}
 {"while",TK_WHILE}
+{"record",TK_RECORD}
 {"return",TK_RETURN}
 {"struct",TK_STRUCT}
 {"integer",TK_INTEGER}
