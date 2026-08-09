@@ -45,4 +45,4 @@
 {"[.]",TK_PERIOD}
 {"[.][.]",TK_RANGE}
 {"\"(.*)\"",TK_STRING}
-{"[A-Za-z]([A-Za-z][-]*)*",TK_ID}
+{"[A-Za-z]([A-Za-z])*",TK_ID}

@@ -84,6 +84,12 @@ AST* mkBlock(vector<AST*>& reducing) {
     return nn;
 }
 
+AST* mkStmtList(vector<AST*>& reducing) {
+    AST* nn = makeStmtNode(STMT_LIST, reducing[0]->token);
+    nn->children[0] = reducing[1];
+    return nn;
+}
+
 AST* mkCall(vector<AST*>& reducing) {
     cout<<"mk call from: ";
     for (auto m : reducing) {
@@ -128,6 +134,7 @@ AST* mkFunc(vector<AST*>& reducing) {
         nn->children[0]->attr.expr = ID_EXPR;
         nn->children[1] = reducing[3];
         nn->children[2] = reducing[5];
+        nn->children[2]->attr.stmt = STMT_LIST;
         for (auto m = nn->children[1]; m != nullptr; m = m->next) {
             if (m->token.getSymbol() == TK_LET) {
                 m->children[0]->attr.type = EXPR_NODE;

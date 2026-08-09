@@ -74,14 +74,18 @@ struct Object {
     }
 };
 
+struct Frame;
+
 struct Function {
     string name;
     AST* params;
     AST* body;
-    Function(string nm, AST* p, AST* b) {
+    Frame* closure;
+    Function(string nm, AST* p, AST* b, Frame* f) {
         name = nm;
         params = p;
         body = b;
+        closure = f;
     }
 };
 

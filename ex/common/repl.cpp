@@ -26,8 +26,10 @@ void runfile(string filename) {
         Lexer lexer;
         LRParser parser;
         Interpreter interpreter;
+        ScopeResolution sr;
         auto tokens = lexer.lex(fsb);
         auto ast = parser.parse(tokens);
+        sr.resolveScopes(ast);
         preorder(ast, 1);
         interpreter.exec(ast); 
     }

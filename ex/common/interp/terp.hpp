@@ -13,7 +13,8 @@ typedef unordered_map<string, Object> Environment;
 struct Frame {
     Environment bindings;
     Frame* dynamicLink;
-    Frame(Environment e, Frame* p) : bindings(e), dynamicLink(p) { }
+    Frame* staticLink;
+    Frame(Environment e, Frame* p, Frame* s) : bindings(e), dynamicLink(p), staticLink(s) { }
     Frame() { }
 };
 
@@ -24,16 +25,17 @@ struct Context {
     unordered_map<string, AST*> userTypes;
     stack<Object> st;
     Context() {
-        symtab = new Frame(Environment(), nullptr);
+        symtab = new Frame(Environment(), nullptr, nullptr);
     }
     void get(string name, int d) {
         auto it = symtab;
-        while (it != nullptr) {
-            if ((it)->bindings.find(name) != (it)->bindings.end()) {
-                st.push((it)->bindings[name]);
-                return;
-            }
-            it = it->dynamicLink;
+        while (it != nullptr && d > 0) {
+            it = it->staticLink;
+            --d;
+        }
+        if ((it)->bindings.find(name) != (it)->bindings.end()) {
+            st.push((it)->bindings[name]);
+            return;
         }
         if (globals.find(name) != globals.end()) {
             st.push(globals[name]);
@@ -43,26 +45,17 @@ struct Context {
     }
     void put(string name, int d, Object obj) {
         auto it = symtab;
-        while (it != nullptr) {
-            if ((it)->bindings.find(name) != (it)->bindings.end()) {
-                (it)->bindings[name] = obj;
-                return;
-            }
-            it = it->dynamicLink;
+        while (it != nullptr && d > 0) {
+            it = it->staticLink;
+            --d;
         }
-        if (globals.find(name) != globals.end()) {
-            globals[name] = obj;
-            return;
-        }
-        if (symtab)
-            symtab->bindings[name] = obj;
-        else globals[name] = obj;
+        it->bindings[name] = obj;
     }
     void openScope() {
-        openScope(Environment());
+        openScope(Environment(), symtab);
     }
-    void openScope(Environment e) {
-        symtab = new Frame(e, symtab);
+    void openScope(Environment e, Frame* defining) {
+        symtab = new Frame(e, symtab, defining);
     }
     void closeScope() {
         if (symtab) {
@@ -123,6 +116,13 @@ class ScopeResolution {
                         traverse(ast->children[i]);
                     closeScope();
                 } break;
+                case LET_STMT: {
+                    auto x = ast;
+                    while (x && !(x->attr.type == EXPR_NODE && x->attr.expr == ID_EXPR)) { x = x->children[0]; }
+                    if (x) {
+                        defineId(x->token.getString());
+                    }
+                } break;
                 default: 
                     for (int i = 0; i < 3; i++)
                         traverse(ast->children[i]);
@@ -144,7 +144,9 @@ class ScopeResolution {
 
         }
         void resolveScopes(AST* ast) {
+            openScope();
             traverse(ast);
+            closeScope();
         }
 };
 
@@ -155,8 +157,8 @@ class Interpreter {
         bool isoperator(TKSymbol symbol);
         bool isbuiltin(string name);
         void dobuiltin(AST* ast);
-        void evalParams(AST* params, AST* args);
-        void evalLambdaFunc(AST* params, AST* args, AST* body);
+        void evalParams(AST* params, AST* args, Frame* c);
+        void evalLambdaFunc(AST* params, AST* args, AST* body, Frame* c);
         void stmt(AST* ast);
         void eval(AST* ast);
         void evalBinOp(AST* ast);
@@ -217,7 +219,7 @@ void Interpreter::dobuiltin(AST* ast) {
 
 
 
-void Interpreter::evalParams(AST* par, AST* ar) {
+void Interpreter::evalParams(AST* par, AST* ar, Frame* closure) {
     unordered_map<string, Object> tmp;
     auto params = par;
     auto args = ar;
@@ -229,11 +231,11 @@ void Interpreter::evalParams(AST* par, AST* ar) {
         params = params->next;
         args = args->next;
     }
-    cxt.openScope(tmp);
+    cxt.openScope(tmp, closure);
 }
 
-void Interpreter::evalLambdaFunc(AST* params, AST* args, AST* body) {
-    evalParams(params, args);
+void Interpreter::evalLambdaFunc(AST* params, AST* args, AST* body, Frame* closure) {
+    evalParams(params, args, closure);
     exec(body);
     bail = false;
     cxt.closeScope();
@@ -292,9 +294,9 @@ void Interpreter::eval(AST* ast) {
                 AST* params = f->params;
                 AST* args = ast->children[1];
               //  cout<<"Evaluating arguments: "<<endl;
-                evalLambdaFunc(params, args, f->body);
+                evalLambdaFunc(params, args, f->body, f->closure);
             } else if (ast->attr.expr == LAMBDA_EXPR) {
-                Function* lf = new Function("&", ast->children[1], ast->children[2]);
+                Function* lf = new Function("&", ast->children[1], ast->children[2], cxt.symtab);
                 cxt.st.push(Object(lf));
             } else if (ast->attr.expr == UNARY_EXPR) {
                 evalUnaryOp(ast);
@@ -387,6 +389,9 @@ void Interpreter::stmt(AST* ast) {
             exec(ast->children[0]);
             cxt.closeScope();
         } break;
+        case STMT_LIST: {
+            exec(ast->children[0]);
+        } break;
         case IF_STMT:
             eval(ast->children[0]);
             if (cxt.st.top().boolval) {
@@ -417,7 +422,7 @@ void Interpreter::stmt(AST* ast) {
         break;
         case DEF_STMT: {
             string name = ast->children[0]->token.getString();
-            cxt.funcTab[name] = new Function(name, ast->children[1], ast->children[2]);
+            cxt.funcTab[name] = new Function(name, ast->children[1], ast->children[2], cxt.symtab);
         } break;
         default:
             eval(ast);
