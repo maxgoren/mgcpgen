@@ -52,6 +52,7 @@ TERM ::= FACT
 FACT ::= TK_MINUS POST                          @unary
 FACT ::= POST
 POST ::= PRI TK_LPAREN EXPRLIST TK_RPAREN       @mkCall
+POST ::= PRI TK_LSQB EXPR TK_RSQB               @mkSubscript
 POST ::= PRI
 PRI ::= TK_ID                                   @mkId
 PRI ::= TK_NUM                                  @mkNum

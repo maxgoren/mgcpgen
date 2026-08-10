@@ -33,8 +33,8 @@ struct Context {
             it = it->staticLink;
             --d;
         }
-        if ((it)->bindings.find(name) != (it)->bindings.end()) {
-            st.push((it)->bindings[name]);
+        if (it->bindings.find(name) != it->bindings.end()) {
+            st.push(it->bindings[name]);
             return;
         }
         if (globals.find(name) != globals.end()) {
@@ -159,10 +159,10 @@ class Interpreter {
         void dobuiltin(AST* ast);
         void evalParams(AST* params, AST* args, Frame* c);
         void evalLambdaFunc(AST* params, AST* args, AST* body, Frame* c);
-        void stmt(AST* ast);
-        void eval(AST* ast);
         void evalBinOp(AST* ast);
         void evalUnaryOp(AST* ast);
+        void stmt(AST* ast);
+        void expr(AST* ast);
     public:
         Interpreter() {
 
@@ -203,14 +203,14 @@ void Interpreter::dobuiltin(AST* ast) {
     string fname = ast->token.getString();
     AST* args = ast->children[1];
     if (fname == "push")  {
-        eval(args);
-        eval(args->next);
+        expr(args);
+        expr(args->next);
         Object tp = cxt.st.top(); cxt.st.pop();
         cxt.st.top().listval->push_front(tp);
         cxt.st.pop();
     }
     if (fname == "size") {
-        eval(args);
+        expr(args);
         int size = cxt.st.top().listval->size();
         cxt.st.pop();
         cxt.st.push(Object((double)size));
@@ -225,7 +225,7 @@ void Interpreter::evalParams(AST* par, AST* ar, Frame* closure) {
     auto args = ar;
     while (params != nullptr && args != nullptr) {
         string nm = params->children[0]->token.getString();
-        eval(args);
+        expr(args);
         tmp[nm] = cxt.st.top(); cxt.st.pop();
         //cout<<"Assigned "<<tmp[nm].toString()<<" to "<<nm<<endl;
         params = params->next;
@@ -241,7 +241,7 @@ void Interpreter::evalLambdaFunc(AST* params, AST* args, AST* body, Frame* closu
     cxt.closeScope();
 }
 
-void Interpreter::eval(AST* ast) {
+void Interpreter::expr(AST* ast) {
     if (ast != nullptr) {
         if (ast->children[0] == nullptr) {
             if (ast->token.getSymbol() == TK_NUM) {
@@ -258,15 +258,15 @@ void Interpreter::eval(AST* ast) {
                 AST* itr = ast->children[0];
                 Object nl(new deque<Object>());
                 while (itr != nullptr) {
-                    eval(itr);
+                    expr(itr);
                     nl.listval->push_back(cxt.st.top()); cxt.st.pop();
                     itr = itr->next;
                 }
                 cxt.st.push(nl);
             } else if (ast->attr.expr == SUBSCRIPT_EXPR) {
-                eval(ast->children[0]);
+                expr(ast->children[0]);
                 Object lv = cxt.st.top(); cxt.st.pop();
-                eval(ast->children[1]);
+                expr(ast->children[1]);
                 Object idx = cxt.st.top(); cxt.st.pop();
                 cxt.st.push(lv.listval->at(idx.numval));
             } else if (ast->attr.expr == FUNC_EXPR) { 
@@ -287,7 +287,7 @@ void Interpreter::eval(AST* ast) {
                     }
                 //    cout<<"[(f x)] Executing function: "<<t.funcval->name<<endl;
                 } else if (ast->children[0]->attr.expr == LAMBDA_EXPR) {
-                    eval(ast->children[0]);
+                    expr(ast->children[0]);
                     t = cxt.st.top(); cxt.st.pop();
                 }
                 Function* f = t.funcval;
@@ -302,9 +302,11 @@ void Interpreter::eval(AST* ast) {
                 evalUnaryOp(ast);
             } else if (isoperator(ast->token.getSymbol())) {
                 evalBinOp(ast);
+            } else if (ast->attr.expr == ARRAY_CON_EXPR) {
+                cxt.st.push(Object(new deque<Object>(100)));
             } else {
                 cout<<"[Err?] ";
-                eval(ast->children[0]);
+                expr(ast->children[0]);
                 cout<<endl;
             }
         }
@@ -312,7 +314,7 @@ void Interpreter::eval(AST* ast) {
 }
 
 void Interpreter::evalUnaryOp(AST* ast) {
-    eval(ast->children[0]);
+    expr(ast->children[0]);
     Object v = cxt.st.top(); cxt.st.pop();
     switch (ast->token.getSymbol()) {
         case TK_MINUS: 
@@ -329,12 +331,12 @@ void Interpreter::evalUnaryOp(AST* ast) {
 
 void Interpreter::evalBinOp(AST* ast) {
     if (ast->token.getSymbol() == TK_ASSIGN) {
-        eval(ast->children[1]);
+        expr(ast->children[1]);
         if (ast->children[0]->attr.expr == ID_EXPR) {
             cxt.put(ast->children[0]->token.getString(), ast->children[0]->token.scopeLevel(), cxt.st.top());
         } else if (ast->children[0]->attr.expr == SUBSCRIPT_EXPR) {
-            eval(ast->children[0]->children[0]);
-            eval(ast->children[0]->children[1]);
+            expr(ast->children[0]->children[0]);
+            expr(ast->children[0]->children[1]);
             Object idx = cxt.st.top(); cxt.st.pop();
             Object lval = cxt.st.top(); cxt.st.pop();
             lval.listval->at(idx.numval) = cxt.st.top(); cxt.st.pop();
@@ -344,9 +346,9 @@ void Interpreter::evalBinOp(AST* ast) {
         return;
     }
     if (isoperator(ast->token.getSymbol())) {
-        eval(ast->children[0]);
+        expr(ast->children[0]);
         Object lho = cxt.st.top(); cxt.st.pop();
-        eval(ast->children[1]);
+        expr(ast->children[1]);
         Object rho = cxt.st.top(); cxt.st.pop();
         double lhs = lho.numval;
         double rhs = rho.numval;
@@ -381,7 +383,7 @@ void Interpreter::stmt(AST* ast) {
             cout<<"Executing: "<<ast->children[0]->token.getString()<<endl;
         } break;
         case PRINT_STMT:
-                eval(ast->children[0]);
+                expr(ast->children[0]);
                 cout<<cxt.st.top().toString()<<endl;
             break;
         case BLOCK_STMT: {
@@ -393,7 +395,7 @@ void Interpreter::stmt(AST* ast) {
             exec(ast->children[0]);
         } break;
         case IF_STMT:
-            eval(ast->children[0]);
+            expr(ast->children[0]);
             if (cxt.st.top().boolval) {
                 exec(ast->children[1]);
             } else {
@@ -404,20 +406,24 @@ void Interpreter::stmt(AST* ast) {
             cxt.userTypes[ast->children[0]->token.getString()] = ast;
         } break;
         case WHILE_STMT:
-            eval(ast->children[0]);
+            expr(ast->children[0]);
             while (cxt.st.top().boolval) {
                 cxt.st.pop();
                 exec(ast->children[1]);
-                eval(ast->children[0]);
+                expr(ast->children[0]);
             }
             cxt.st.pop();
             break;
         case LET_STMT:
             cxt.symtab->bindings.insert({ast->children[0]->token.getString(), 0.0});
-            eval(ast->children[0]);
-        break;
+            expr(ast->children[0]);
+            if (ast->children[1] != nullptr) {
+                expr(ast->children[1]);
+                cxt.symtab->bindings[ast->children[0]->token.getString()] = cxt.st.top(); cxt.st.pop();
+            }
+            break;
         case RETURN_STMT:
-            eval(ast->children[0]);
+            expr(ast->children[0]);
             bail = true;
         break;
         case DEF_STMT: {
@@ -425,7 +431,7 @@ void Interpreter::stmt(AST* ast) {
             cxt.funcTab[name] = new Function(name, ast->children[1], ast->children[2], cxt.symtab);
         } break;
         default:
-            eval(ast);
+            expr(ast);
             break;
     }
 }
@@ -435,7 +441,7 @@ void Interpreter::exec(AST* ast) {
         if (ast->attr.type == STMT_NODE) {
             stmt(ast);
         } else {
-            eval(ast);
+            expr(ast);
         }
         if (ast->next && bail == false)
             exec(ast->next);
