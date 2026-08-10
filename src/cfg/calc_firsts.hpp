@@ -8,7 +8,6 @@ class FirstSetCalculator {
         void initFirsts(Grammar& G);
         bool updateNonTerminal(Grammar& G, Symbol X, Symbol f);
         bool firstClosure(Grammar& G, Symbol X, SymbolString& production);
-        bool propagateFirsts(Grammar& G);
     public:
         FirstSetCalculator();
         void compute(Grammar& G);

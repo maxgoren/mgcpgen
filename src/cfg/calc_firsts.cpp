@@ -51,28 +51,20 @@ bool FirstSetCalculator::firstClosure(Grammar& G, Symbol X, SymbolString& produc
     return didchange;
 }
 
-bool FirstSetCalculator::propagateFirsts(Grammar& G) {
-    bool didchange = false;
-    for (auto prod : G.productions) {
-        Symbol X = prod.first;  // Left-hand side non-terminal
-        ProductionSet RHS = prod.second;
-        // Process each alternative production for X
-        for (Production production : RHS) {
-            if (firstClosure(G, X, production.rhs))
-                didchange = true;
-        }
-    }   
-    return didchange;
-}
-
 void FirstSetCalculator::compute(Grammar& G) {
     // Initialize FIRST sets for terminals and non-terminals
     initFirsts(G);
-    
-    // Iterative algorithm to compute FIRST sets until no changes occur
     bool didchange = true;
     while (didchange) {
-        didchange = propagateFirsts(G);
+        didchange = false;
+        for (auto [X, RHS] : G.productions) {
+            // Process each alternative production for X
+            for (Production production : RHS) {
+                if (firstClosure(G, X, production.rhs)) {
+                    didchange = true;
+                }
+            }
+        }  
     }
 } 
 
