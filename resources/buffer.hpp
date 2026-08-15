@@ -120,6 +120,8 @@ class FileStringBuffer : public CharBuffer {
                 } else {
                     line_pos++;
                     str_pos = 0;
+                    if (line_pos == lines.size())
+                        line_pos = -1;
                 }
             }
             if (!done() && get() == '\0') advance();
@@ -140,6 +142,8 @@ class FileStringBuffer : public CharBuffer {
         char get() {
             if (line_pos == -1)
                 return 0;
+            if (str_pos >= lines[line_pos].size())
+
             return lines[line_pos][str_pos];
         }
         bool done() {

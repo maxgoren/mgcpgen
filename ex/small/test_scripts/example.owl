@@ -1,7 +1,0 @@
-def fib(let q) {
-    if (q < 2) {
-        return 1;
-    }
-    return fib(q-2)+fib(q-1);
-}
-print fib(6);
