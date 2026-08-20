@@ -1,24 +1,48 @@
 #include "calc_firsts.hpp"
 
 FirstSetCalculator::FirstSetCalculator() {
-    debug_noise = false;
+    debug_noise = true;
 }
 
 void  FirstSetCalculator::initFirsts(Grammar& G) {
     //For all terminal symbols, first(t) -> {t}
     for (Symbol t : G.terminals) {
         G.firsts[t] = {t};
+        G.derivesLambda[t] = false;
     }
     //create a first set for each non terminal, 
     //if the non terminal can derive epsilon, add epsilon to its set.
     for (Symbol nt : G.nonterminals) {
         G.firsts[nt] = set<Symbol>();
-        if (G.isNullable(nt)) {
-            if (debug_noise)
-                cout<<nt<<" is nullable..."<<endl;
-            G.firsts[nt].insert("#");
-        }
+        G.derivesLambda[nt] = false;
     }
+    bool changed = false;
+    do {
+        changed = false;
+        for (auto & [id, prod] : G.prodById) {
+            if (!G.derivesLambda[prod.lhs]) {
+                if (prod.rhs.empty()) {
+                    changed = true;
+                    G.derivesLambda[prod.lhs] = true;
+                    G.firsts[prod.lhs].insert("#");
+                    if (debug_noise)
+                        cout<<prod.lhs<<" is nullable..."<<endl;
+                    continue;
+                }
+                bool rhs_derives = G.derivesLambda[prod.rhs[0]];
+                for (int j = 1; j < prod.rhs.size(); j++) {
+                    rhs_derives = rhs_derives && G.derivesLambda[prod.rhs[j]];
+                }
+                if (rhs_derives) {
+                    changed = true;
+                    G.derivesLambda[prod.lhs] = true;
+                    G.firsts[prod.lhs].insert("#");
+                    if (debug_noise)
+                        cout<<prod.lhs<<" is nullable..."<<endl;
+                }
+            }
+        }
+    } while (changed);
 }
 
 bool FirstSetCalculator::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {

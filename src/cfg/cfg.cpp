@@ -25,10 +25,8 @@ bool Grammar::isTerminal(Symbol s) {
     return terminals.find(s) != terminals.end();
 }
 bool Grammar::isNullable(Symbol nt) {
-    for (auto prod : productions[nt]) {
-        if (prod.rhs.empty())
-            return true;
-    }
+    if (derivesLambda.find(nt) != derivesLambda.end())
+        return derivesLambda[nt];
     return false;
 }
 bool Grammar::readGrammarFile(string filename) {

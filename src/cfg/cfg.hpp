@@ -33,6 +33,7 @@ struct Grammar {
     set<Symbol> terminals;
     set<Symbol> nonterminals;
     map<Symbol, ProductionSet> productions;
+    map<Symbol, bool> derivesLambda;
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
     map<int, Production> prodById;
