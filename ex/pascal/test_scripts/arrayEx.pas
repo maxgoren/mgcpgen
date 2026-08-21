@@ -1,12 +1,12 @@
 program arrayEx(output);
 var a : array [ 1 .. 5 ] of integer; 
 var x : integer;
-    function printArr(a : array [ 1 .. 5 ] of integer) : integer;
+    function printArr(z : array [ 1 .. 5 ] of integer) : integer;
     begin
         x := 1;
         while (x < 6) do
         begin 
-            writeln a[x];
+            writeln z[x];
             x := x + 1 
         end 
     end;

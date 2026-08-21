@@ -101,7 +101,7 @@ vector<Token> Lexer::lex(CharBuffer* buff) {
         next = nextToken();
         if (next.getSymbol() != TK_EOI) {
             tokens.push_back(next);
-            cout<<"Recognized: {'"<<tokens.back().getString()<<"'}"<<endl;
+            //cout<<"Recognized: {'"<<tokens.back().getString()<<"'}"<<endl;
         } else {
             if (!in_comment)
                 cout<<buffer->get()<<"?"<<endl;
@@ -111,9 +111,9 @@ vector<Token> Lexer::lex(CharBuffer* buff) {
         }
     }
     tokens.push_back(Token(TK_EOI, "<fin>"));
-    for (auto m : tokens) {
-        cout<<"["<<tokenStr[m.getSymbol()]<<"] ["<<m.getString()<<"]"<<endl;
-    }
+    //for (auto m : tokens) {
+    //    cout<<"["<<tokenStr[m.getSymbol()]<<"] ["<<m.getString()<<"]"<<endl;
+    //}
     return tokens;
 }
 

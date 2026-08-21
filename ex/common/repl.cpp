@@ -30,7 +30,7 @@ void runfile(string filename) {
         auto tokens = lexer.lex(fsb);
         auto ast = parser.parse(tokens);
         sr.resolveScopes(ast);
-        preorder(ast, 1);
+        //preorder(ast, 1);
         interpreter.exec(ast); 
     }
 }

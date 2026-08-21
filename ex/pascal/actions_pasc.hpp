@@ -143,10 +143,6 @@ AST* mkFunc(vector<AST*>& reducing) {
         }
     }
     nn->children[1] = header;
-    for (auto v : reducing) {
-        preorder(v,1);
-        cout<<endl;
-    }
     return nn;
 }
 
@@ -215,6 +211,28 @@ AST* mkArray(vector<AST*>& reducing) {
     nn->children[0] = reducing[2];
     nn->children[1] = reducing[4];
     nn->children[2] = reducing.back();
+    return nn;
+}
+
+AST* mkRecord(vector<AST*>& reducing) {
+    AST* nn = makeStmtNode(RECORD_DEF_STMT, reducing[1]->token);   
+    nn->children[0] = reducing[1];
+    nn->children[0]->attr = {EXPR_NODE, ID_EXPR};
+    nn->children[1] = reducing[4];
+    preorder(nn, 1);
+    return nn;
+}
+
+AST* mkRecField(vector<AST*>& reducing) {
+    AST* nn = makeStmtNode(LET_STMT, reducing[0]->token);
+    nn->children[0] = reducing[0];
+    nn->children[0]->attr = {EXPR_NODE, ID_EXPR};
+    nn->children[1] = reducing[2];
+    return nn;
+}
+
+AST* mkTypeExpr(vector<AST*>& reducing) {
+    AST* nn = makeExprNode(TYPE_EXPR, reducing[0]->token);
     return nn;
 }
 

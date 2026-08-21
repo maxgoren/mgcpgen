@@ -43,7 +43,7 @@ class LRParser {
                     tmp.push_back(semStack.top());
                     semStack.pop();
                 } else {
-                    cout<<"Uh oh: Semantic Stack and Parse Stack have diverged"<<endl;
+                    //cout<<"Uh oh: Semantic Stack and Parse Stack have diverged"<<endl;
                 }
             }
             reverse(tmp.begin(), tmp.end());
@@ -81,7 +81,7 @@ class LRParser {
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
                 if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
-                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"'?"<<endl;
+                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"'?\nExpected: "<<endl;
                     for (auto m : actTab[curr_state]) {
                         cout<<m.first<<": "<<m.second<<endl;
                     }
