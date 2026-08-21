@@ -8,7 +8,6 @@ void  FirstSetCalculator::initFirsts(Grammar& G) {
     //For all terminal symbols, first(t) -> {t}
     for (Symbol t : G.terminals) {
         G.firsts[t] = {t};
-        G.derivesLambda[t] = false;
     }
     //create a first set for each non terminal, 
     //if the non terminal can derive epsilon, add epsilon to its set.

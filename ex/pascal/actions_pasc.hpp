@@ -108,8 +108,10 @@ AST* mkLet(vector<AST*>& reducing) {
         reducing[0]->children[0]->attr.type = EXPR_NODE;
         reducing[0]->children[0]->attr.expr = ID_EXPR;
     }
-    if (reducing.size() > 1)
+    if (reducing.size() > 1) {
+        reducing.pop_back();
         reducing[0]->children[1] = reducing.back();
+    }
     return reducing[0];
 }
 
