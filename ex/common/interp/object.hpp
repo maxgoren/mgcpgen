@@ -6,10 +6,11 @@
 using namespace std;
 
 enum ObjectType {
-    NUMBER, STRING, BOOL, LIST, FUNCTION, NIL
+    NUMBER, STRING, BOOL, LIST, FUNCTION, NIL, RECORD
 };
 
 struct Function;
+struct Record;
 
 struct Object {
     ObjectType type;
@@ -19,12 +20,14 @@ struct Object {
         string*        strval;
         deque<Object>* listval;
         Function*      funcval;
+        Record*        recordval;
     };
     Object(bool v) : boolval(v), type(BOOL) { }
     Object(double dv) : numval(dv), type(NUMBER) { }
     Object(string* str) : strval(str), type(STRING) { }
     Object(deque<Object>* lv) : listval(lv), type(LIST) { }
     Object(Function* fv) : funcval(fv), type(FUNCTION) { }
+    Object(Record* rv) : recordval(rv), type(RECORD) { }
     Object() : type(NIL) { }
     Object(const Object& ob) {
         type = ob.type;
@@ -34,6 +37,7 @@ struct Object {
             case LIST: listval = ob.listval; break;
             case FUNCTION: funcval = ob.funcval; break;
             case BOOL: boolval = ob.boolval; break;
+            case RECORD: recordval = ob.recordval; break;
             default:
                 break;
         }
@@ -47,6 +51,7 @@ struct Object {
                 case LIST: listval = ob.listval; break;
                 case FUNCTION: funcval = ob.funcval; break;
                 case BOOL: boolval = ob.boolval; break;
+                case RECORD: recordval = ob.recordval; break;
                 default:
                     break;
             }
@@ -87,6 +92,13 @@ struct Function {
         body = b;
         closure = f;
     }
+};
+
+struct Record {
+    string typeName;
+    bool instantiated;
+    unordered_map<string, Object> fields;
+    Record(string tp = "nil", bool alive = false) : typeName(tp), instantiated(alive) { }
 };
 
 #endif

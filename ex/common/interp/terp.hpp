@@ -22,7 +22,7 @@ struct Context {
     unordered_map<string, Object> globals;
     Frame* symtab;
     unordered_map<string, Object> funcTab;
-    unordered_map<string, AST*> userTypes;
+    unordered_map<string, Object> userTypes;
     stack<Object> st;
     Context() {
         symtab = new Frame(Environment(), nullptr, nullptr);
@@ -110,6 +110,13 @@ class ScopeResolution {
                     closeScope();
                 } break;
                 case DEF_STMT: {
+                    defineId(ast->children[0]->token.getString());
+                    openScope();
+                    for (int i = 0; i < 3; i++) 
+                        traverse(ast->children[i]);
+                    closeScope();
+                } break;
+                case RECORD_DEF_STMT: {
                     defineId(ast->children[0]->token.getString());
                     openScope();
                     for (int i = 0; i < 3; i++) 
@@ -269,6 +276,13 @@ void Interpreter::expr(AST* ast) {
                 expr(ast->children[1]);
                 Object idx = cxt.st.top(); cxt.st.pop();
                 cxt.st.push(lv.listval->at(idx.numval));
+            } else if (ast->attr.expr == FIELD_EXPR) {
+                expr(ast->children[0]);
+                Object rec = cxt.st.top(); cxt.st.pop();
+                string fieldname = ast->children[1]->token.getString();
+                if (rec.type == RECORD) {
+                    cxt.st.push(rec.recordval->fields[fieldname]);
+                }
             } else if (ast->attr.expr == FUNC_EXPR) { 
                 string fname = ast->token.getString();
                 if (isbuiltin(fname)) {
@@ -304,6 +318,14 @@ void Interpreter::expr(AST* ast) {
                 evalBinOp(ast);
             } else if (ast->attr.expr == ARRAY_CON_EXPR) {
                 cxt.st.push(Object(new deque<Object>(100)));
+            } else if (ast->attr.expr == BLESS_EXPR) {
+                if (cxt.userTypes.count(ast->children[0]->token.getString())) {
+                    Record* nr = new Record(ast->children[0]->token.getString(), true);
+                    for (auto it : cxt.userTypes[nr->typeName].recordval->fields) {
+                        nr->fields[it.first] = Object();
+                    }
+                    cxt.st.push(Object(nr));
+                }
             } else {
                 cout<<"[Err?] ";
                 expr(ast->children[0]);
@@ -342,6 +364,14 @@ void Interpreter::evalBinOp(AST* ast) {
             lval.listval->at(idx.numval) = cxt.st.top(); cxt.st.pop();
             cxt.symtab->bindings[ast->children[0]->children[0]->token.getString()] = lval;
             cxt.st.push(lval);
+        } else if (ast->children[0]->attr.expr == FIELD_EXPR) {
+                expr(ast->children[0]->children[0]);
+                Object rec = cxt.st.top(); cxt.st.pop();
+                string fieldname = ast->children[0]->children[1]->token.getString();
+                if (rec.type == RECORD) {
+                    rec.recordval->fields[fieldname] = cxt.st.top(); cxt.st.pop();
+                    cxt.symtab->bindings[ast->children[0]->children[0]->token.getString()] = rec;
+                }
         }
         return;
     }
@@ -391,6 +421,16 @@ void Interpreter::stmt(AST* ast) {
             exec(ast->children[0]);
             cxt.closeScope();
         } break;
+        case RECORD_DEF_STMT: {
+            Record* nr = new Record(ast->children[0]->token.getString(), false);
+            for (auto it = ast->children[1]; it != nullptr; it = it->next) {
+                string name = it->children[0]->token.getString(); 
+                nr->fields[name] = Object();
+                cout<<"Adding field: "<<name<<endl;
+            }
+            cxt.userTypes[nr->typeName] = nr; 
+            cout<<"Registered new user defined type '"<<nr->typeName<<"'"<<endl;
+        } break;
         case STMT_LIST: {
             exec(ast->children[0]);
         } break;
@@ -417,7 +457,7 @@ void Interpreter::stmt(AST* ast) {
         case LET_STMT:
             cxt.symtab->bindings.insert({ast->children[0]->token.getString(), 0.0});
             expr(ast->children[0]);
-            if (ast->children[1] != nullptr) {
+            if (ast->children[1] != nullptr && ast->children[1]->attr.expr != TYPE_EXPR) {
                 expr(ast->children[1]);
                 cxt.symtab->bindings[ast->children[0]->token.getString()] = cxt.st.top(); cxt.st.pop();
             }

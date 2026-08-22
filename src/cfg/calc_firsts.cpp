@@ -4,7 +4,7 @@ FirstSetCalculator::FirstSetCalculator() {
     debug_noise = true;
 }
 
-void  FirstSetCalculator::initFirsts(Grammar& G) {
+void  FirstSetCalculator::initFirstsAndNullable(Grammar& G) {
     //For all terminal symbols, first(t) -> {t}
     for (Symbol t : G.terminals) {
         G.firsts[t] = {t};
@@ -76,7 +76,7 @@ bool FirstSetCalculator::firstClosure(Grammar& G, Symbol X, SymbolString& produc
 
 void FirstSetCalculator::compute(Grammar& G) {
     // Initialize FIRST sets for terminals and non-terminals
-    initFirsts(G);
+    initFirstsAndNullable(G);
     bool didchange = true;
     while (didchange) {
         didchange = false;

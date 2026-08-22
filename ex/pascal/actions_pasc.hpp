@@ -161,7 +161,7 @@ AST* mkFuncHeader(vector<AST*>& reducing) {
 }
 
 AST* mkSubscript(vector<AST*>& reducing) {
-    AST* nn = makeExprNode(SUBSCRIPT_EXPR, reducing[1]->token);
+    AST* nn = makeExprNode(reducing[1]->token.getSymbol() == TK_PERIOD ? FIELD_EXPR:SUBSCRIPT_EXPR, reducing[1]->token);
     nn->children[0] = reducing[0];
     nn->children[1] = reducing[2];
     return nn;
@@ -233,6 +233,10 @@ AST* mkRecField(vector<AST*>& reducing) {
 
 AST* mkTypeExpr(vector<AST*>& reducing) {
     AST* nn = makeExprNode(TYPE_EXPR, reducing[0]->token);
+    if (nn->token.getSymbol() == TK_ID) {
+        nn->attr = {EXPR_NODE, BLESS_EXPR};
+        nn->children[0] = makeExprNode(ID_EXPR, reducing[0]->token);
+    }
     return nn;
 }
 

@@ -6,6 +6,10 @@ type TStudent := record
 end;
 var Student : TStudent;
 begin
-  Student.Age := 14;
-  writeln Student.Age 
+  Student.Name := "Max G.";
+  Student.Age := 39;
+  Student.GPA := 4;
+  writeln Student.Name;
+  writeln Student.Age;
+  writeln Student.GPA 
 end .
