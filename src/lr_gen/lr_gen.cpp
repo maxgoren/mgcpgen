@@ -298,13 +298,13 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
     cout<<"[*] Analyzing Context Free Grammar: "<<endl;
-    cout<<"\t (1) Calculating Nullable set... ";
+    cout<<"\t (1) Calculating Nullable set... \n";
     nullable.compute(G);
-    cout<<"Done.\n\t (2) Calculating Firsts set...   ";
+    cout<<"\t (1) Done.\n\t (2) Calculating Firsts set...   \n";
     firsts.compute(G);
-    cout<<"Done.\n\t (3) Calculating Follows set...  ";
+    cout<<"\t (2) Done.\n\t (3) Calculating Follows set...  \n";
     follows.compute(G, ss);
-    cout<<"Done.\n[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" NFA"<<endl;
+    cout<<"\t (3) Done.\n[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" NFA"<<endl;
     generate_CFSM(G, ss);
     cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;

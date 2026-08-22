@@ -16,6 +16,9 @@ void CalculateNullable::compute(Grammar& G) {
                 if (prod.rhs.empty()) {
                     changed = true;
                     G.derivesLambda[prod.lhs] = true;
+                    if (debug_noise) {
+                        cout<<"\t \t+ "<<prod.lhs<<" derives lambda"<<endl;
+                    }
                     continue;
                 }
                 bool rhs_derives = G.derivesLambda[prod.rhs[0]];
@@ -25,6 +28,9 @@ void CalculateNullable::compute(Grammar& G) {
                 if (rhs_derives) {
                     changed = true;
                     G.derivesLambda[prod.lhs] = true;
+                    if (debug_noise) {
+                        cout<<"\t \t+ "<<prod.lhs<<" derives lambda"<<endl;
+                    }
                 }
             }
         }

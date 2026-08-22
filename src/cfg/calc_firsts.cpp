@@ -16,7 +16,7 @@ void  FirstSetCalculator::initFirsts(Grammar& G) {
         if (G.isNullable(nt)) {
             G.firsts[nt].insert("#");
             if (debug_noise) {
-                cout<<nt<<" is nullable"<<endl;
+                cout<<"\t \t+ "<<nt<<" is nullable"<<endl;
             }
         }
     }

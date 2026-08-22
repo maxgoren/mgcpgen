@@ -1,0 +1,7 @@
+sp ::= P
+P ::= A B TK_C
+A ::= C
+B ::= TK_B
+B ::= #
+C ::= TK_A
+C ::= #
