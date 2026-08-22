@@ -38,6 +38,7 @@ AST* binop(vector<AST*>& reducing) {
     AST* nn = makeExprNode(BIN_EXPR, reducing[1]->token);
     nn->children[0] = reducing[0];
     nn->children[1] = reducing[2];
+    delete reducing[1];
     return nn; 
 }
 AST* unary(vector<AST*>& reducing) {
@@ -73,6 +74,8 @@ AST* mkIf(vector<AST*>& reducing) {
     nn->children[0] = reducing[1];
     nn->children[1] = reducing[3];
     nn->children[2] = reducing[5];
+    delete reducing[2];
+    delete reducing[4];
     return nn;
 }
 
@@ -155,7 +158,9 @@ AST* mkFuncHeader(vector<AST*>& reducing) {
         nn->children[0]->attr.type = EXPR_NODE;
         nn->children[0]->attr.expr = ID_EXPR;
         nn->children[1] = reducing[2];
-        //nn->children[2] = reducing[3];
+        delete reducing[3];
+        delete reducing[4];
+        delete reducing[5];
     }
     return nn;
 }

@@ -294,8 +294,11 @@ void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
 }
 
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
+    DerivesLambda         nullable;
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
+    cout<<"[*] Mark Non-Terminals Which derive Lambda"<<endl;
+    nullable.markNonTerminals(G);
     cout<<"[*] Calculating Firsts"<<endl;
     firsts.compute(G);
     cout<<"[*] Calculating Follows"<<endl;

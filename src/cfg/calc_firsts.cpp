@@ -4,7 +4,7 @@ FirstSetCalculator::FirstSetCalculator() {
     debug_noise = true;
 }
 
-void  FirstSetCalculator::initFirstsAndNullable(Grammar& G) {
+void  FirstSetCalculator::initFirsts(Grammar& G) {
     //For all terminal symbols, first(t) -> {t}
     for (Symbol t : G.terminals) {
         G.firsts[t] = {t};
@@ -13,35 +13,13 @@ void  FirstSetCalculator::initFirstsAndNullable(Grammar& G) {
     //if the non terminal can derive epsilon, add epsilon to its set.
     for (Symbol nt : G.nonterminals) {
         G.firsts[nt] = set<Symbol>();
-        G.derivesLambda[nt] = false;
-    }
-    bool changed = false;
-    do {
-        changed = false;
-        for (auto & [id, prod] : G.prodById) {
-            if (!G.derivesLambda[prod.lhs]) {
-                if (prod.rhs.empty()) {
-                    changed = true;
-                    G.derivesLambda[prod.lhs] = true;
-                    G.firsts[prod.lhs].insert("#");
-                    if (debug_noise)
-                        cout<<prod.lhs<<" is nullable..."<<endl;
-                    continue;
-                }
-                bool rhs_derives = G.derivesLambda[prod.rhs[0]];
-                for (int j = 1; j < prod.rhs.size(); j++) {
-                    rhs_derives = rhs_derives && G.derivesLambda[prod.rhs[j]];
-                }
-                if (rhs_derives) {
-                    changed = true;
-                    G.derivesLambda[prod.lhs] = true;
-                    G.firsts[prod.lhs].insert("#");
-                    if (debug_noise)
-                        cout<<prod.lhs<<" is nullable..."<<endl;
-                }
+        if (G.isNullable(nt)) {
+            G.firsts[nt].insert("#");
+            if (debug_noise) {
+                cout<<nt<<" is nullable"<<endl;
             }
         }
-    } while (changed);
+    }
 }
 
 bool FirstSetCalculator::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
@@ -76,7 +54,7 @@ bool FirstSetCalculator::firstClosure(Grammar& G, Symbol X, SymbolString& produc
 
 void FirstSetCalculator::compute(Grammar& G) {
     // Initialize FIRST sets for terminals and non-terminals
-    initFirstsAndNullable(G);
+    initFirsts(G);
     bool didchange = true;
     while (didchange) {
         didchange = false;

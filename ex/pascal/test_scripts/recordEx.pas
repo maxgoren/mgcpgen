@@ -9,7 +9,5 @@ begin
   Student.Name := "Max G.";
   Student.Age := 39;
   Student.GPA := 4;
-  writeln Student.Name;
-  writeln Student.Age;
-  writeln Student.GPA 
+  writeln Student 
 end .

@@ -1,4 +1,5 @@
 mgcpgen:
+	g++ -c src/cfg/derives_lambda.cpp
 	g++ -c src/cfg/calc_firsts.cpp
 	g++ -c src/cfg/calc_follows.cpp
 	g++ -c src/cfg/cfg.cpp

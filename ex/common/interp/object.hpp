@@ -12,6 +12,8 @@ enum ObjectType {
 struct Function;
 struct Record;
 
+string record2string(Record* r);
+
 struct Object {
     ObjectType type;
     union {
@@ -72,6 +74,7 @@ struct Object {
                 l += listval->at(listval->size()-1).toString() + " ]";
                 return l;
             } break;
+            case RECORD: return record2string(recordval);
             default:
                 break;
         }
@@ -100,5 +103,17 @@ struct Record {
     unordered_map<string, Object> fields;
     Record(string tp = "nil", bool alive = false) : typeName(tp), instantiated(alive) { }
 };
+
+string record2string(Record* r) {
+    string str = r->typeName + "(";
+    int i = 0;
+    for (auto field : r->fields) {
+        str += field.first + " : " + field.second.toString();
+        i++;
+        if (i < r->fields.size()) str += ", ";
+    }
+    str += ")";
+    return str;
+}
 
 #endif

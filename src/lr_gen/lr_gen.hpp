@@ -3,6 +3,7 @@
 #include <iostream>
 #include <functional>
 #include "../../src/cfg/cfg.hpp"
+#include "../../src/cfg/derives_lambda.hpp"
 #include "../../src/cfg/calc_firsts.hpp"
 #include "../../src/cfg/calc_follows.hpp"
 #include "lr_item.hpp"
