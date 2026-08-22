@@ -294,16 +294,17 @@ void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
 }
 
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
-    DerivesLambda         nullable;
+    CalculateNullable         nullable;
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
-    cout<<"[*] Mark Non-Terminals Which derive Lambda"<<endl;
-    nullable.markNonTerminals(G);
-    cout<<"[*] Calculating Firsts"<<endl;
+    cout<<"[*] Analyzing Context Free Grammar: "<<endl;
+    cout<<"\t (1) Calculating Nullable set... ";
+    nullable.compute(G);
+    cout<<"Done.\n\t (2) Calculating Firsts set...   ";
     firsts.compute(G);
-    cout<<"[*] Calculating Follows"<<endl;
+    cout<<"Done.\n\t (3) Calculating Follows set...  ";
     follows.compute(G, ss);
-    cout<<"[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" NFA"<<endl;
+    cout<<"Done.\n[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" NFA"<<endl;
     generate_CFSM(G, ss);
     cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;

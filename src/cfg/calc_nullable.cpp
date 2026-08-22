@@ -1,10 +1,10 @@
-#include "derives_lambda.hpp"
+#include "calc_nullable.hpp"
 
-DerivesLambda::DerivesLambda() {
+CalculateNullable::CalculateNullable() {
     debug_noise = true;
 }
 
-void DerivesLambda::markNonTerminals(Grammar& G) {
+void CalculateNullable::compute(Grammar& G) {
     for (auto nt : G.nonterminals) {
         G.derivesLambda[nt] = false;
     }
