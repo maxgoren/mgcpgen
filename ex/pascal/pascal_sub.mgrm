@@ -1,4 +1,5 @@
 // Example Pascal Subset Grammar, modified to use return statement instead of assigning to func name.
+terminal_list pascal.mlex
 sp ::= PROG
 PROG ::= PROGHEADER DECLLIST SUBDECLLIST PROGT         @mkProgram
 PROGHEADER ::= TK_PROGRAM TK_ID TK_LPAREN IDENTLIST TK_RPAREN TK_SEMI @mkProgramHeader

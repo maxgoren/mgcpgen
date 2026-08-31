@@ -4,6 +4,7 @@ type TStudent := record
     Age   : integer;
     GPA   : real;
 end;
+var x : integer;
 var Student : TStudent;
 begin
   Student.Name := "Max G.";

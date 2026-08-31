@@ -1,3 +1,4 @@
+terminal_list expr.mlex
 sp ::= STMT
 STMT ::= TK_PRINT EXP           @mkPrint
 STMT ::= AEXP                   @through

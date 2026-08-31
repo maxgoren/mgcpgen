@@ -77,3 +77,15 @@ AST* makeStmtNode(STMT_TYPE type, Token& t) {
     ast->attr.stmt = type;
     return ast;
 }
+
+AST* updateExprNode(AST* ast, EXPR_TYPE type) {
+    ast->attr.type = EXPR_NODE;
+    ast->attr.expr = type;
+    return ast;
+}
+
+AST* updateStmtNode(AST* ast, STMT_TYPE type) {
+    ast->attr.type = STMT_NODE;
+    ast->attr.stmt = type;
+    return ast;
+}

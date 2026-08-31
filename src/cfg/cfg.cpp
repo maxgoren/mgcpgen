@@ -1,4 +1,5 @@
 #include "cfg.hpp"
+#include "read_lexer_config.hpp"
 
 vector<string> split(string input, char delim) {
     vector<string> result;
@@ -29,6 +30,7 @@ bool Grammar::isNullable(Symbol nt) {
         return derivesLambda[nt];
     return false;
 }
+
 bool Grammar::readGrammarFile(string filename) {
     string buff;
     ifstream infile(filename, ios::in);
@@ -36,6 +38,8 @@ bool Grammar::readGrammarFile(string filename) {
         cout<<"Error: Couldn't open '"<<filename<<"' - unknown file."<<endl;
         return false;
     }
+    terminals.insert(GOAL);
+    terminals.insert(EPS);
     int rulenum = 1;
     string lastrule = "";
     while (infile.good()) {
@@ -47,7 +51,12 @@ bool Grammar::readGrammarFile(string filename) {
         vector<string> parts = split(buff, ' ');
         if (parts[0][0] == '/' && parts[0][1] == '/') 
             continue;
-        if (parts[0] == "set_token_prec") {
+        if (parts[0] == "terminal_list") {
+            string filename = parts[1];
+            vector<Symbol> syms = readConfig(filename);
+            for (auto symbol : syms)
+                terminals.insert(symbol);
+        } else if (parts[0] == "set_token_prec") {
             string symbol = parts[1];
             int prec = stoi(parts[2]);
             string assoc = parts.size() == 4 ? parts[3]:"none";
@@ -56,16 +65,13 @@ bool Grammar::readGrammarFile(string filename) {
             nonterminals.insert(parts[0]);
             ProductionSet ps = productions[parts[0]];
             SymbolString ss;
-            terminals.insert(GOAL);
-            terminals.insert(EPS);
             string actmaybe;
             Symbol precOverSym;
             for (int i = 2; i < parts.size(); i++) {
                 string s = parts[i];
                 if (s.empty())
                     continue;
-                if (s[0] == 'T' && s[1] == 'K' && s[2] == '_') {
-                    terminals.insert(s);
+                if (terminals.find(s) != terminals.end()) {
                     ss.push_back(s);
                 } else if (s == "prec_override") {
                     cout<<"Got an override directive: ";
