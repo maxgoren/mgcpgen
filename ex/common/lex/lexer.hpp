@@ -29,7 +29,9 @@ Token Lexer::makeLexToken(TKSymbol symbol, char* text, int length) {
 }
 
 int find(int curr, char p) {
-    int l = 1, r = 2*mgc_lexer_matrix[curr][0];
+    int num_entries = 2*mgc_lexer_matrix[curr][0];
+    int l = 1, r = 1 + num_entries;
+    if (r%2 == 0) r--;
     while (l <= r) {
         int m = (l+r)/2;
         if (m % 2 == 0) m--;
