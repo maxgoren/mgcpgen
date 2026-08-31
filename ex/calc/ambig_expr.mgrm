@@ -1,3 +1,4 @@
+terminal_list expr.mlex
 set_token_prec TK_MINUS 5 left
 set_token_prec TK_PLUS 5 left
 set_token_prec TK_MUL 10 left

@@ -1,3 +1,4 @@
+terminal_list expr.mlex
 sp ::= P
 P ::= TK_LPAREN P TK_RPAREN P
 P ::= #
