@@ -77,29 +77,33 @@ class LRParser {
             for (;;) {
                 Token curr_token = current();
                 int curr_state = st.top();
-                printCurrent(curr_state, curr_token);
                 if (checkAccept(curr_state, curr_token))
                     return semStack.top();
                 if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
-                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"'?\nExpected: "<<endl;
+                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"'?"<<endl;
+                    cout<<"Possible Transitions from Current: "<<endl;
+                    int i = 1;
                     for (auto m : actTab[curr_state]) {
-                        cout<<m.first<<": "<<m.second<<endl;
+                        cout<<i<<": "<<m.first<<": "<<m.second<<endl;
                     }
+                    cout<<"Bailing out."<<endl;
                     return nullptr;
-                }
-                string act = actTab[curr_state][tokenStr[curr_token.getSymbol()]];
-                int next = stoi(act.substr(1));
-                switch (act[0]) {
-                    case 's': {
-                        doShift(next);
-                    } break;
-                    case 'r': {
-                        Production p = prod[next];
-                        doReduce(p);
-                    } break;
-                    default:
-                        cout<<"Syntax Error: "<<tokenStr[curr_token.getSymbol()]<<endl;
-                        return nullptr;
+                } else {
+                    printCurrent(curr_state, curr_token);
+                    string act = actTab[curr_state].at(tokenStr[curr_token.getSymbol()]);
+                    int next = stoi(act.substr(1));
+                    switch (act[0]) {
+                        case 's': {
+                            doShift(next);
+                        } break;
+                        case 'r': {
+                            Production p = prod[next];
+                            doReduce(p);
+                        } break;
+                        default:
+                            cout<<"Syntax Error: "<<tokenStr[curr_token.getSymbol()]<<endl;
+                            return nullptr;
+                    }
                 }
             }
             return nullptr;
