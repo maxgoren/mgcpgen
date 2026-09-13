@@ -101,8 +101,10 @@ AST* mkList(vector<AST*>& reducing) {
         return reducing[0];
     }
     for (int i = 1; i < reducing.size(); i++) {
-            AST* itr = reducing[0];
-            while (itr->next) itr = itr->next;
+        if (reducing[i]->token.getString() == "Epsilon")
+            continue;
+        AST* itr = reducing[0];
+        while (itr->next) itr = itr->next;
         itr->next = isSeperator(reducing[i]->token.getSymbol()) ? reducing[i]->children[0]:reducing[i];
     }
     return reducing[0];
@@ -134,10 +136,12 @@ AST* mkLet(vector<AST*>& reducing) {
 
 
 AST* mkFunc(vector<AST*>& reducing) {
-    AST* nn = reducing[1];
-    nn->token.setString(reducing[0]->token.getString());
-    nn->children.insert(nn->children.begin(),reducing[0]);
-    nn->children[0] = updateExprNode(nn->children[0], ID_EXPR);
+    cout<<"Make function from: "<<endl;
+    for (int i = 0; i < reducing.size(); i++) {
+        cout<<i<<": "<<endl;
+        preorder(reducing[i], 1);
+    }
+    AST* nn = reducing[0];
     nn->children[2] = reducing[2];
     AST* header = nullptr;
     for (auto it = nn->children[1]; it != nullptr; it = it->next) {
@@ -207,6 +211,8 @@ AST* mkProgramHeader(vector<AST*>& reducing) {
 AST* mkProgram(vector<AST*>& reducing) {
     AST* program = reducing[0];
     for (int i = 1; i < reducing.size(); i++) {
+        if (reducing[i]->token.getString() == "Epsilon")
+            continue;
         auto it = program;
         while (it->next != nullptr) it = it->next;
         it->next = reducing[i];

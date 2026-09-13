@@ -37,7 +37,7 @@ struct AST {
     Token token;
     AST* next;
     vector<AST*> children;
-    AST(Token& tk) : token(tk), children(vector<AST*>(3)), next(nullptr) { attr.type = TEMP_NODE; }
+    AST(Token tk) : token(tk), children(vector<AST*>(3)), next(nullptr) { attr.type = TEMP_NODE; }
     AST() { 
         children = vector<AST*>(3);
         next = nullptr;

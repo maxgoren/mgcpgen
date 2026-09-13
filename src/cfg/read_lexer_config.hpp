@@ -13,7 +13,7 @@ bool isWhitespace(char c) {
 }
 
 void skipWs(char* str, int* pos) {
-    while (isWhitespace(str[*pos])) *pos++;
+    while (str[*pos] && isWhitespace(str[*pos])) *pos++;
 }
 
 string extractPattern(char* str, int* pos) {

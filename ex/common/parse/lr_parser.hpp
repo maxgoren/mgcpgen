@@ -43,7 +43,7 @@ class LRParser {
                     tmp.push_back(semStack.top());
                     semStack.pop();
                 } else {
-                    //cout<<"Uh oh: Semantic Stack and Parse Stack have diverged"<<endl;
+                    cout<<"Uh oh: Semantic Stack and Parse Stack have diverged"<<endl;
                 }
             }
             reverse(tmp.begin(), tmp.end());
@@ -52,10 +52,10 @@ class LRParser {
                 semStack.push(actions[X.action.substr(1)](tmp));
                 preorder(semStack.top(), 1);
             } else {
-                for (auto m : tmp) {
-                    if (m != nullptr) {
-                        semStack.push(m);
-                    }
+                if (X.rhs.empty()) {
+                    semStack.push(new AST(Token(TK_EOI, "Epsilon")));
+                } else {
+                    semStack.push(tmp.front());
                 }
             }
             st.push(stoi(goTab[st.top()][X.lhs]));
