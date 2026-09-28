@@ -30,6 +30,7 @@ struct OpPrec {
 
 struct Grammar {
     Symbol startSym;
+    string returnType;
     set<Symbol> terminals;
     set<Symbol> nonterminals;
     map<Symbol, ProductionSet> productions;

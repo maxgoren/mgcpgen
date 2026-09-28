@@ -43,7 +43,7 @@ class LRGenerator {
         void printPrelude(ostream& ofile);
         void printProductions(ostream& os, Grammar& G, string name);
         template <class Iterable>
-        void printTables(ostream& os, Iterable table, string tableName);
+        void printTables(ostream& os, int nt, Iterable table, string tableName);
         void printActionRegistrar(ostream& os, Grammar& G);
         pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) ;
     public:

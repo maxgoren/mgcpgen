@@ -56,6 +56,8 @@ bool Grammar::readGrammarFile(string filename) {
             vector<Symbol> syms = readConfig(filename);
             for (auto symbol : syms)
                 terminals.insert(symbol);
+        } else if (parts[0] == "type_returned") {
+            returnType = parts[1];
         } else if (parts[0] == "set_token_prec") {
             string symbol = parts[1];
             int prec = stoi(parts[2]);

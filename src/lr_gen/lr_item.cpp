@@ -5,7 +5,7 @@ namespace std {
             return item.hashCode();
         }
 }
-
+LRItem::~LRItem() { }
 LRItem::LRItem(Production p, int dp) : production(p), dotPosition(dp) { rehash(); }
 LRItem::LRItem() : dotPosition(-1) { }
 LRItem::LRItem(const LRItem& lri) {

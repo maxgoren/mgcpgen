@@ -2,9 +2,11 @@
 #define lr_parser_hpp
 #include <iostream>
 #include <functional>
+#include <algorithm>
 #include <stack>
 #include "actions.hpp"
 #include "mgcpgen_out.hpp"
+#include "ast.hpp"
 using namespace std;
 
 class LRParser {
@@ -13,6 +15,7 @@ class LRParser {
         stack<int> st;
         int tpos;
         vector<Token> tokens;
+        bool debug_noise;
         Token& current() {
             return tokens[tpos];
         }
@@ -21,26 +24,39 @@ class LRParser {
                 tpos++;
             }
         }
+        int nextState(const string *table[], int state, Symbol sym) {
+            int N = stoi(table[state][0]);
+            for (int i = 1; i < 2*N+1; i+=2) {
+                if (table[state][i] == sym) {
+                    return i+1;
+                }
+            }
+            return -1;
+        }
     public:
-        LRParser() {
-            initprod();
-            initactTab();
-            initgoTab();
-            initActions();
+        LRParser(bool loud = false) {
+            debug_noise = loud;
         }
         void doShift(int next) {
-            cout<<"SHIFT"<<endl;
+            if (debug_noise)
+                cout<<"SHIFT "<<current().getString()<<endl;
             st.push(next);
             semStack.push(new AST(current()));
             advance();
         }
         void doReduce(Production& X) {
-            cout<<"REDUCE"<<endl;
+            if (debug_noise)
+                cout<<"REDUCE on '"<<X.toString()<<"'"<<endl;
             vector<AST*> tmp;
             for (int i = 0; i < X.rhs.size(); i++) {
                 st.pop();
                 if (!semStack.empty()) {
-                    tmp.push_back(semStack.top());
+                    auto m = semStack.top();
+                    if (m->token.getString() != "<nil>") {
+                        tmp.push_back(semStack.top());
+                    } else {
+                        delete m;
+                    }
                     semStack.pop();
                 } else {
                     cout<<"Uh oh: Semantic Stack and Parse Stack have diverged"<<endl;
@@ -48,9 +64,11 @@ class LRParser {
             }
             reverse(tmp.begin(), tmp.end());
             if (X.action.empty() == false) {
-                cout<<"And do: "<<X.action<<endl;
-                semStack.push(actions[X.action.substr(1)](tmp));
-                preorder(semStack.top(), 1);
+                if (debug_noise) cout<<"And do: "<<X.action<<endl;
+                string f = X.action.substr(1);
+                semStack.push(actions.at(f)(tmp));
+                if (debug_noise)
+                    preorder(semStack.top(), 1);
             } else {
                 if (X.rhs.empty()) {
                     semStack.push(new AST(Token(TK_EOI, "Epsilon")));
@@ -58,15 +76,25 @@ class LRParser {
                     semStack.push(tmp.front());
                 }
             }
-            st.push(stoi(goTab[st.top()][X.lhs]));
+            int ns = nextState(goTab, st.top(), X.lhs);
+            if (ns != -1) {
+                st.push(stoi(goTab[st.top()][ns]));
+            }
         }
         void printCurrent(int state_num, Token& T) {
-            cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][T.getString()]<<endl<<"Action: ";
+            cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][nextState(actTab, state_num, tokenStr[T.getSymbol()])]<<endl<<"Action: ";
         }
         bool checkAccept(int state_num, Token& T) {
-            if (T.getSymbol() == TK_EOI && actTab[state_num]["$"] == "accept") {
-                cout<<"ACCEPT"<<endl;
-                return true;
+            if (actTab[state_num] == NULL) {
+                return false;
+            }
+            int N = stoi(actTab[state_num][0]);
+            for (int i = 1; i < 2*N+1; i+=2) {
+                if (actTab[state_num][i] == "$") {
+                    if (debug_noise)
+                        cout<<"ACCEPT"<<endl;
+                    return true;
+                }
             }
             return false;
         }
@@ -77,20 +105,36 @@ class LRParser {
             for (;;) {
                 Token curr_token = current();
                 int curr_state = st.top();
-                if (checkAccept(curr_state, curr_token))
-                    return semStack.top();
-                if (actTab[curr_state].find(tokenStr[curr_token.getSymbol()]) == actTab[curr_state].end()) {
-                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"'?"<<endl;
-                    cout<<"Possible Transitions from Current: "<<endl;
-                    int i = 1;
-                    for (auto m : actTab[curr_state]) {
-                        cout<<i<<": "<<m.first<<": "<<m.second<<endl;
+                if (checkAccept(curr_state, curr_token)) {
+                    AST* tmp = semStack.top();
+                    semStack.pop();
+                    while (!semStack.empty()) {
+                        auto t = semStack.top();
+                        semStack.pop();
+                        delete t;
+                    }
+                    if (tmp->token.getString() == "Epsilon") {
+                        auto ret = tmp->next;
+                        tmp->next = nullptr;
+                        delete tmp;
+                        return ret;
+                    } else {
+                        return tmp;
+                    }
+                }
+                int ns = nextState(actTab, curr_state, tokenStr[curr_token.getSymbol()]);
+                if (ns == -1) {
+                    cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"' from state "<<curr_state<<"?"<<endl;
+                    int nument = 2*stoi(actTab[curr_state][0])+1;
+                    for (int i = 1; i < nument; i+=2) {
+                        cout<<actTab[curr_state][i]<<endl;
                     }
                     cout<<"Bailing out."<<endl;
                     return nullptr;
                 } else {
-                    printCurrent(curr_state, curr_token);
-                    string act = actTab[curr_state].at(tokenStr[curr_token.getSymbol()]);
+                    if (debug_noise)
+                        printCurrent(curr_state, curr_token);
+                    string act = actTab[curr_state][ns];
                     int next = stoi(act.substr(1));
                     switch (act[0]) {
                         case 's': {

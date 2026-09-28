@@ -13,6 +13,7 @@ class LRItem {
         size_t hash_val;
     public:
         LRItem();
+        ~LRItem();
         LRItem(Production p, int dp);
         LRItem(const LRItem& lri);
         int getDotPosition() const;

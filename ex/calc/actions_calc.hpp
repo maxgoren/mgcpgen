@@ -14,9 +14,6 @@ AST* mkNum(vector<AST*>& a) {
     return a[0]; 
 }
 
-AST* through(vector<AST*>& a) {
-    return a[0];
-}
 
 AST* pass(vector<AST*>& a) {
     return a[1];

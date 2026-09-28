@@ -247,10 +247,11 @@ void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
         i++;
     }
     os<<"\n};\n";
-    os<<"map<int, Production> "<<name<<";"<<endl;
-    os<<"void init"<<name<<"() {\n";
+    os<<"static const Production "<<name<<"[] = {\n \t Production(0, \"dummy\", SymbolString(), \"\"),\n"<<endl;
+    vector<int> realrows;
+    int p = 0;
     for (auto e : G.prodById) {
-        os<<"\t prod["<<e.first<<"]  = Production("<<e.second.pid<<",\""<<e.second.lhs<<"\", ";
+        os<<"\t Production("<<e.second.pid<<",\""<<e.second.lhs<<"\", ";
         os<<"SymbolString(";
         if (e.second.rhs.size() > 0) {
             os<<"{";
@@ -261,36 +262,56 @@ void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
             }
             os<<"}";
         }
-        os<<"),\""<<e.second.action<<"\");"<<endl;
+        os<<"),\""<<e.second.action<<"\")";
+        if (p+1 < G.prodById.size()) {
+            os<<", \n";
+        } else os<<"\n";
+        p++;
     }
-    os<<"}\n";
+    os<<"};\n";
 }
 
 template <class Iterable>
-void LRGenerator::printTables(ostream& os, Iterable table, string tableName) {
-    os<<"map<int,map<string,string>> "<<tableName<<";\n";
-    os<<"void init"<<tableName<<"() {\n";
+void LRGenerator::printTables(ostream& os, int numStates, Iterable table, string tableName) {
+    vector<int> realrows(numStates, -1);
     for (auto e : table) {
-        os<<"\t "<<tableName<<"["<<e.first<<"] = {";
+        os<<"static const string "<<tableName<<"_row_"<<e.first<<"[] = {";
+        realrows[e.first] = e.first;
         int i = 0;
+        os<<"\""<<e.second.size()<<"\",";
         for (auto t : e.second) {
-            os<<"{\""<<t.first<<"\", \""<<t.second<<"\"}";
+            os<<"\""<<t.first<<"\", \""<<t.second<<"\"";
             if (i+1 < e.second.size())
                 os<<", ";
             i++;
         }
-        os<<"};"<<endl;
+        os<<"};\n"<<endl;
     }
-    os<<"}"<<endl;
+    os<<"static const string *"<< tableName <<"[] = {\n";
+    int q = 0;
+    for (auto t : realrows) {
+        if (t == -1) os<<"\t NULL";
+        else os<<"\t "<<tableName<<"_row_"<<t;
+        if (q+1 < realrows.size())
+            os<<", \n";
+        else os<<"\n";
+        q++;
+    }
+    os<<"};"<<endl;
 }
 
 void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
-    os<<"map<string, function<AST*(vector<AST*>&)>> actions;\n";
-    os<<"void initActions() {\n";
+    os<<"static const map<string, function<"<<G.returnType;
+    os<<"*(vector<"<<G.returnType; 
+    os<<"*>&)>> actions = {\n";
+    int p = 0;
     for (auto actions : G.actionMap) {
-        os<<"\t actions.insert({\""<<actions.first<<"\","<<actions.second<<"});\n";
+        os<<"\t {\""<<actions.first<<"\","<<actions.second<<"}";
+        if (p+1 < G.actionMap.size()) os<<", \n";
+        else cout<<"\n";
+        p++;
     }
-    os<<"}"<<endl;
+    os<<"};"<<endl;
 }
 
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
@@ -314,8 +335,8 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     ActionTable actTable = make_action_table(G, ss);
     printPrelude(ofile);
     printProductions(ofile, G, "prod");
-    printTables(ofile, goTab, "goTab");
-    printTables(ofile, actTable, "actTab");
+    printTables(ofile, cfsm.V() , goTab, "goTab");
+    printTables(ofile, cfsm.V(), actTable, "actTab");
     printActionRegistrar(ofile, G);
     return make_pair(actTable, goTab);
 }

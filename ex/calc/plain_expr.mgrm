@@ -1,17 +1,20 @@
 terminal_list expr.mlex
+type_returned AST
 sp ::= STMT
-STMT ::= TK_PRINT EXP           @mkPrint
-STMT ::= AEXP                   @through
-AEXP ::= AEXP TK_ASSIGN EXP     @binop
+STMT ::= TK_PRINT EXP          @mkPrint
+STMT ::= AEXP                   
+AEXP ::= AEXP TK_ASSIGN EXP    @binop
 AEXP ::= EXP
-EXP ::= EXP TK_PLUS TERM        @binop
-EXP ::= EXP TK_MINUS TERM       @binop
+EXP ::= EXP ADDOP TERM         @binop
 EXP ::= TERM
-TERM ::= TERM TK_MUL FACT       @binop
-TERM ::= TERM TK_DIV FACT       @binop
+TERM ::= TERM MULOP FACT       @binop
 TERM ::= FACT
-FACT ::= TK_MINUS PRI           @unary prec_override TK_UNARY_MINUS
+FACT ::= TK_MINUS PRI          @unary
 FACT ::= PRI
 PRI ::= TK_LPAREN EXP TK_RPAREN @pass
 PRI ::= TK_NUM                  @mkNum
 PRI ::= TK_ID                   @mkId
+ADDOP ::= TK_PLUS
+ADDOP ::= TK_MINUS
+MULOP ::= TK_MUL
+MULOP ::= TK_DIV
