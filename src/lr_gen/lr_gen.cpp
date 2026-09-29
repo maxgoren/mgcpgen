@@ -247,8 +247,7 @@ void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
         i++;
     }
     os<<"\n};\n";
-    os<<"static const Production "<<name<<"[] = {\n \t Production(0, \"dummy\", SymbolString(), \"\"),\n"<<endl;
-    vector<int> realrows;
+    os<<"\nstatic const Production "<<name<<"[] = {\n \t Production(0, \"dummy\", SymbolString(), \"\"),\n"<<endl;
     int p = 0;
     for (auto e : G.prodById) {
         os<<"\t Production("<<e.second.pid<<",\""<<e.second.lhs<<"\", ";
@@ -276,6 +275,10 @@ void LRGenerator::printTables(ostream& os, int numStates, Iterable table, string
     vector<int> realrows(numStates, -1);
     for (auto e : table) {
         os<<"static const string "<<tableName<<"_row_"<<e.first<<"[] = {";
+        if (e.first >= realrows.size()) {
+            realrows.push_back(e.first);
+            cout<<"Ok papi."<<endl;
+        }
         realrows[e.first] = e.first;
         int i = 0;
         os<<"\""<<e.second.size()<<"\",";
@@ -285,23 +288,23 @@ void LRGenerator::printTables(ostream& os, int numStates, Iterable table, string
                 os<<", ";
             i++;
         }
-        os<<"};\n"<<endl;
+        os<<"};\n";
     }
-    os<<"static const string *"<< tableName <<"[] = {\n";
+    os<<"\nstatic const string *"<< tableName <<"[] = {\n";
     int q = 0;
     for (auto t : realrows) {
         if (t == -1) os<<"\t NULL";
         else os<<"\t "<<tableName<<"_row_"<<t;
         if (q+1 < realrows.size())
-            os<<", \n";
-        else os<<"\n";
+            os<<", ";
         q++;
+        if (q > 4 && q % 5 == 0) os<<"\n";
     }
-    os<<"};"<<endl;
+    os<<"\n};"<<endl;
 }
 
 void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
-    os<<"static const map<string, function<"<<G.returnType;
+    os<<"\nstatic const map<string, function<"<<G.returnType;
     os<<"*(vector<"<<G.returnType; 
     os<<"*>&)>> actions = {\n";
     int p = 0;
@@ -311,7 +314,7 @@ void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
         else cout<<"\n";
         p++;
     }
-    os<<"};"<<endl;
+    os<<"\n};"<<endl;
 }
 
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
