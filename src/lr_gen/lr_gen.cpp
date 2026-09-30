@@ -1,4 +1,5 @@
 #include "lr_gen.hpp"
+#include "serialize.hpp"
 //For handling shift/reduce conflicts via precedence rules. 
 // 1) First we check to see if production has an overriding symbol.
 // 2) failing to find that a production inherits the precedence of  it's rightmost terminal. 
@@ -225,113 +226,11 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     cout<<"\n";
 }
 
-void LRGenerator::printPrelude(ostream& ofile) {
-    ofile<<"#include <vector>\n";
-    ofile<<"#include <map>\n";
-    ofile<<"#include <set>\n";
-    ofile<<"#include <functional>\n";
-    ofile<<"using namespace std; \n";
-}
-void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
-    os<<"enum NTSYMBOL {\nDOLLARACCEPT,\n";
-    int i = 0;
-    for (auto t : G.nonterminals) {
-        if (t != "#" && !t.empty()) {
-            os<<t;
-            if (i+1 < G.nonterminals.size())
-                os<<", ";
-            if (i > 1 && i % 5 == 0) 
-                os<<endl;
-        }
-        i++;
-    }
-    os<<"\n};\n";
-    os<<"struct Production {\n\t int id;\n\t int lhs;\n\t vector<int> rhs;\n\t string actsym;\n }; "<<endl;
-    os<<"\nstatic const Production "<<name<<"[] = {\n \t {0, 0, {}, \"\"},\n"<<endl;
-    int p = 0;
-    for (auto e : G.prodById) {
-        os<<"\t {"<<e.second.pid<<","<<e.second.lhs<<", ";
-        os<<"{";
-        for (int i = 0; i < e.second.rhs.size(); i++) {
-            os<<e.second.rhs[i];
-            if (i+1 < e.second.rhs.size())
-                os<<", ";
-        }
-        os<<"}";
-        os<<",\""<<e.second.action<<"\"}";
-        if (p+1 < G.prodById.size()) {
-            os<<", \n";
-        } else os<<"\n";
-        p++;
-    }
-    os<<"};\n";
-}
-
-template <class Iterable>
-void LRGenerator::printTables(ostream& os, int numStates, Iterable table, string tableName) {
-    vector<int> realrows(numStates, -1);
-    for (auto e : table) {
-        os<<"static const int "<<tableName<<"_row_"<<e.first<<"[] = {";
-        if (e.first >= realrows.size()) {
-            realrows.push_back(e.first);
-        }
-        realrows[e.first] = e.first;
-        int i = 0;
-        //os<<"\""<<e.second.size()<<"\",";
-        os<<e.second.size()<<",";
-        for (auto t : e.second) {
-            //os<<"\""<<t.first<<"\", \""<<t.second<<"\"";
-            if (isalpha(t.second[0])) {
-                if (t.first == "$") {
-                    os<<"DOLLARACCEPT, ";
-                } else {
-                    os<<t.first<<", ";
-                }
-                switch (t.second[0]) {
-                    case 's': os<<t.second.substr(1); break;
-                    case 'r': os<<-stoi(t.second.substr(1)); break;
-                    case 'a': os<<0; break;
-                }
-            } else {
-                os<<t.first<<", "<<t.second;
-            }
-            if (i+1 < e.second.size())
-                os<<", ";
-            i++;
-        }
-        os<<"};\n";
-    }
-    os<<"\nstatic const int *"<< tableName <<"[] = {\n";
-    int i = 0;
-    for (auto t : realrows) {
-        if (t == -1) os<<"\t NULL";
-        else os<<"\t "<<tableName<<"_row_"<<t;
-        if (i+1 < realrows.size())
-            os<<", ";
-        i++;
-        if (i > 4 && i % 5 == 0) os<<"\n";
-    }
-    os<<"\n};"<<endl;
-}
-
-void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
-    os<<"\nstatic const map<string, function<"<<G.returnType;
-    os<<"*(vector<"<<G.returnType; 
-    os<<"*>&)>> actions = {\n";
-    int i = 0;
-    for (auto actions : G.actionMap) {
-        os<<"\t {\""<<actions.first<<"\","<<actions.second<<"}";
-        if (i+1 < G.actionMap.size()) os<<", \n";
-        else os<<"\n";
-        i++;
-    }
-    os<<"\n};"<<endl;
-}
-
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
-    CalculateNullable         nullable;
+    NullableCalculator         nullable;
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
+    FileWriter fileWriter;
     cout<<"[*] Analyzing Context Free Grammar: "<<endl;
     cout<<"\t (1) Calculating Nullable set... \n";
     nullable.compute(G);
@@ -346,13 +245,9 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     cout<<"[*] Generating Go To table"<<endl;
     GoToTable   goTab = make_goto_table(G);
     cout<<"[*] Generating Action table"<<endl;
-    ActionTable actTable = make_action_table(G, ss);
-    printPrelude(ofile);
-    printProductions(ofile, G, "prod");
-    printTables(ofile, cfsm.V() , goTab, "goTab");
-    printTables(ofile, cfsm.V(), actTable, "actTab");
-    printActionRegistrar(ofile, G);
-    return make_pair(actTable, goTab);
+    ActionTable actTab = make_action_table(G, ss);
+    fileWriter.write(ofile, G, cfsm, goTab, actTab);
+    return make_pair(actTab, goTab);
 }
 
 LRGenerator::LRGenerator(bool noise, ParserType pt) {

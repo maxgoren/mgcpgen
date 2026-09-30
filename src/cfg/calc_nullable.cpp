@@ -1,10 +1,10 @@
 #include "calc_nullable.hpp"
 
-CalculateNullable::CalculateNullable() {
+NullableCalculator::NullableCalculator() {
     debug_noise = true;
 }
 
-void CalculateNullable::compute(Grammar& G) {
+void NullableCalculator::compute(Grammar& G) {
     for (auto nt : G.nonterminals) {
         G.derivesLambda[nt] = false;
     }

@@ -2,11 +2,11 @@
 #define calc_nullable_hpp
 #include "cfg.hpp"
 
-class CalculateNullable {
+class NullableCalculator {
     private:
         bool debug_noise;
     public:
-        CalculateNullable();
+        NullableCalculator();
         void compute(Grammar& G);
 };
 

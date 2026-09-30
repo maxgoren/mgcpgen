@@ -28,8 +28,8 @@ class LRGenerator {
     private:
         ParserType PARSER_TYPE;
         unordered_set<Symbol> symbols;
-        DirectedGraph       cfsm;
-        vector<LRState>     states;
+        DirectedGraph         cfsm;
+        vector<LRState>       states;
         bool debug_noise;
         string& getKey(const LRState& state) const;
         Symbol get_production_precedence_symbol(const Production& p, const Grammar& G);
@@ -40,11 +40,6 @@ class LRGenerator {
         LRState lr_goto(Grammar& G, const LRState& state, Symbol X);
         unordered_set<Symbol> firstFromSequence(const Grammar& G, SymbolString seq); 
         void generate_CFSM(Grammar& G, Symbol ss);
-        void printPrelude(ostream& ofile);
-        void printProductions(ostream& os, Grammar& G, string name);
-        template <class Iterable>
-        void printTables(ostream& os, int nt, Iterable table, string tableName);
-        void printActionRegistrar(ostream& os, Grammar& G);
         pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) ;
     public:
         LRGenerator(bool debug_noise = false, ParserType type = LALR);
