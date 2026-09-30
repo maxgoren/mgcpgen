@@ -21,7 +21,7 @@ enum ParserType {
 const int left_assoc = 10;
 const int right_assoc = 20;
 
-using GoToTable = map<int,map<Symbol,int>>;
+using GoToTable = map<int,map<Symbol,string>>;
 using ActionTable = map<int,map<Symbol,string>>;
 
 class LRGenerator {

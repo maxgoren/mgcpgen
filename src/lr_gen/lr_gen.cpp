@@ -63,7 +63,7 @@ GoToTable LRGenerator::make_goto_table(Grammar& G) {
     for (int s = 0; s < cfsm.V(); s++) {
         for (auto it : cfsm.adj(s)) {
             if (G.nonterminals.count(it.edgeLabel))
-                tab[s][it.edgeLabel] = it.dest;
+                tab[s][it.edgeLabel] = to_string(it.dest);
         }
     }
     return tab;
@@ -230,11 +230,10 @@ void LRGenerator::printPrelude(ostream& ofile) {
     ofile<<"#include <map>\n";
     ofile<<"#include <set>\n";
     ofile<<"#include <functional>\n";
-    ofile<<"#include \"production.hpp\"\n";
     ofile<<"using namespace std; \n";
 }
 void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
-    os<<"enum NTSYMBOL {\n";
+    os<<"enum NTSYMBOL {\nDOLLARACCEPT,\n";
     int i = 0;
     for (auto t : G.nonterminals) {
         if (t != "#" && !t.empty()) {
@@ -247,21 +246,19 @@ void LRGenerator::printProductions(ostream& os, Grammar& G, string name) {
         i++;
     }
     os<<"\n};\n";
-    os<<"\nstatic const Production "<<name<<"[] = {\n \t Production(0, \"dummy\", SymbolString(), \"\"),\n"<<endl;
+    os<<"struct Production {\n\t int id;\n\t int lhs;\n\t vector<int> rhs;\n\t string actsym;\n }; "<<endl;
+    os<<"\nstatic const Production "<<name<<"[] = {\n \t {0, 0, {}, \"\"},\n"<<endl;
     int p = 0;
     for (auto e : G.prodById) {
-        os<<"\t Production("<<e.second.pid<<",\""<<e.second.lhs<<"\", ";
-        os<<"SymbolString(";
-        if (e.second.rhs.size() > 0) {
-            os<<"{";
-            for (int i = 0; i < e.second.rhs.size(); i++) {
-                os<<"\""<<e.second.rhs[i]<<"\"";
-                if (i+1 < e.second.rhs.size())
-                    os<<",";
-            }
-            os<<"}";
+        os<<"\t {"<<e.second.pid<<","<<e.second.lhs<<", ";
+        os<<"{";
+        for (int i = 0; i < e.second.rhs.size(); i++) {
+            os<<e.second.rhs[i];
+            if (i+1 < e.second.rhs.size())
+                os<<", ";
         }
-        os<<"),\""<<e.second.action<<"\")";
+        os<<"}";
+        os<<",\""<<e.second.action<<"\"}";
         if (p+1 < G.prodById.size()) {
             os<<", \n";
         } else os<<"\n";
@@ -274,31 +271,45 @@ template <class Iterable>
 void LRGenerator::printTables(ostream& os, int numStates, Iterable table, string tableName) {
     vector<int> realrows(numStates, -1);
     for (auto e : table) {
-        os<<"static const string "<<tableName<<"_row_"<<e.first<<"[] = {";
+        os<<"static const int "<<tableName<<"_row_"<<e.first<<"[] = {";
         if (e.first >= realrows.size()) {
             realrows.push_back(e.first);
-            cout<<"Ok papi."<<endl;
         }
         realrows[e.first] = e.first;
         int i = 0;
-        os<<"\""<<e.second.size()<<"\",";
+        //os<<"\""<<e.second.size()<<"\",";
+        os<<e.second.size()<<",";
         for (auto t : e.second) {
-            os<<"\""<<t.first<<"\", \""<<t.second<<"\"";
+            //os<<"\""<<t.first<<"\", \""<<t.second<<"\"";
+            if (isalpha(t.second[0])) {
+                if (t.first == "$") {
+                    os<<"DOLLARACCEPT, ";
+                } else {
+                    os<<t.first<<", ";
+                }
+                switch (t.second[0]) {
+                    case 's': os<<t.second.substr(1); break;
+                    case 'r': os<<-stoi(t.second.substr(1)); break;
+                    case 'a': os<<0; break;
+                }
+            } else {
+                os<<t.first<<", "<<t.second;
+            }
             if (i+1 < e.second.size())
                 os<<", ";
             i++;
         }
         os<<"};\n";
     }
-    os<<"\nstatic const string *"<< tableName <<"[] = {\n";
-    int q = 0;
+    os<<"\nstatic const int *"<< tableName <<"[] = {\n";
+    int i = 0;
     for (auto t : realrows) {
         if (t == -1) os<<"\t NULL";
         else os<<"\t "<<tableName<<"_row_"<<t;
-        if (q+1 < realrows.size())
+        if (i+1 < realrows.size())
             os<<", ";
-        q++;
-        if (q > 4 && q % 5 == 0) os<<"\n";
+        i++;
+        if (i > 4 && i % 5 == 0) os<<"\n";
     }
     os<<"\n};"<<endl;
 }
@@ -307,12 +318,12 @@ void LRGenerator::printActionRegistrar(ostream& os, Grammar& G) {
     os<<"\nstatic const map<string, function<"<<G.returnType;
     os<<"*(vector<"<<G.returnType; 
     os<<"*>&)>> actions = {\n";
-    int p = 0;
+    int i = 0;
     for (auto actions : G.actionMap) {
         os<<"\t {\""<<actions.first<<"\","<<actions.second<<"}";
-        if (p+1 < G.actionMap.size()) os<<", \n";
-        else cout<<"\n";
-        p++;
+        if (i+1 < G.actionMap.size()) os<<", \n";
+        else os<<"\n";
+        i++;
     }
     os<<"\n};"<<endl;
 }

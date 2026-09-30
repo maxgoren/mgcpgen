@@ -172,7 +172,7 @@ class Interpreter {
         void expr(AST* ast);
     public:
         Interpreter() {
-
+            bail = false;
         }
         void exec(AST* ast);
 };
@@ -286,7 +286,7 @@ void Interpreter::expr(AST* ast) {
             } else if (ast->attr.expr == FUNC_EXPR) { 
                 string fname = ast->token.getString();
                 if (isbuiltin(fname)) {
-                //    cout<<"[f()] Executing builtin: "<<fname<<endl;
+                    cout<<"[f()] Executing builtin: "<<fname<<endl;
                     dobuiltin(ast);
                     return;
                 }
@@ -299,7 +299,7 @@ void Interpreter::expr(AST* ast) {
                         t = cxt.st.top();
                         cxt.st.pop();
                     }
-                //    cout<<"[(f x)] Executing function: "<<t.funcval->name<<endl;
+                    cout<<"[(f x)] Executing function: "<<t.funcval->name<<endl;
                 } else if (ast->children[0]->attr.expr == LAMBDA_EXPR) {
                     expr(ast->children[0]);
                     t = cxt.st.top(); cxt.st.pop();
@@ -307,7 +307,7 @@ void Interpreter::expr(AST* ast) {
                 Function* f = t.funcval;
                 AST* params = f->params;
                 AST* args = ast->children[1];
-              //  cout<<"Evaluating arguments: "<<endl;
+                cout<<"Evaluating arguments: "<<endl;
                 evalLambdaFunc(params, args, f->body, f->closure);
             } else if (ast->attr.expr == LAMBDA_EXPR) {
                 Function* lf = new Function("&", ast->children[1], ast->children[2], cxt.symtab);
@@ -483,7 +483,7 @@ void Interpreter::exec(AST* ast) {
         } else {
             expr(ast);
         }
-        if (ast->next && bail == false)
+        if (bail == false)
             exec(ast->next);
     }
 }
