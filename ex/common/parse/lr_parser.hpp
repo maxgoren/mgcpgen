@@ -44,9 +44,10 @@ class LRParser {
             semStack.push(new AST(current()));
             advance();
         }
-        void doReduce(Production& X) {
+        void doReduce(int next) {
             if (debug_noise)
                 cout<<"REDUCE "<<endl;
+            Production X = prod[abs(next)];
             vector<AST*> tmp;
             for (int i = 0; i < X.rhs.size(); i++) {
                 st.pop();
@@ -123,15 +124,9 @@ class LRParser {
                         printCurrent(curr_state, curr_token);
                     int next = actTab[curr_state][ns];
                     if (next > 0) {
-                            doShift(next);
+                        doShift(next);
                     } else if (next < 0) {
-                            Production p = prod[abs(next)];
-                            doReduce(p);
-                    } else {
-                        if (checkAccept(curr_state, curr_token)) {
-                            AST* tmp = semStack.top();
-                            return tmp;
-                        }
+                        doReduce(next);
                     }
                 }
             }

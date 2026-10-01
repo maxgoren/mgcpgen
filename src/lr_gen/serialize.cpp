@@ -94,18 +94,29 @@ void FileWriter::printTable(string tableName, ostream& os, vector<int>& realrows
         i++;
         if (i > 4 && i % 5 == 0) os<<"\n";
     }
-    os<<"\n};"<<endl;
+    os<<"\n};\n"<<endl;
 }
 
 template <class Iterable>
 void FileWriter::printTables(ostream& os, int numStates, Iterable table, string tableName) {
     vector<int> realrows(numStates, -1);
     for (auto e : table) {
+            int duppyRow = -1;
+            for (auto q : table) {
+                if (e.first != q.first && e.first > q.first && q.second == e.second) {
+                    duppyRow = q.first; 
+                    break;
+                }
+            }
         if (e.first >= realrows.size()) {
             realrows.push_back(e.first);
         }
-        realrows[e.first] = e.first;
-        printRow(tableName, e.first, os, e.second);
+        if (duppyRow < 0) {
+            realrows[e.first] = e.first;
+            printRow(tableName, e.first, os, e.second);
+        } else {
+            realrows[e.first] = duppyRow;
+        }
     }
     printTable(tableName, os, realrows);
 }
