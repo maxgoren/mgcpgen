@@ -27,15 +27,11 @@ class LRParser {
         int nextState(const int *table[], int state, int sym) {
             int N = table[state][0];
             for (int i = 1; i < 2*N+1; i+=2) {
-                if (table[state][i] == sym) {
+                if (table[state][i] == sym || sym == TK_EOI && table[state][i] == DOLLARACCEPT) {
                     return i+1;
                 }
             }
             return -1;
-        }
-    public:
-        LRParser(bool loud = true) {
-            debug_noise = loud;
         }
         void doShift(int next) {
             if (debug_noise)
@@ -85,19 +81,9 @@ class LRParser {
         void printCurrent(int state_num, Token& T) {
             cout<<"[ state: "<<state_num<<"][ token: "<<tokenStr[T.getSymbol()]<<"]"<<actTab[state_num][nextState(actTab, state_num,T.getSymbol())]<<endl<<"Action: ";
         }
-        bool checkAccept(int state_num, Token& T) {
-            if (actTab[state_num] == NULL) {
-                return false;
-            }
-            int N = actTab[state_num][0];
-            for (int i = 1; i < 2*N+1; i+=2) {
-                if (actTab[state_num][i] == DOLLARACCEPT) {
-                    if (debug_noise)
-                        cout<<"ACCEPT"<<endl;
-                    return true;
-                }
-            }
-            return false;
+    public:
+        LRParser(bool loud = true) {
+            debug_noise = loud;
         }
         AST* parse(vector<Token>& tok) {
             tokens = tok;
@@ -106,10 +92,6 @@ class LRParser {
             for (;;) {
                 Token curr_token = current();
                 int curr_state = st.top();
-                if (curr_token.getSymbol() == TK_EOI && checkAccept(curr_state, curr_token)) {
-                    AST* tmp = semStack.top();
-                    return tmp;
-                }
                 int ns = nextState(actTab, curr_state, curr_token.getSymbol());
                 if (ns == -1) {
                     cout<<"Hmm, no actions on '"<<tokenStr[curr_token.getSymbol()]<<"' from state "<<curr_state<<"?"<<endl;
@@ -127,6 +109,8 @@ class LRParser {
                         doShift(next);
                     } else if (next < 0) {
                         doReduce(next);
+                    } else {
+                        return semStack.top();
                     }
                 }
             }
