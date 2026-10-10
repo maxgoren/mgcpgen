@@ -21,8 +21,9 @@ void FileWriter::printPrelude(ostream& ofile) {
     ofile<<"using namespace std; \n";
 }
 void FileWriter::printProductions(ostream& os, Grammar& G, string name) {
+    int sn = G.terminals.size()+1;
     os<<"enum NTSYMBOL {\n";
-    os<<"\t DOLLARACCEPT,\n";
+    os<<"\t DOLLARACCEPT = "<<sn<<",\n";
     int i = 0;
     for (auto t : G.nonterminals) {
         if (t != "#" && !t.empty()) {
