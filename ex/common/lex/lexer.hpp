@@ -70,15 +70,6 @@ Token Lexer::nextToken() {
             last_match = state;
             match_len = len;
         }
-
-        if (buffer->get() == '"') {
-            if (!in_quote) in_quote = true;
-            else {
-                in_quote = false;
-                buffer->advance();
-                break;
-            }
-        }
         if (state < 1) {
             break;
         }

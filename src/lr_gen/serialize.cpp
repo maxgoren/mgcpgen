@@ -101,13 +101,13 @@ template <class Iterable>
 void FileWriter::printTables(ostream& os, int numStates, Iterable table, string tableName) {
     vector<int> realrows(numStates, -1);
     for (auto e : table) {
-            int duppyRow = -1;
-            for (auto q : table) {
-                if (e.first != q.first && e.first > q.first && q.second == e.second) {
-                    duppyRow = q.first; 
-                    break;
-                }
+        int duppyRow = -1;
+        for (auto q : table) {
+            if ((e.first > q.first) && (q.second == e.second)) {
+                duppyRow = q.first; 
+                break;
             }
+        }
         if (e.first >= realrows.size()) {
             realrows.push_back(e.first);
         }
@@ -122,10 +122,7 @@ void FileWriter::printTables(ostream& os, int numStates, Iterable table, string 
 }
 
 void FileWriter::printActionRegistrar(ostream& os, Grammar& G) {
-    os<<"struct "<<G.returnType<<";\n";
-    os<<"\nstatic const map<string, function<"<<G.returnType;
-    os<<"*(vector<"<<G.returnType; 
-    os<<"*>&)>> actions = {\n";
+    os<<"\nstatic const map<string, function<"<<G.returnType<<"(vector<"<<G.returnType<<">&)>> actions = {\n";
     int i = 0;
     for (auto actions : G.actionMap) {
         os<<"\t {\""<<actions.first<<"\","<<actions.second<<"}";

@@ -50,6 +50,8 @@ vector<string> readConfig(string filename) {
             int pos = 0;
             ++lineno;
             while (buffer[pos] && buffer[pos] != '{') pos++;
+            if (!buffer[pos])
+                continue;
             if (buffer[pos] == '{') {
                 pos++;
             } else {

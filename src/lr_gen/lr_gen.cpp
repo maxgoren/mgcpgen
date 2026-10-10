@@ -122,15 +122,15 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
                 betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
             }
             if (G.productions.find(X) != G.productions.end()) {
-            for (const Production& p : G.productions.at(X)) {
-                LRItem newItem(p, 0);
-                newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
-                newItem.rehash();
-                if (!ret.hasItem(newItem)) {
-                    work.push(newItem);
-                    ret.addItem(newItem);
+                for (const Production& p : G.productions.at(X)) {
+                    LRItem newItem(p, 0);
+                    newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
+                    newItem.rehash();
+                    if (!ret.hasItem(newItem)) {
+                        work.push(newItem);
+                        ret.addItem(newItem);
+                    }
                 }
-            }
             } else {
                 cout<<"\n Hey, some thing funky with "<<X<<" is going on."<<endl;
             }

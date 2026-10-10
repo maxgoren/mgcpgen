@@ -1,5 +1,5 @@
 terminal_list expr.mlex
-type_returned AST
+type_returned AST*
 sp ::= STMT
 STMT ::= TK_PRINT EXP          @mkPrint
 STMT ::= AEXP                   

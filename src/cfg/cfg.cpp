@@ -46,7 +46,7 @@ bool Grammar::readGrammarFile(string filename) {
         getline(infile, buff);
         if (buff.size() && buff.back() == '\r')
             buff.pop_back();
-        if (buff.empty())
+        if (buff.empty() || buff == "\n")
             continue;
         vector<string> parts = split(buff, ' ');
         if (parts[0][0] == '/' && parts[0][1] == '/') 

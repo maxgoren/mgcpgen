@@ -1,5 +1,5 @@
 mgclex expr.mlex lexer_matrix.h -c
-mgcpgen -l plain_expr.mgrm
+mgcpgen -l ambig_expr.mgrm
 cp -R ../common/* .
 mv mgcpgen_out.hpp parse/
 mv lexer_matrix.h lex/

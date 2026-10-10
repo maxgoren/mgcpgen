@@ -1,4 +1,5 @@
 terminal_list expr.mlex
+type_returned AST*
 set_token_prec TK_MINUS 5 left
 set_token_prec TK_PLUS 5 left
 set_token_prec TK_MUL 10 left
@@ -6,7 +7,6 @@ set_token_prec TK_DIV 10 left
 set_token_prec TK_UNARY_MINUS 15 left
 sp ::= STMT
 STMT ::= TK_PRINT EXP           @mkPrint
-STMT ::= EXP                    @through
 EXP ::= EXP TK_PLUS EXP         @binop
 EXP ::= EXP TK_MINUS EXP        @binop
 EXP ::= EXP TK_MUL EXP          @binop

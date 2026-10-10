@@ -53,14 +53,16 @@ class DirectedGraph {
         }
         void print() {
             for (auto e : adjlist) {
+                cout<<e.first<<": \n";
                 for (auto it : e.second) {
-                    cout<<e.first<<" -("<<it.edgeLabel<<")-> "<<it.dest<<endl;
+                    cout<<"\t "<<e.first<<" -("<<it.edgeLabel<<")-> "<<it.dest<<endl;
                 }
             }
         }
         DirectedGraph& operator=(const DirectedGraph& dg) {
             if (this != &dg) {
                 edgecount = 0;
+                adjlist.clear();
                 for (auto m : dg.adjlist)
                     for (auto it : m.second)
                         addEdge(m.first, it.dest, it.edgeLabel);
