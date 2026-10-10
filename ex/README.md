@@ -8,8 +8,7 @@ included are a number of folders each containing example grammars.
 calc - example expression grammars showing how to organize operator 
        precedence either at the grammar level or through precedence 
        declarations on a flat grammar
-pascal - Pascal Subset Grammar from appendix of "dragon book"
-tiger - the Tiger language from Appels Modern Compiler series.
+pascal - Pascal subset grammar, expanded on from appendix of "dragon book"
 ```
 
 in additionm, each folder contains two scripts, build_ex.sh and cleanup.sh to help build the examples 
