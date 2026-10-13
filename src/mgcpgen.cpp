@@ -11,11 +11,15 @@ void showUsage(string name) {
 
 const static string DEF_OUT_FNAME = "mgcpgen_out.hpp";
 
-void generate_lr_parser(char parserType, string in_file, string out_file) {
-    LRGenerator lrgen(false, parserType == 'c' ? CLR:LALR);
+void generate_lr_parser(string arguments, string in_file, string out_file) {
+    LRGenerator lrgen(false, arguments[1] == 'c' ? CLR:LALR);
     Grammar G;
+    bool and_lexer = false;
+    if (arguments.find('x') != arguments.npos) {
+        and_lexer = true;
+    }
     cout<<"[*] Reading Grammar File: "<<in_file<<endl;
-    if (G.readGrammarFile(in_file)) {
+    if (G.readGrammarFile(in_file, and_lexer)) {
         auto[actTab, goTab] = lrgen.generate(G, out_file);
     } else {
         cout<<"[*] Failed."<<endl;
@@ -29,11 +33,11 @@ int main(int argc, char* argv[]) {
     }
     switch (argc) {
         case 4:
-            generate_lr_parser(argv[1][1], argv[2], argv[3]);
+            generate_lr_parser(argv[1], argv[2], argv[3]);
             break;
         case 3: 
         default:
-            generate_lr_parser(argv[1][1], argv[2], DEF_OUT_FNAME);
+            generate_lr_parser(argv[1], argv[2], DEF_OUT_FNAME);
             break;
     }
     return 0;

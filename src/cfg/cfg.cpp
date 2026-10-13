@@ -1,5 +1,8 @@
 #include "cfg.hpp"
 #include "read_lexer_config.hpp"
+extern "C" {
+    #include <mgc/mgclex.h>
+}
 
 vector<string> split(string input, char delim) {
     vector<string> result;
@@ -31,7 +34,7 @@ bool Grammar::isNullable(Symbol nt) {
     return false;
 }
 
-bool Grammar::readGrammarFile(string filename) {
+bool Grammar::readGrammarFile(string filename, bool and_lexer) {
     string buff;
     ifstream infile(filename, ios::in);
     if (!infile.is_open()) {
@@ -56,6 +59,10 @@ bool Grammar::readGrammarFile(string filename) {
             vector<Symbol> syms = readConfig(filename);
             for (auto symbol : syms)
                 terminals.insert(symbol);
+            if (and_lexer) {
+                char outname[17] = "lexer_matrix.h";
+                generateLexer(filename.data(), outname, true, true);
+            }
         } else if (parts[0] == "type_returned") {
             returnType = parts[1];
         } else if (parts[0] == "set_token_prec") {

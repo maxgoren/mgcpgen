@@ -30,3 +30,10 @@ Create LALR parser into `my_header.hpp`
 ```
   mgcpgen -l ex/simple_expr.mgrm my_header.hpp
 ```
+
+Generate lexer at the same time (if mgclex is installed) by adding 'x' flag to parser type
+
+```
+  mgcpgen -cx ex/simple_expr.mgrm
+  mgcpgen -lx ex/simple_expr.mgrm my_header.hpp
+```

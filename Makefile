@@ -9,7 +9,7 @@ mgcpgen:
 	g++ -c src/lr_gen/serialize.cpp
 	g++ -c src/lr_gen/lr_gen.cpp
 	g++ -c src/mgcpgen.cpp 
-	g++ *.o -o mgcpgen
+	g++ *.o -o mgcpgen -lmgclex
 
 install:
 	cp mgcpgen /usr/local/bin

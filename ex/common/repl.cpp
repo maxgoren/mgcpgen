@@ -23,8 +23,8 @@ void terp() {
 void runfile(string filename) {
     FileStringBuffer* fsb = new FileStringBuffer();
     if (fsb->readFile(filename)) {
-        Lexer lexer;
-        LRParser parser;
+        Lexer lexer(true);
+        LRParser parser(true);
         Interpreter interpreter;
         ScopeResolution sr;
         auto tokens = lexer.lex(fsb);
