@@ -1,5 +1,4 @@
 #include "cfg.hpp"
-#include "read_lexer_config.hpp"
 extern "C" {
     #include <mgc/mgclex.h>
 }
@@ -34,6 +33,56 @@ bool Grammar::isNullable(Symbol nt) {
     return false;
 }
 
+void Grammar::parseProduction(vector<string>& parts, int rulenum) {
+    nonterminals.insert(parts[0]);
+    ProductionSet ps = productions[parts[0]];
+    SymbolString ss;
+    string actmaybe;
+    Symbol precOverSym;
+    for (int i = 2; i < parts.size(); i++) {
+        string s = parts[i];
+        if (s.empty())
+            continue;
+        if (terminals.find(s) != terminals.end()) {
+            ss.push_back(s);
+        } else if (s == "prec_override") {
+            precOverSym = i+1 < parts.size() ? parts[i+1]:"";
+            cout<<"Precedence override directive: "<<precOverSym<<endl;
+            break;
+        } else if (s[0] != '@') {
+            nonterminals.insert(s);
+            ss.push_back(s);
+        } else if (s[0] == '@') {
+            actmaybe = s;
+            actionMap.insert({s.substr(1), s.substr(1)});
+        }
+    }
+    if (ss[0] == "#") ss.clear();
+    ps.push_back(Production(rulenum, parts[0], ss, actmaybe));
+    if (!precOverSym.empty()) {
+        ps.back().precOverride = precOverSym;
+    }
+    productions[parts[0]] = ps;
+    prodById[ps.back().pid] = ps.back();
+    if (startSym == "") {
+        startSym = parts[0];
+    }
+}
+
+vector<string> readTokenList(string filename) {
+    ifstream ifile(filename);
+    string buffer;
+    vector<string> symbols;
+    while (getline(ifile, buffer)) {
+        if (buffer.back() == '\n' || buffer.back() == '\r') {
+            buffer.pop_back();
+        }
+        symbols.push_back(buffer);
+        buffer.clear();
+    }
+    return symbols;
+}
+
 bool Grammar::readGrammarFile(string filename, bool and_lexer) {
     string buff;
     ifstream infile(filename, ios::in);
@@ -44,7 +93,6 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
     terminals.insert(GOAL);
     terminals.insert(EPS);
     int rulenum = 1;
-    string lastrule = "";
     while (infile.good()) {
         getline(infile, buff);
         if (buff.size() && buff.back() == '\r')
@@ -52,17 +100,23 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
         if (buff.empty() || buff == "\n")
             continue;
         vector<string> parts = split(buff, ' ');
-        if (parts[0][0] == '/' && parts[0][1] == '/') 
+        if (parts[0].size() >= 2 && parts[0][0] == '/' && parts[0][1] == '/') 
             continue;
         if (parts[0] == "terminal_list") {
             string filename = parts[1];
-            vector<Symbol> syms = readConfig(filename);
-            for (auto symbol : syms)
-                terminals.insert(symbol);
             if (and_lexer) {
                 char outname[17] = "lexer_matrix.h";
-                generateLexer(filename.data(), outname, true, true);
+                TerminalList* tl = generateLexer(filename.data(), outname, true, true);
+                for (int i = 0; i < tl->num_symbols; i++) {
+                    terminals.insert(tl->symbols[i]);
+                }
+            } else {
+                vector<Symbol> syms = readTokenList(filename);
+                for (auto symbol : syms) {
+                    terminals.insert(symbol);
+                }
             }
+
         } else if (parts[0] == "type_returned") {
             returnType = parts[1];
         } else if (parts[0] == "set_token_prec") {
@@ -71,41 +125,8 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
             string assoc = parts.size() == 4 ? parts[3]:"none";
             precedenceMap.insert(make_pair(symbol,OpPrec(symbol, prec, assoc)));
         } else {
-            nonterminals.insert(parts[0]);
-            ProductionSet ps = productions[parts[0]];
-            SymbolString ss;
-            string actmaybe;
-            Symbol precOverSym;
-            for (int i = 2; i < parts.size(); i++) {
-                string s = parts[i];
-                if (s.empty())
-                    continue;
-                if (terminals.find(s) != terminals.end()) {
-                    ss.push_back(s);
-                } else if (s == "prec_override") {
-                    cout<<"Got an override directive: ";
-                    precOverSym = parts[i+1];
-                    cout<<precOverSym<<endl;
-                    break;
-                } else if (s[0] != '@') {
-                    nonterminals.insert(s);
-                    ss.push_back(s);
-                } else if (s[0] == '@') {
-                    actmaybe = s;
-                    actionMap.insert({s.substr(1), s.substr(1)});
-                }
-            }
-            if (ss[0] == "#") ss.clear();
-            ps.push_back(Production(rulenum++, parts[0], ss, actmaybe));
-            if (!precOverSym.empty()) {
-                ps.back().precOverride = precOverSym;
-            }
-            productions[parts[0]] = ps;
-            prodById[ps.back().pid] = ps.back();
-            lastrule = parts[0];
-            if (startSym == "") {
-                startSym = lastrule;
-            }
+            parseProduction(parts, rulenum);
+            rulenum++;
         }
     }
     return true;

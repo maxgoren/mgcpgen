@@ -45,6 +45,7 @@ struct Grammar {
     bool isTerminal(Symbol s);
     bool isNullable(Symbol nt);
     bool readGrammarFile(string filename, bool and_lexer);
+    void parseProduction(vector<string>& parts, int rulenum);
 };
 
 vector<string> split(string input, char delim);
