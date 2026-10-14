@@ -106,10 +106,14 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
             string filename = parts[1];
             if (and_lexer) {
                 char outname[17] = "lexer_matrix.h";
-                TerminalList* tl = generateLexer(filename.data(), outname, true, true);
+                TerminalList* tl = generateLexer(filename.data(), outname, true, true, 0);
                 for (int i = 0; i < tl->num_symbols; i++) {
                     terminals.insert(tl->symbols[i]);
                 }
+                for (int i = 0; i < tl->num_symbols; i++) {
+                    free(tl->symbols[i]);
+                }
+                free(tl);
             } else {
                 vector<Symbol> syms = readTokenList(filename);
                 for (auto symbol : syms) {

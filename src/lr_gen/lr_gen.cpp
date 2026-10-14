@@ -194,7 +194,9 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             if (tmp != "<fin>")
                 valid.insert(tmp);
         }
-        cout<<"Current state: I"<<curr.getStateNum()<<" \n";
+        if (debug_noise) {
+            cout<<"Current state: I"<<curr.getStateNum()<<" \n";
+        }
         for (auto X : valid) {
             LRState gt = lr_goto(G, curr, X);
             if (gt.getItems().empty())
@@ -206,17 +208,23 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
                 states.push_back(gt);
                 seen.insert({getKey(gt),gt.getStateNum()});
                 target = gt.getStateNum();
-                cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
+                if (debug_noise) {
+                    cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
+                }
             } else {
                 target = seen[getKey(gt)];
                 if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
                     fq.push(states[target].getStateNum()); 
-                    cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
+                    if (debug_noise) {
+                        cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
+                    }
                 }
             }
             if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
-                cfsm.addEdge(curr.getStateNum(), target, X);   
-                cout<<"\t + Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
+                cfsm.addEdge(curr.getStateNum(), target, X);
+                if (debug_noise) {   
+                    cout<<"\t + Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
+                }
             }
         }
         if (debug_noise) {
