@@ -154,18 +154,23 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
 
 unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolString seq) {
     unordered_set<Symbol> result;
+    bool all_nullable = true;
     for (Symbol X : seq) {
         if (G.terminals.count(X)) {
             result.insert(X);
-            return result;
+            all_nullable = false;
+            break;
         }
         if (G.nonterminals.count(X)) {
             result.insert(G.firsts.at(X).begin(), G.firsts.at(X).end());
-            if (result.find(EPS) == result.end())
-                return result;
+            if (result.find(EPS) == result.end()) {
+                all_nullable = false;
+                break;
+            }
         }
     }
-    result.insert(EPS);
+    if (all_nullable)
+        result.insert(EPS);
     return result;
 } 
 
@@ -186,10 +191,12 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     fq.push(0);
     seen.insert({getKey(I0),I0.getStateNum()});
     states.push_back(I0);
+    int created = 1;
+    int merged = 0;
     while (!fq.empty()) {
         LRState curr = states[fq.front()]; fq.pop();
         unordered_set<Symbol> valid;
-        for (auto item : curr.getItems()) {
+        for (auto& item : curr.getItems()) {
             Symbol tmp = item.symbolAfterDot();
             if (tmp != "<fin>")
                 valid.insert(tmp);
@@ -197,29 +204,35 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
         if (debug_noise) {
             cout<<"Current state: I"<<curr.getStateNum()<<" \n";
         }
-        for (auto X : valid) {
+        for (auto const & X : valid) {
             LRState gt = lr_goto(G, curr, X);
             if (gt.getItems().empty())
                 continue;
             int target;
-            if (seen.find(getKey(gt)) == seen.end()) {
-                gt.setStateNum(states.size());
-                fq.push(gt.getStateNum());
+            string gt_key = getKey(gt);
+            auto seenIt = seen.find(gt_key);
+            if (seenIt == seen.end()) {
+                int ns_num = states.size();
+                gt.setStateNum(ns_num);
+                fq.push(ns_num);
                 states.push_back(gt);
-                seen.insert({getKey(gt),gt.getStateNum()});
-                target = gt.getStateNum();
+                seen.insert({gt_key,ns_num});
+                target = ns_num;
                 if (debug_noise) {
                     cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
                 }
+                created++;
             } else {
-                target = seen[getKey(gt)];
+                target = seen[gt_key];
                 if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
                     fq.push(states[target].getStateNum()); 
                     if (debug_noise) {
                         cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
                     }
+                    merged++;
                 }
             }
+            cout<<"\r States Created: "<<created<<", Merged: "<<merged<<flush;
             if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
                 cfsm.addEdge(curr.getStateNum(), target, X);
                 if (debug_noise) {   
@@ -231,14 +244,14 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             cout<<"--------------------------\n";
         }
     }
-    cout<<"\n";
+    cout<<endl;
 }
 
 pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
-    NullableCalculator         nullable;
+    NullableCalculator    nullable;
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
-    FileWriter fileWriter;
+    FileWriter            fileWriter;
     cout<<"[*] Analyzing Context Free Grammar: "<<endl;
     cout<<"\t (1) Calculating Nullable set... \n";
     nullable.compute(G);
@@ -247,7 +260,7 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     cout<<"\t (2) Done.\n\t (3) Calculating Follows set...  \n";
     follows.compute(G, ss);
     cout<<"\t (3) Done."<<endl; 
-    cout<<"[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" NFA"<<endl;
+    cout<<"[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" DFA"<<endl;
     generate_CFSM(G, ss);
     cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;

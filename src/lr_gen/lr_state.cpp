@@ -1,5 +1,4 @@
 #include "lr_state.hpp"
-
 LRState::LRState() : state_num(-1), re_calc_key(true) {
 
 }
@@ -37,11 +36,13 @@ void LRState::update_cache() const {
 bool LRState::mergeLookaheadsFrom(const LRState& other) {
     bool changed = false;
     for (const LRItem& incomingItem : other.items) {
-        if (bykern.find(incomingItem.kernel()) != bykern.end()) {
-            int idx = bykern[incomingItem.kernel()];
-            size_t oldSize = items[idx].lookaheads().size();
-            items[idx].lookaheads().insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
-            if (items[idx].lookaheads().size() > oldSize) {
+        auto it = bykern.find(incomingItem.kernel());
+        if (it != bykern.end()) {
+            int idx = it->second;
+            auto& current_la = items[idx].lookaheads();
+            size_t oldSize = current_la.size();
+            current_la.insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
+            if (current_la.size() > oldSize) {
                 changed = true;
                 items[idx].rehash();
                 re_calc_key = true;

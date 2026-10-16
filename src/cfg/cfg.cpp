@@ -71,14 +71,18 @@ void Grammar::parseProduction(vector<string>& parts, int rulenum) {
 
 vector<string> readTokenList(string filename) {
     ifstream ifile(filename);
-    string buffer;
     vector<string> symbols;
-    while (getline(ifile, buffer)) {
-        if (buffer.back() == '\n' || buffer.back() == '\r') {
-            buffer.pop_back();
+    if (ifile.is_open()) {
+        string buffer;
+        while (getline(ifile, buffer)) {
+            if (buffer.back() == '\n' || buffer.back() == '\r') {
+                buffer.pop_back();
+            }
+            symbols.push_back(buffer);
+            buffer.clear();
         }
-        symbols.push_back(buffer);
-        buffer.clear();
+    } else {
+        cout<<"Couldnt open "<<filename<<endl;
     }
     return symbols;
 }
@@ -117,10 +121,10 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
             } else {
                 vector<Symbol> syms = readTokenList(filename);
                 for (auto symbol : syms) {
+                    cout<<"Adding: '"<<symbol<<"' to terminals"<<endl;
                     terminals.insert(symbol);
                 }
             }
-
         } else if (parts[0] == "type_returned") {
             returnType = parts[1];
         } else if (parts[0] == "set_token_prec") {

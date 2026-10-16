@@ -35,7 +35,7 @@ void LRItem::rehash() {
     hash_val = h1 ^ (h2 << 1);
     vector<string> sorted_la(la_set.begin(), la_set.end());
     sort(sorted_la.begin(), sorted_la.end());
-    for (auto m : sorted_la) {
+    for (auto const & m : sorted_la) {
         hash_val += hash<string>()(m);
     }
 }
@@ -87,7 +87,7 @@ string LRItem::toString() const {
     vector<Symbol> sorted_la(la_set.begin(), la_set.end());
     sort(sorted_la.begin(), sorted_la.end());
     result += " { ";
-    for (auto la : sorted_la) {
+    for (auto const & la : sorted_la) {
         result += la + " ";
     }
     result += "}";

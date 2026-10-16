@@ -2,7 +2,7 @@
 #define directed_graph_hpp
 #include <iostream>
 #include <map>
-#include <list>
+#include <set>
 using namespace std;
 
 using Symbol = std::string;
@@ -11,11 +11,17 @@ struct Transition {
     int dest;
     Symbol edgeLabel;
     Transition(int d, Symbol x) : dest(d), edgeLabel(x) { }
+    bool operator<(const Transition& ot) const {
+        return dest < ot.dest;
+    }
+    bool operator==(const Transition& ot) const {
+        return dest == ot.dest && edgeLabel == ot.edgeLabel;
+    }
 };
 
 class DirectedGraph {
     private:
-        map<int, list<Transition>> adjlist;
+        map<int, set<Transition>> adjlist;
         int edgecount;
     public:
         DirectedGraph() {
@@ -23,8 +29,8 @@ class DirectedGraph {
         }
         DirectedGraph(const DirectedGraph& dg) {
             edgecount = 0;
-            for (auto m : dg.adjlist) {
-                for (auto it : m.second)
+            for (auto const& m : dg.adjlist) {
+                for (auto const& it : m.second)
                     addEdge(m.first, it.dest, it.edgeLabel);
             }
         }
@@ -38,23 +44,19 @@ class DirectedGraph {
             return edgecount;
         }
         bool hasEdge(int s, int t, Symbol X) {
-            for (auto it : adjlist[s]) {
-                if (it.dest == t && it.edgeLabel == X)
-                    return true;
-            }
-            return false;
+            return adjlist[s].find(Transition(t, X)) != adjlist[s].end();
         }
         void addEdge(int s, int t, Symbol X) {
-            adjlist[s].push_back(Transition(t, X));
+            adjlist[s].insert(Transition(t, X));
             edgecount++;
         }
-        list<Transition> adj(int v) {
+        set<Transition>& adj(int v) {
             return adjlist[v];
         }
         void print() {
-            for (auto e : adjlist) {
+            for (auto const& e : adjlist) {
                 cout<<e.first<<": \n";
-                for (auto it : e.second) {
+                for (auto const& it : e.second) {
                     cout<<"\t "<<e.first<<" -("<<it.edgeLabel<<")-> "<<it.dest<<endl;
                 }
             }
@@ -63,8 +65,8 @@ class DirectedGraph {
             if (this != &dg) {
                 edgecount = 0;
                 adjlist.clear();
-                for (auto m : dg.adjlist)
-                    for (auto it : m.second)
+                for (auto const & m : dg.adjlist)
+                    for (auto const & it : m.second)
                         addEdge(m.first, it.dest, it.edgeLabel);
             }
             return *this;
