@@ -1,14 +1,14 @@
 mgcpgen:
-	g++ -c src/cfg/calc_nullable.cpp
-	g++ -c src/cfg/calc_firsts.cpp
-	g++ -c src/cfg/calc_follows.cpp
-	g++ -c src/cfg/cfg.cpp
-	g++ -c src/cfg/production.cpp
-	g++ -c src/lr_gen/lr_item.cpp
-	g++ -c src/lr_gen/lr_state.cpp
-	g++ -c src/lr_gen/serialize.cpp
-	g++ -c src/lr_gen/lr_gen.cpp
-	g++ -c src/mgcpgen.cpp 
+	g++ -c -g src/cfg/calc_nullable.cpp
+	g++ -c -g src/cfg/calc_firsts.cpp
+	g++ -c -g src/cfg/calc_follows.cpp
+	g++ -c -g src/cfg/cfg.cpp
+	g++ -c -g src/cfg/production.cpp
+	g++ -c -g src/lr_gen/lr_item.cpp
+	g++ -c -g src/lr_gen/lr_state.cpp
+	g++ -c -g src/lr_gen/serialize.cpp
+	g++ -c -g src/lr_gen/lr_gen.cpp
+	g++ -c -g src/mgcpgen.cpp 
 	g++ *.o -o mgcpgen -lmgclex
 
 install:

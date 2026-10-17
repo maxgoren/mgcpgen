@@ -12,6 +12,7 @@ LRItem::LRItem(const LRItem& lri) {
     production = lri.production;
     dotPosition = lri.dotPosition;
     la_set = lri.la_set;
+    hash_val = lri.hash_val;
     rehash();
 }
 
@@ -20,6 +21,7 @@ LRItem& LRItem::operator=(const LRItem& lri) {
         production = lri.production;
         dotPosition = lri.dotPosition;
         la_set = lri.la_set;
+        hash_val = lri.hash_val;
         rehash();
     }
     return *this;

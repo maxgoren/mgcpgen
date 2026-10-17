@@ -107,16 +107,18 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
 LRState LRGenerator::closure(Grammar& G, const LRState& state) {
     LRState ret;
     queue<LRItem> work;
-    for (const LRItem& item : state.getItems()) {
-        work.push(item);
-        ret.addItem(item);
+    unordered_set<Symbol> betaFirst;
+    for (const LRItem& i : state.getItems()) {
+        work.push(i);
+        ret.addItem(i);
     }
     while (!work.empty()) {
         LRItem item = work.front();
         Symbol X = item.symbolAfterDot();
         work.pop();
         if (G.nonterminals.count(X)) {
-            unordered_set<Symbol> betaFirst = firstFromSequence(G, item.betaSymbols());
+            betaFirst.clear();
+            betaFirst = firstFromSequence(G, item.betaSymbols());
             if (betaFirst.count(G.symMap.get(EPS))) {
                 betaFirst.erase(G.symMap.get(EPS));
                 betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
@@ -132,7 +134,8 @@ LRState LRGenerator::closure(Grammar& G, const LRState& state) {
                     }
                 }
             } else {
-                cout<<"\n Hey, some thing funky with "<<X<<" is going on."<<endl;
+                cout<<"\n Encountered Invalid Non Terminal. Bailing out."<<endl;
+                exit(EXIT_FAILURE);
             }
         }
     }
