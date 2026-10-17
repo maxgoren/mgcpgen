@@ -51,15 +51,15 @@ void Grammar::parseProduction(vector<string>& parts, int rulenum) {
         Symbol s = symMap.get(parts[i]);
         if (terminals.find(s) != terminals.end()) {
             ss.push_back(s);
-        } if (parts[i][0] != '@') {
+        } if (parts[i][0] != '@' && terminals.find(s) == terminals.end()) {
             nonterminals.insert(s);
             ss.push_back(s);
         } else if (parts[i][0] == '@') {
-            actmaybe = s;
+            actmaybe = symMap.name(s);
             actionMap.insert({parts[i].substr(1), parts[i].substr(1)});
         }
     }
-    if (parts[0] == "#") ss.clear();
+    if (parts[2] == "#") ss.clear();
     ps.push_back(Production(rulenum, prodid, ss, actmaybe));
     if (precOverSym != -1) {
         ps.back().precOverride = precOverSym;
