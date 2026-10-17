@@ -33,10 +33,10 @@ void LRItem::rehash() {
     size_t h1 = hash<int>()(production.pid);
     size_t h2 = hash<int>()(dotPosition);
     hash_val = h1 ^ (h2 << 1);
-    vector<string> sorted_la(la_set.begin(), la_set.end());
+    vector<Symbol> sorted_la(la_set.begin(), la_set.end());
     sort(sorted_la.begin(), sorted_la.end());
     for (auto const & m : sorted_la) {
-        hash_val += hash<string>()(m);
+        hash_val += hash<int>()(m);
     }
 }
 
@@ -51,7 +51,7 @@ Production LRItem::getProduction() const {
 
 Symbol LRItem::symbolAfterDot() {
     if (complete())
-        return "<fin>";
+        return -1;
     return production.rhs.at(dotPosition);
 }
 
@@ -88,7 +88,7 @@ string LRItem::toString() const {
     sort(sorted_la.begin(), sorted_la.end());
     result += " { ";
     for (auto const & la : sorted_la) {
-        result += la + " ";
+        result += to_string(la) + " ";
     }
     result += "}";
     return result;

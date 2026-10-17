@@ -13,9 +13,9 @@ class FileWriter {
         void printPrelude(ostream& ofile);
         void printProductions(ostream& os, Grammar& G, string name);
         template <class Iterable>
-        void printTables(ostream& os, int nt, Iterable table, string tableName);
+        void printTables(ostream& os, int nt, Iterable table, string tableName, Grammar& G);
         template <class Iterable>
-        void printRow(string tableName, int rowNum, ostream& os, Iterable& row);
+        void printRow(string tableName, int rowNum, ostream& os, Iterable& row, Grammar& G);
         void printTable(string tableName, ostream& os, vector<int>& realrows);
         void printActionRegistrar(ostream& os, Grammar& G);
     public:

@@ -8,16 +8,16 @@ bool FollowSetCalculator::firstFromRHS(Grammar& G, Symbol currNonTerm, Symbol cu
     bool realSym = false;
     // X -> aAb
     for (Symbol Y : alt.subString(index+1)) {
-        if (Y == ACTSYM)
+        if (Y == G.symMap.get(ACTSYM))
             continue;
         realSym = true;
         for (Symbol s : G.firsts[Y]) {
-            if (s != EPS) {
+            if (s != G.symMap.get(EPS)) {
                 if (G.follow[currNonTerm].insert(s).second)
                     didchange = true;
             }
         }
-        if (G.firsts[Y].find(EPS) == G.firsts[Y].end()) {
+        if (G.firsts[Y].find(G.symMap.get(EPS)) == G.firsts[Y].end()) {
             betaEps = false;
             break;
         }
@@ -46,7 +46,7 @@ bool FollowSetCalculator::followClosure(Grammar& G, Symbol nonTerm) {
         ProductionSet RHS = prod.second;
         for (Production alt : RHS) {
             for (int i = 0; i < alt.rhs.size(); i++) {
-                if (alt.rhs[i] == ACTSYM)
+                if (alt.rhs[i] == G.symMap.get(ACTSYM))
                     continue;
                 if (alt.rhs[i] == nonTerm) {
                     if (firstFromRHS(G, nonTerm, LHS, alt.rhs, i))
@@ -67,7 +67,7 @@ bool FollowSetCalculator::followClosure(Grammar& G, Symbol nonTerm) {
 void FollowSetCalculator::compute(Grammar& G, Symbol start) {
     for (Symbol t : G.terminals)     { G.follow[t] = set<Symbol>(); }
     for (Symbol nt : G.nonterminals) { G.follow[nt] = set<Symbol>(); }
-    G.follow[start].insert(GOAL);
+    G.follow[start].insert(G.symMap.get(GOAL));
     bool didchange = true;
     while (didchange) {
         didchange = false;

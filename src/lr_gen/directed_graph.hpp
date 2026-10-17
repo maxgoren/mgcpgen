@@ -5,7 +5,7 @@
 #include <set>
 using namespace std;
 
-using Symbol = std::string;
+using Symbol = int;
 
 struct Transition {
     int dest;

@@ -36,9 +36,9 @@ class LRGenerator {
         string resolve_with_precedence(Grammar& G, ActionTable& tab, Production& p, int state, Symbol a);
         GoToTable make_goto_table(Grammar& G);
         ActionTable make_action_table(Grammar& G, Symbol ss);
-        LRState closure(const Grammar& G, const LRState& state);
+        LRState closure(Grammar& G, const LRState& state);
         LRState lr_goto(Grammar& G, const LRState& state, Symbol X);
-        unordered_set<Symbol> firstFromSequence(const Grammar& G, SymbolString seq); 
+        unordered_set<Symbol> firstFromSequence(Grammar& G, SymbolString seq); 
         void generate_CFSM(Grammar& G, Symbol ss);
         pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) ;
     public:

@@ -8,8 +8,8 @@ FileWriter::FileWriter() {
 void FileWriter::write(ostream& ofile, Grammar& G, DirectedGraph& cfsm, GoToTable& goTab, ActionTable& actTable) {
     printPrelude(ofile);
     printProductions(ofile, G, "prod");
-    printTables(ofile, cfsm.V() , goTab, "goTab");
-    printTables(ofile, cfsm.V(), actTable, "actTab");
+    printTables(ofile, cfsm.V() , goTab, "goTab", G);
+    printTables(ofile, cfsm.V(), actTable, "actTab", G);
     printActionRegistrar(ofile, G);
 }
 
@@ -26,8 +26,8 @@ void FileWriter::printProductions(ostream& os, Grammar& G, string name) {
     os<<"\t DOLLARACCEPT = "<<sn<<",\n";
     int i = 0;
     for (auto t : G.nonterminals) {
-        if (t != "#" && !t.empty()) {
-            os<<t;
+        if (t != G.symMap.get("#")) {
+            os<<G.symMap.name(t);
             if (i+1 < G.nonterminals.size())
                 os<<", ";
             if (i > 1 && i % 5 == 0) 
@@ -40,10 +40,10 @@ void FileWriter::printProductions(ostream& os, Grammar& G, string name) {
     os<<"\nstatic const Production "<<name<<"[] = {\n \t {0, 0, {}, \"\"},\n"<<endl;
     int p = 0;
     for (auto e : G.prodById) {
-        os<<"\t {"<<e.second.pid<<","<<e.second.lhs<<", ";
+        os<<"\t {"<<e.second.pid<<","<<G.symMap.name(e.second.lhs)<<", ";
         os<<"{";
         for (int i = 0; i < e.second.rhs.size(); i++) {
-            os<<e.second.rhs[i];
+            os<<G.symMap.name(e.second.rhs[i]);
             if (i+1 < e.second.rhs.size())
                 os<<", ";
         }
@@ -58,16 +58,16 @@ void FileWriter::printProductions(ostream& os, Grammar& G, string name) {
 }
 
 template <class Iterable>
-void FileWriter::printRow(string tableName, int rowNum, ostream& os, Iterable& row) {
+void FileWriter::printRow(string tableName, int rowNum, ostream& os, Iterable& row, Grammar& G) {
     os<<"static const int "<<tableName<<"_row_"<<rowNum<<"[] = {";
     int i = 0;
     os<<row.size()<<",";
     for (auto entry : row) {
         if (isalpha(entry.second[0])) {
-            if (entry.first == "$") {
+            if (entry.first == G.symMap.get("$")) {
                 os<<"DOLLARACCEPT, ";
             } else {
-                os<<entry.first<<", ";
+                os<<G.symMap.name(entry.first)<<", ";
             }
             switch (entry.second[0]) {
                 case 's': os<<entry.second.substr(1); break;
@@ -75,7 +75,7 @@ void FileWriter::printRow(string tableName, int rowNum, ostream& os, Iterable& r
                 case 'a': os<<0; break;
             }
         } else {
-            os<<entry.first<<", "<<entry.second;
+            os<<G.symMap.name(entry.first)<<", "<<entry.second;
         }
         if (i+1 < row.size())
             os<<", ";
@@ -99,7 +99,7 @@ void FileWriter::printTable(string tableName, ostream& os, vector<int>& realrows
 }
 
 template <class Iterable>
-void FileWriter::printTables(ostream& os, int numStates, Iterable table, string tableName) {
+void FileWriter::printTables(ostream& os, int numStates, Iterable table, string tableName, Grammar& G) {
     vector<int> realrows(numStates, -1);
     for (auto e : table) {
         int duppyRow = -1;
@@ -114,7 +114,7 @@ void FileWriter::printTables(ostream& os, int numStates, Iterable table, string 
         }
         if (duppyRow < 0) {
             realrows[e.first] = e.first;
-            printRow(tableName, e.first, os, e.second);
+            printRow(tableName, e.first, os, e.second, G);
         } else {
             realrows[e.first] = duppyRow;
         }
