@@ -28,8 +28,8 @@ bool Grammar::isTerminal(Symbol s) {
     return terminals.find(s) != terminals.end();
 }
 bool Grammar::isNullable(Symbol nt) {
-    if (derivesLambda.find(nt) != derivesLambda.end())
-        return derivesLambda[nt];
+    if (nullable.find(nt) != nullable.end())
+        return nullable[nt];
     return false;
 }
 
@@ -39,7 +39,7 @@ void Grammar::parseProduction(vector<string>& parts, int rulenum) {
     ProductionSet ps = productions[prodid];
     SymbolString ss;
     string actmaybe;
-    Symbol precOverSym;
+    Symbol precOverSym = -1;
     for (int i = 2; i < parts.size(); i++) {
         if (parts[i].empty()) {
             continue;
@@ -59,11 +59,8 @@ void Grammar::parseProduction(vector<string>& parts, int rulenum) {
             actionMap.insert({parts[i].substr(1), parts[i].substr(1)});
         }
     }
-    if (parts[2] == "#") ss.clear();
-    ps.push_back(Production(rulenum, prodid, ss, actmaybe));
-    if (precOverSym != -1) {
-        ps.back().precOverride = precOverSym;
-    }
+    if (parts[2][0] == '#') ss.clear();
+    ps.push_back(Production(rulenum, prodid, ss, actmaybe, precOverSym));
     productions[prodid] = ps;
     prodById[ps.back().pid] = ps.back();
     if (startSym == -1) {
@@ -89,6 +86,27 @@ vector<string> readTokenList(string filename) {
     return symbols;
 }
 
+void Grammar::populateTerminalList(string filename, bool generate) {
+    if (generate) {
+        char outname[17] = "lexer_matrix.h";
+        TerminalList* tl = generateLexer(filename.data(), outname, true, true, 0);
+        for (int i = 0; i < tl->num_symbols; i++) {
+            int id = symMap.get(tl->symbols[i]);
+            terminals.insert(id);
+            free(tl->symbols[i]);
+        }
+        free(tl);
+        terminals.insert(symMap.get(GOAL));
+        terminals.insert(symMap.get(EPS));
+        terminals.insert(symMap.get(ACTSYM));
+    } else {
+        vector<string> syms = readTokenList(filename);
+        for (auto symbol : syms) {
+            terminals.insert(symMap.get(symbol));
+        }
+    }
+}
+
 bool Grammar::readGrammarFile(string filename, bool and_lexer) {
     string buff;
     ifstream infile(filename, ios::in);
@@ -101,39 +119,16 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
         getline(infile, buff);
         if (buff.size() && buff.back() == '\r')
             buff.pop_back();
-        if (buff.empty() || buff == "\n")
+        if (buff.empty() || buff == "\n" || (buff[0] == '/' && buff[1] == '/'))
             continue;
         vector<string> parts = split(buff, ' ');
-        if (parts[0].size() >= 2 && parts[0][0] == '/' && parts[0][1] == '/') 
-            continue;
         if (parts[0] == "terminal_list") {
-            string filename = parts[1];
-            if (and_lexer) {
-                char outname[17] = "lexer_matrix.h";
-                TerminalList* tl = generateLexer(filename.data(), outname, true, true, 0);
-                for (int i = 0; i < tl->num_symbols; i++) {
-                    int id = symMap.get(tl->symbols[i]);
-                    terminals.insert(id);
-                    free(tl->symbols[i]);
-                }
-                free(tl);
-                terminals.insert(symMap.get(GOAL));
-                terminals.insert(symMap.get(EPS));
-                terminals.insert(symMap.get(ACTSYM));
-            } else {
-                /*vector<Symbol> syms = readTokenList(filename);
-                for (auto symbol : syms) {
-                    cout<<"Adding: '"<<symbol<<"' to terminals"<<endl;
-                    terminals.insert(symbol);
-                }*/
-            }
+            populateTerminalList(parts[1], and_lexer);
         } else if (parts[0] == "type_returned") {
             returnType = parts[1];
         } else if (parts[0] == "set_token_prec") {
             Symbol symbol = symMap.get(parts[1]);
-            int prec = stoi(parts[2]);
-            string assoc = parts.size() == 4 ? parts[3]:"none";
-            precedenceMap.insert(make_pair(symbol,OpPrec(symbol, prec, assoc)));
+            precedenceMap.insert(make_pair(symbol,OpPrec(symbol,stoi(parts[2]), (parts.size() == 4 ? parts[3]:"none"))));
         } else {
             parseProduction(parts, rulenum);
             rulenum++;
