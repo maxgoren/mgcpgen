@@ -6,7 +6,7 @@
 //  if there are no terminals we return the empty string.
 Symbol LRGenerator::get_production_precedence_symbol(const Production& p, const Grammar& G) {
     cout<<"Production prec symbol: ";
-    if (!p.precOverride.empty()) {
+    if (p.precOverride != -1) {
         cout<<" (override)"<<p.precOverride<<endl;
         return p.precOverride;
     }
@@ -19,7 +19,7 @@ Symbol LRGenerator::get_production_precedence_symbol(const Production& p, const 
         }
     }
     cout<<"None."<<endl;
-    return "";
+    return -1;
 }
 
 string LRGenerator::resolve_with_precedence(Grammar& G, ActionTable& tab, Production& p, int s, Symbol a) {
@@ -88,9 +88,9 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
             if (!item.complete()) continue;
             Production p = item.getProduction();
             for (Symbol a : item.lookaheads()) {
-                Symbol targetToken = (a == "$") ? "TK_EOI":a;
-                if (p.lhs == ss && a == "$") {
-                    tab[s]["$"] = "accept";
+                Symbol targetToken = (a == G.symMap.get("$")) ? G.symMap.get("TK_EOI"):a;
+                if (p.lhs == ss && a == G.symMap.get("$")) {
+                    tab[s][G.symMap.get("$")] = "accept";
                 } else {
                     if (!tab[s].count(targetToken)) {
                         tab[s][targetToken] = "r"+to_string(p.pid);
@@ -104,7 +104,7 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
     return tab;
 }
 
-LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
+LRState LRGenerator::closure(Grammar& G, const LRState& state) {
     LRState ret;
     queue<LRItem> work;
     for (const LRItem& item : state.getItems()) {
@@ -117,8 +117,8 @@ LRState LRGenerator::closure(const Grammar& G, const LRState& state) {
         work.pop();
         if (G.nonterminals.count(X)) {
             unordered_set<Symbol> betaFirst = firstFromSequence(G, item.betaSymbols());
-            if (betaFirst.count(EPS)) {
-                betaFirst.erase(EPS);
+            if (betaFirst.count(G.symMap.get(EPS))) {
+                betaFirst.erase(G.symMap.get(EPS));
                 betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
             }
             if (G.productions.find(X) != G.productions.end()) {
@@ -152,7 +152,7 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     return closure(G, next);
 }
 
-unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolString seq) {
+unordered_set<Symbol> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
     unordered_set<Symbol> result;
     bool all_nullable = true;
     for (Symbol X : seq) {
@@ -163,14 +163,14 @@ unordered_set<Symbol> LRGenerator::firstFromSequence(const Grammar& G, SymbolStr
         }
         if (G.nonterminals.count(X)) {
             result.insert(G.firsts.at(X).begin(), G.firsts.at(X).end());
-            if (result.find(EPS) == result.end()) {
+            if (result.find(G.symMap.get(EPS)) == result.end()) {
                 all_nullable = false;
                 break;
             }
         }
     }
     if (all_nullable)
-        result.insert(EPS);
+        result.insert(G.symMap.get(EPS));
     return result;
 } 
 
@@ -184,7 +184,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     queue<int> fq;
     unordered_map<string,int> seen;
     LRItem first_item(G.productions[ss][0], 0); 
-    first_item.lookaheads().insert("$");  
+    first_item.lookaheads().insert(G.symMap.get("$"));  
     start.addItem(first_item);
     LRState I0 = closure(G, start);
     I0.setStateNum(0);
@@ -198,7 +198,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
         unordered_set<Symbol> valid;
         for (auto& item : curr.getItems()) {
             Symbol tmp = item.symbolAfterDot();
-            if (tmp != "<fin>")
+            if (tmp != -1)
                 valid.insert(tmp);
         }
         if (debug_noise) {

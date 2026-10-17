@@ -14,7 +14,7 @@ void  FirstSetCalculator::initFirsts(Grammar& G) {
     for (Symbol nt : G.nonterminals) {
         G.firsts[nt] = set<Symbol>();
         if (G.isNullable(nt)) {
-            G.firsts[nt].insert("#");
+            G.firsts[nt].insert(G.symMap.get("#"));
             if (debug_noise) {
                 cout<<"\t \t+ "<<nt<<" is nullable"<<endl;
             }
@@ -25,7 +25,7 @@ void  FirstSetCalculator::initFirsts(Grammar& G) {
 bool FirstSetCalculator::updateNonTerminal(Grammar& G, Symbol X, Symbol f) {
     bool didchange = false;
     for (auto k : G.firsts[f]) {
-        if (G.firsts[X].find(k) == G.firsts[X].end() && k != EPS) {
+        if (G.firsts[X].find(k) == G.firsts[X].end() && k != G.symMap.get(EPS)) {
             G.firsts[X].insert(k);
             didchange = true;  // Mark that a change occurred
         }
@@ -37,7 +37,7 @@ bool FirstSetCalculator::firstClosure(Grammar& G, Symbol X, SymbolString& produc
     bool didchange = false;
      // Check if the first symbol of this production is epsilon
      if (production.empty()) {
-        G.firsts[X].insert(EPS);
+        G.firsts[X].insert(G.symMap.get(EPS));
     } else {
         Symbol firstSymbol = production.front();
         // If f is a non-terminal

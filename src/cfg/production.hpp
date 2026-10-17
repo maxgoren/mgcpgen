@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace std;
 
-using Symbol = string;
+using Symbol = int;
 
 struct SymbolString : vector<Symbol> {
     SymbolString(vector<Symbol> ss);

@@ -19,7 +19,7 @@ vector<string> split(string input, char delim) {
 }
 
 Grammar::Grammar() {
-    startSym = "";
+    startSym = -1;
 }
 bool Grammar::isNonTerminal(Symbol s) {
     return nonterminals.find(s) != nonterminals.end();
@@ -34,38 +34,40 @@ bool Grammar::isNullable(Symbol nt) {
 }
 
 void Grammar::parseProduction(vector<string>& parts, int rulenum) {
-    nonterminals.insert(parts[0]);
-    ProductionSet ps = productions[parts[0]];
+    int prodid = symMap.get(parts[0]); 
+    nonterminals.insert(prodid);
+    ProductionSet ps = productions[prodid];
     SymbolString ss;
     string actmaybe;
     Symbol precOverSym;
     for (int i = 2; i < parts.size(); i++) {
-        string s = parts[i];
-        if (s.empty())
+        if (parts[i].empty()) {
             continue;
-        if (terminals.find(s) != terminals.end()) {
-            ss.push_back(s);
-        } else if (s == "prec_override") {
-            precOverSym = i+1 < parts.size() ? parts[i+1]:"";
+        } else if (parts[i] == "prec_override") {
+            precOverSym = i+1 < parts.size() ? symMap.get(parts[i+1]):-1;
             cout<<"Precedence override directive: "<<precOverSym<<endl;
             break;
-        } else if (s[0] != '@') {
+        }
+        Symbol s = symMap.get(parts[i]);
+        if (terminals.find(s) != terminals.end()) {
+            ss.push_back(s);
+        } if (parts[i][0] != '@' && terminals.find(s) == terminals.end()) {
             nonterminals.insert(s);
             ss.push_back(s);
-        } else if (s[0] == '@') {
-            actmaybe = s;
-            actionMap.insert({s.substr(1), s.substr(1)});
+        } else if (parts[i][0] == '@') {
+            actmaybe = symMap.name(s);
+            actionMap.insert({parts[i].substr(1), parts[i].substr(1)});
         }
     }
-    if (ss[0] == "#") ss.clear();
-    ps.push_back(Production(rulenum, parts[0], ss, actmaybe));
-    if (!precOverSym.empty()) {
+    if (parts[2] == "#") ss.clear();
+    ps.push_back(Production(rulenum, prodid, ss, actmaybe));
+    if (precOverSym != -1) {
         ps.back().precOverride = precOverSym;
     }
-    productions[parts[0]] = ps;
+    productions[prodid] = ps;
     prodById[ps.back().pid] = ps.back();
-    if (startSym == "") {
-        startSym = parts[0];
+    if (startSym == -1) {
+        startSym = symMap.get(parts[0]);
     }
 }
 
@@ -94,8 +96,6 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
         cout<<"Error: Couldn't open '"<<filename<<"' - unknown file."<<endl;
         return false;
     }
-    terminals.insert(GOAL);
-    terminals.insert(EPS);
     int rulenum = 1;
     while (infile.good()) {
         getline(infile, buff);
@@ -112,23 +112,25 @@ bool Grammar::readGrammarFile(string filename, bool and_lexer) {
                 char outname[17] = "lexer_matrix.h";
                 TerminalList* tl = generateLexer(filename.data(), outname, true, true, 0);
                 for (int i = 0; i < tl->num_symbols; i++) {
-                    terminals.insert(tl->symbols[i]);
-                }
-                for (int i = 0; i < tl->num_symbols; i++) {
+                    int id = symMap.get(tl->symbols[i]);
+                    terminals.insert(id);
                     free(tl->symbols[i]);
                 }
                 free(tl);
+                terminals.insert(symMap.get(GOAL));
+                terminals.insert(symMap.get(EPS));
+                terminals.insert(symMap.get(ACTSYM));
             } else {
-                vector<Symbol> syms = readTokenList(filename);
+                /*vector<Symbol> syms = readTokenList(filename);
                 for (auto symbol : syms) {
                     cout<<"Adding: '"<<symbol<<"' to terminals"<<endl;
                     terminals.insert(symbol);
-                }
+                }*/
             }
         } else if (parts[0] == "type_returned") {
             returnType = parts[1];
         } else if (parts[0] == "set_token_prec") {
-            string symbol = parts[1];
+            Symbol symbol = symMap.get(parts[1]);
             int prec = stoi(parts[2]);
             string assoc = parts.size() == 4 ? parts[3]:"none";
             precedenceMap.insert(make_pair(symbol,OpPrec(symbol, prec, assoc)));
