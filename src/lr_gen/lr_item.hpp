@@ -1,7 +1,7 @@
 #ifndef lr_item_set_hpp
 #define lr_item_set_hpp
 #include <queue>
-#include <unordered_set>
+#include <bitset>
 #include "../../src/cfg/cfg.hpp"
 using namespace std;
 
@@ -9,7 +9,7 @@ class LRItem {
     private:
         Production production;
         int dotPosition;
-        unordered_set<Symbol> la_set;
+        bitset<256> la_set;
         size_t hash_val;
     public:
         LRItem();
@@ -20,8 +20,8 @@ class LRItem {
         Production getProduction() const;
         Symbol symbolAfterDot();
         SymbolString betaSymbols();
-        unordered_set<Symbol> lookaheads() const;
-        unordered_set<Symbol>& lookaheads();
+        bitset<256> lookaheads() const;
+        bitset<256>& lookaheads();
         bool complete() const;
         LRItem advance();
         string kernel() const;

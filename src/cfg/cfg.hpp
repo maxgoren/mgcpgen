@@ -38,6 +38,9 @@ class SymbolMap {
         SymbolMap() {
 
         }
+        int size() {
+            return nameToId.size();
+        }
         int get(string name) {
             if (name.empty())
                 return -1;

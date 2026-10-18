@@ -35,11 +35,8 @@ void LRItem::rehash() {
     size_t h1 = hash<int>()(production.pid);
     size_t h2 = hash<int>()(dotPosition);
     hash_val = h1 ^ (h2 << 1);
-    vector<Symbol> sorted_la(la_set.begin(), la_set.end());
-    sort(sorted_la.begin(), sorted_la.end());
-    for (auto const & m : sorted_la) {
-        hash_val += hash<int>()(m);
-    }
+    for (int i = 0; i < 256; i++)
+        if (la_set.test(i)) hash_val += i;
 }
 
 
@@ -60,10 +57,10 @@ Symbol LRItem::symbolAfterDot() {
 SymbolString LRItem::betaSymbols() {
     return production.rhs.subString(dotPosition + 1);
 }
-unordered_set<Symbol> LRItem::lookaheads() const {
+bitset<256> LRItem::lookaheads() const {
     return la_set;
 }
-unordered_set<Symbol>& LRItem::lookaheads() {
+bitset<256>& LRItem::lookaheads() {
     return la_set;
 }
 
@@ -86,13 +83,7 @@ bool LRItem::operator==(const LRItem& other) const {
 string LRItem::toString() const {
     int i = 0;
     string result = kernel();
-    vector<Symbol> sorted_la(la_set.begin(), la_set.end());
-    sort(sorted_la.begin(), sorted_la.end());
-    result += " { ";
-    for (auto const & la : sorted_la) {
-        result += to_string(la) + " ";
-    }
-    result += "}";
+    result += " { " + la_set.to_string() + "}";
     return result;
 
 }

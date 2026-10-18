@@ -40,9 +40,10 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
         if (it != bykern.end()) {
             int idx = it->second;
             auto& current_la = items[idx].lookaheads();
-            size_t oldSize = current_la.size();
-            current_la.insert(incomingItem.lookaheads().begin(), incomingItem.lookaheads().end());
-            if (current_la.size() > oldSize) {
+            const auto& incoming = incomingItem.lookaheads();
+            int os = current_la.count();
+            current_la |= incoming;
+            if (current_la.count() > os) {
                 changed = true;
                 items[idx].rehash();
                 re_calc_key = true;
