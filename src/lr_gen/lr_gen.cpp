@@ -1,7 +1,9 @@
 #include "lr_gen.hpp"
 #include "serialize.hpp"
 #include <bitset>
+#include <chrono>
 using std::bitset;
+
 //For handling shift/reduce conflicts via precedence rules. 
 // 1) First we check to see if production has an overriding symbol.
 // 2) failing to find that a production inherits the precedence of  it's rightmost terminal. 
@@ -188,8 +190,29 @@ string& LRGenerator::getKey(const LRState& st) const {
     return PARSER_TYPE == CLR ? st.key():st.coreKey();
 }
 
+bool LRGenerator::createState(LRState& gt, const string& gt_key, unordered_map<string,int>& seen) {
+    int ns_num = states.size();
+    gt.setStateNum(ns_num);
+    states.push_back(gt);
+    seen.insert({gt_key,ns_num});
+    if (debug_noise) {
+        cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
+    }
+    return true;
+}
+
+bool LRGenerator::mergedStates(int target, LRState& gt) {
+    if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
+        if (debug_noise) {
+             cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
+        }
+        return true;
+    }
+    return false;
+}
+
 void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
-    int created = 1, merged = 0;
+    int created = 1, merged = 0, pc = 0, pm = 0;
     LRState start;
     queue<int> fq;
     unordered_map<string,int> seen;
@@ -201,6 +224,8 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     states.push_back(I0);
     fq.push(0);
     seen.insert({getKey(I0),I0.getStateNum()});
+    auto last = std::chrono::steady_clock::now();
+    cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<flush;
     while (!fq.empty()) {
         int stateIdx = fq.front(); fq.pop();
         unordered_set<Symbol> valid;
@@ -220,28 +245,22 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             string gt_key = getKey(gt);
             auto seenIt = seen.find(gt_key);
             if (seenIt == seen.end()) {
-                int ns_num = states.size();
-                gt.setStateNum(ns_num);
-                fq.push(ns_num);
-                states.push_back(gt);
-                seen.insert({gt_key,ns_num});
-                target = ns_num;
-                if (debug_noise) {
-                    cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
-                }
-                created++;
+                created += createState(gt, gt_key, seen);
+                target = states.back().getStateNum();
+                fq.push(target);
             } else {
                 target = seen[gt_key];
-                if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
-                    fq.push(target); 
-                    if (debug_noise) {
-                        cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
-                    }
-                    
+                if (mergedStates(target, gt)) {
+                    fq.push(target);
                     merged++;
                 }
             }
-            cout<<"\r States Created: "<<created<<", Merged: "<<merged<<flush;
+            auto nt = chrono::steady_clock::now();
+            auto et = chrono::duration<double, milli>(nt - last);
+            if ((et.count() > 250.0) && ((created > pc) || merged > pm)) {
+                cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<flush;
+                last = nt; pc = created; pm = merged;
+            }
             if (!cfsm.hasEdge(stateIdx, target, X)) {
                 cfsm.addEdge(stateIdx, target, X);
             }
@@ -253,7 +272,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     cout<<endl;
 }
 
-pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
+void LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
     NullableCalculator    nullable;
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
@@ -267,14 +286,16 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     follows.compute(G, ss);
     cout<<"\t (3) Done."<<endl; 
     cout<<"[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" DFA"<<endl;
+    auto start = std::chrono::steady_clock::now();
     generate_CFSM(G, ss);
-    cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
+    auto finish = std::chrono::steady_clock::now();
+    auto timing = std::chrono::duration<double, std::milli>(finish - start);
+    cout<<"[*] Completed in "<<timing.count()<<" ms. with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;
     GoToTable   goTab = make_goto_table(G);
     cout<<"[*] Generating Action table"<<endl;
     ActionTable actTab = make_action_table(G, ss);
     fileWriter.write(ofile, G, cfsm, goTab, actTab);
-    return make_pair(actTab, goTab);
 }
 
 LRGenerator::LRGenerator(bool noise, ParserType pt) {
@@ -287,11 +308,10 @@ vector<LRState>& LRGenerator::getStates() {
 }
 
 
-pair<ActionTable,GoToTable> LRGenerator::generate(Grammar& G, string outname) {
+void LRGenerator::generate(Grammar& G, string outname) {
     ofstream ofile(outname);
     cout<<"[*] Generating Parser..."<<endl;
-    auto ret = generate(G, G.startSym, ofile);
+    generate(G, G.startSym, ofile);
     ofile.close();
     cout<<"[*] Done."<<endl;
-    return ret;
 }
