@@ -24,7 +24,7 @@ class LRItem {
         bitset<256>& lookaheads();
         bool complete() const;
         LRItem advance();
-        string kernel() const;
+        int kernel() const;
         string toString() const;
         void rehash();
         size_t hashCode() const;

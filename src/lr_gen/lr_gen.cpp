@@ -155,7 +155,9 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
             LRItem nextItem = item.advance();
             nextItem.lookaheads() |= item.lookaheads();
             nextItem.rehash();
-            next.addItem(nextItem);
+            if (!next.hasItem(nextItem)) {
+                next.addItem(nextItem);
+            }
         }
     }
     return closure(G, next);
@@ -190,7 +192,7 @@ string& LRGenerator::getKey(const LRState& st) const {
     return PARSER_TYPE == CLR ? st.key():st.coreKey();
 }
 
-bool LRGenerator::createState(LRState& gt, const string& gt_key, unordered_map<string,int>& seen) {
+int LRGenerator::createState(LRState& gt, const string& gt_key, unordered_map<string,int>& seen) {
     int ns_num = states.size();
     gt.setStateNum(ns_num);
     states.push_back(gt);
@@ -198,14 +200,12 @@ bool LRGenerator::createState(LRState& gt, const string& gt_key, unordered_map<s
     if (debug_noise) {
         cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
     }
-    return true;
+    return ns_num + 1;
 }
 
 bool LRGenerator::mergedStates(int target, LRState& gt) {
     if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
-        if (debug_noise) {
-             cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
-        }
+        if (debug_noise) { cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl; }
         return true;
     }
     return false;
@@ -245,7 +245,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             string gt_key = getKey(gt);
             auto seenIt = seen.find(gt_key);
             if (seenIt == seen.end()) {
-                created += createState(gt, gt_key, seen);
+                created = createState(gt, gt_key, seen);
                 target = states.back().getStateNum();
                 fq.push(target);
             } else {
@@ -255,14 +255,12 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
                     merged++;
                 }
             }
+            cfsm.addEdge(stateIdx, target, X);
             auto nt = chrono::steady_clock::now();
             auto et = chrono::duration<double, milli>(nt - last);
             if ((et.count() > 250.0) && ((created > pc) || merged > pm)) {
                 cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<flush;
                 last = nt; pc = created; pm = merged;
-            }
-            if (!cfsm.hasEdge(stateIdx, target, X)) {
-                cfsm.addEdge(stateIdx, target, X);
             }
         }
         if (debug_noise) {

@@ -10,7 +10,7 @@ class LRState {
     private:
         int state_num;
         mutable vector<LRItem> items;
-        mutable unordered_map<string, int> bykern;
+        mutable unordered_map<int, int> bykern;
         mutable string cached_key;
         mutable string cached_core;
         mutable bool re_calc_key;

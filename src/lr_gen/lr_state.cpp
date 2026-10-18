@@ -17,7 +17,7 @@ void LRState::update_cache() const {
     if (re_calc_key == false)
         return;
     set<string> strs;
-    set<string> item_keys;
+    set<int> item_keys;
     for (const auto& item : items) {
         strs.insert(item.toString());
         item_keys.insert(item.kernel());
@@ -28,7 +28,7 @@ void LRState::update_cache() const {
         cached_key += rit + "\n";
     }
     for (auto cit : item_keys) {
-        cached_core += cit + "|";
+        cached_core += to_string(cit) + "|";
     }
     re_calc_key = false;
 }

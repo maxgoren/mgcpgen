@@ -13,7 +13,6 @@ LRItem::LRItem(const LRItem& lri) {
     dotPosition = lri.dotPosition;
     la_set = lri.la_set;
     hash_val = lri.hash_val;
-    rehash();
 }
 
 LRItem& LRItem::operator=(const LRItem& lri) {
@@ -22,7 +21,6 @@ LRItem& LRItem::operator=(const LRItem& lri) {
         dotPosition = lri.dotPosition;
         la_set = lri.la_set;
         hash_val = lri.hash_val;
-        rehash();
     }
     return *this;
 }
@@ -34,7 +32,7 @@ size_t LRItem::hashCode() const {
 void LRItem::rehash() {
     size_t h1 = hash<int>()(production.pid);
     size_t h2 = hash<int>()(dotPosition);
-    hash_val = h1 ^ (h2 << 1);
+    hash_val = (h1 ^ (h2 << 1)) + (std::hash<std::bitset<256>>()(la_set));
 }
 
 
@@ -66,8 +64,11 @@ bool LRItem::complete() const {
     return dotPosition >= production.rhs.size();
 }
 
-string LRItem::kernel() const {
-    return to_string(production.pid) + "@" + to_string(dotPosition);
+int LRItem::kernel() const {
+    int h = 17;
+    h = production.pid + 37 * h;
+    h = dotPosition + 37 * h;
+    return h;
 }
 
 LRItem LRItem::advance() {
@@ -80,7 +81,7 @@ bool LRItem::operator==(const LRItem& other) const {
 
 string LRItem::toString() const {
     int i = 0;
-    string result = kernel();
+    string result = to_string(kernel());
     result += " { " + la_set.to_string() + "}";
     return result;
 
