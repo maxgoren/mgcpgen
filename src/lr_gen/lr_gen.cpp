@@ -189,6 +189,7 @@ string& LRGenerator::getKey(const LRState& st) const {
 }
 
 void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
+    int created = 1, merged = 0;
     LRState start;
     queue<int> fq;
     unordered_map<string,int> seen;
@@ -197,11 +198,9 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
     start.addItem(first_item);
     LRState I0 = closure(G, start);
     I0.setStateNum(0);
+    states.push_back(I0);
     fq.push(0);
     seen.insert({getKey(I0),I0.getStateNum()});
-    states.push_back(I0);
-    int created = 1;
-    int merged = 0;
     while (!fq.empty()) {
         int stateIdx = fq.front(); fq.pop();
         unordered_set<Symbol> valid;
@@ -234,19 +233,17 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             } else {
                 target = seen[gt_key];
                 if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
-                    fq.push(states[target].getStateNum()); 
+                    fq.push(target); 
                     if (debug_noise) {
                         cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
                     }
+                    
                     merged++;
                 }
             }
             cout<<"\r States Created: "<<created<<", Merged: "<<merged<<flush;
             if (!cfsm.hasEdge(stateIdx, target, X)) {
                 cfsm.addEdge(stateIdx, target, X);
-              //  if (debug_noise) {   
-              //      cout<<"\t + Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
-              //  }
             }
         }
         if (debug_noise) {

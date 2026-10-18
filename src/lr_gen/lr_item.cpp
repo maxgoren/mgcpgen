@@ -35,8 +35,6 @@ void LRItem::rehash() {
     size_t h1 = hash<int>()(production.pid);
     size_t h2 = hash<int>()(dotPosition);
     hash_val = h1 ^ (h2 << 1);
-    for (int i = 0; i < 256; i++)
-        if (la_set.test(i)) hash_val += i;
 }
 
 

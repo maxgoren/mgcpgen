@@ -41,9 +41,9 @@ bool LRState::mergeLookaheadsFrom(const LRState& other) {
             int idx = it->second;
             auto& current_la = items[idx].lookaheads();
             const auto& incoming = incomingItem.lookaheads();
-            int os = current_la.count();
+            auto os = current_la;
             current_la |= incoming;
-            if (current_la.count() > os) {
+            if (current_la != os) {
                 changed = true;
                 items[idx].rehash();
                 re_calc_key = true;
