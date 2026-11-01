@@ -267,7 +267,7 @@ void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
             cout<<"--------------------------\n";
         }
     }
-    cout<<endl;
+    cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<endl;
 }
 
 void LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
