@@ -20,7 +20,7 @@ void generate_lr_parser(string arguments, string in_file, string out_file) {
     }
     cout<<"[*] Reading Grammar File: "<<in_file<<endl;
     if (G.readGrammarFile(in_file, and_lexer)) {
-        auto[actTab, goTab] = lrgen.generate(G, out_file);
+        lrgen.generate(G, out_file);
     } else {
         cout<<"[*] Failed."<<endl;
     }

@@ -38,6 +38,9 @@ class SymbolMap {
         SymbolMap() {
 
         }
+        int size() {
+            return nameToId.size();
+        }
         int get(string name) {
             if (name.empty())
                 return -1;
@@ -62,7 +65,7 @@ struct Grammar {
     set<Symbol> terminals;
     set<Symbol> nonterminals;
     map<Symbol, ProductionSet> productions;
-    map<Symbol, bool> derivesLambda;
+    map<Symbol, bool> nullable;
     map<Symbol, set<Symbol>> firsts;
     map<Symbol, set<Symbol>> follow;
     map<int, Production> prodById;
@@ -74,6 +77,7 @@ struct Grammar {
     bool isNullable(Symbol nt);
     bool readGrammarFile(string filename, bool and_lexer);
     void parseProduction(vector<string>& parts, int rulenum);
+    void populateTerminalList(string filename, bool generate_lexer);
 };
 
 vector<string> split(string input, char delim);

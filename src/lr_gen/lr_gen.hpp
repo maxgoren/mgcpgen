@@ -38,13 +38,15 @@ class LRGenerator {
         ActionTable make_action_table(Grammar& G, Symbol ss);
         LRState closure(Grammar& G, const LRState& state);
         LRState lr_goto(Grammar& G, const LRState& state, Symbol X);
-        unordered_set<Symbol> firstFromSequence(Grammar& G, SymbolString seq); 
+        bitset<256> firstFromSequence(Grammar& G, SymbolString seq); 
+        int createState(LRState& gt, const string& gt_key, unordered_map<string,int>& seen);
+        bool mergedStates(int target, LRState& gt);
         void generate_CFSM(Grammar& G, Symbol ss);
-        pair<ActionTable, GoToTable> generate(Grammar& G, Symbol ss, ofstream& ofile) ;
+        void generate(Grammar& G, Symbol ss, ofstream& ofile) ;
     public:
         LRGenerator(bool debug_noise = false, ParserType type = LALR);
         vector<LRState>& getStates();
-        pair<ActionTable,GoToTable> generate(Grammar& G, string out_name);
+        void generate(Grammar& G, string out_name);
 };
 
 #endif

@@ -12,7 +12,7 @@ LRItem::LRItem(const LRItem& lri) {
     production = lri.production;
     dotPosition = lri.dotPosition;
     la_set = lri.la_set;
-    rehash();
+    hash_val = lri.hash_val;
 }
 
 LRItem& LRItem::operator=(const LRItem& lri) {
@@ -20,7 +20,7 @@ LRItem& LRItem::operator=(const LRItem& lri) {
         production = lri.production;
         dotPosition = lri.dotPosition;
         la_set = lri.la_set;
-        rehash();
+        hash_val = lri.hash_val;
     }
     return *this;
 }
@@ -32,12 +32,7 @@ size_t LRItem::hashCode() const {
 void LRItem::rehash() {
     size_t h1 = hash<int>()(production.pid);
     size_t h2 = hash<int>()(dotPosition);
-    hash_val = h1 ^ (h2 << 1);
-    vector<Symbol> sorted_la(la_set.begin(), la_set.end());
-    sort(sorted_la.begin(), sorted_la.end());
-    for (auto const & m : sorted_la) {
-        hash_val += hash<int>()(m);
-    }
+    hash_val = (h1 ^ (h2 << 1)) + (std::hash<std::bitset<256>>()(la_set));
 }
 
 
@@ -58,10 +53,10 @@ Symbol LRItem::symbolAfterDot() {
 SymbolString LRItem::betaSymbols() {
     return production.rhs.subString(dotPosition + 1);
 }
-unordered_set<Symbol> LRItem::lookaheads() const {
+bitset<256> LRItem::lookaheads() const {
     return la_set;
 }
-unordered_set<Symbol>& LRItem::lookaheads() {
+bitset<256>& LRItem::lookaheads() {
     return la_set;
 }
 
@@ -69,8 +64,11 @@ bool LRItem::complete() const {
     return dotPosition >= production.rhs.size();
 }
 
-string LRItem::kernel() const {
-    return to_string(production.pid) + "@" + to_string(dotPosition);
+int LRItem::kernel() const {
+    int h = 17;
+    h = production.pid + 37 * h;
+    h = dotPosition + 37 * h;
+    return h;
 }
 
 LRItem LRItem::advance() {
@@ -83,14 +81,8 @@ bool LRItem::operator==(const LRItem& other) const {
 
 string LRItem::toString() const {
     int i = 0;
-    string result = kernel();
-    vector<Symbol> sorted_la(la_set.begin(), la_set.end());
-    sort(sorted_la.begin(), sorted_la.end());
-    result += " { ";
-    for (auto const & la : sorted_la) {
-        result += to_string(la) + " ";
-    }
-    result += "}";
+    string result = to_string(kernel());
+    result += " { " + la_set.to_string() + "}";
     return result;
 
 }

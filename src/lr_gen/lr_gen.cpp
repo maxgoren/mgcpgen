@@ -1,5 +1,9 @@
 #include "lr_gen.hpp"
 #include "serialize.hpp"
+#include <bitset>
+#include <chrono>
+using std::bitset;
+
 //For handling shift/reduce conflicts via precedence rules. 
 // 1) First we check to see if production has an overriding symbol.
 // 2) failing to find that a production inherits the precedence of  it's rightmost terminal. 
@@ -87,15 +91,17 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
         for (const LRItem& item : states[s].getItems()) {
             if (!item.complete()) continue;
             Production p = item.getProduction();
-            for (Symbol a : item.lookaheads()) {
-                Symbol targetToken = (a == G.symMap.get("$")) ? G.symMap.get("TK_EOI"):a;
-                if (p.lhs == ss && a == G.symMap.get("$")) {
-                    tab[s][G.symMap.get("$")] = "accept";
-                } else {
-                    if (!tab[s].count(targetToken)) {
-                        tab[s][targetToken] = "r"+to_string(p.pid);
+            for (int a = 0; a < G.symMap.size(); a++) {
+                if (item.lookaheads().test(a)) {
+                    Symbol targetToken = (a == G.symMap.get("$")) ? G.symMap.get("TK_EOI"):a;
+                    if (p.lhs == ss && a == G.symMap.get("$")) {
+                        tab[s][G.symMap.get("$")] = "accept";
                     } else {
-                        tab[s][targetToken] = resolve_with_precedence(G, tab, p, s, targetToken);
+                        if (!tab[s].count(targetToken)) {
+                            tab[s][targetToken] = "r"+to_string(p.pid);
+                        } else {
+                            tab[s][targetToken] = resolve_with_precedence(G, tab, p, s, targetToken);
+                        }
                     }
                 }
             }
@@ -107,24 +113,26 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
 LRState LRGenerator::closure(Grammar& G, const LRState& state) {
     LRState ret;
     queue<LRItem> work;
-    for (const LRItem& item : state.getItems()) {
-        work.push(item);
-        ret.addItem(item);
+    bitset<256> betaFirst;
+    for (const LRItem& i : state.getItems()) {
+        work.push(i);
+        ret.addItem(i);
     }
     while (!work.empty()) {
         LRItem item = work.front();
         Symbol X = item.symbolAfterDot();
         work.pop();
         if (G.nonterminals.count(X)) {
-            unordered_set<Symbol> betaFirst = firstFromSequence(G, item.betaSymbols());
-            if (betaFirst.count(G.symMap.get(EPS))) {
-                betaFirst.erase(G.symMap.get(EPS));
-                betaFirst.insert(item.lookaheads().begin(), item.lookaheads().end());
+            betaFirst.reset();
+            betaFirst = firstFromSequence(G, item.betaSymbols());
+            if (betaFirst.test(G.symMap.get(EPS))) {
+                betaFirst.reset(G.symMap.get(EPS));
+                betaFirst |= item.lookaheads();
             }
             if (G.productions.find(X) != G.productions.end()) {
                 for (const Production& p : G.productions.at(X)) {
                     LRItem newItem(p, 0);
-                    newItem.lookaheads().insert(betaFirst.begin(), betaFirst.end());
+                    newItem.lookaheads() |= betaFirst;
                     newItem.rehash();
                     if (!ret.hasItem(newItem)) {
                         work.push(newItem);
@@ -132,7 +140,8 @@ LRState LRGenerator::closure(Grammar& G, const LRState& state) {
                     }
                 }
             } else {
-                cout<<"\n Hey, some thing funky with "<<X<<" is going on."<<endl;
+                cout<<"\n Encountered Invalid Non Terminal. Bailing out."<<endl;
+                exit(EXIT_FAILURE);
             }
         }
     }
@@ -144,33 +153,37 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     for (LRItem item : state.getItems()) {
         if (!item.complete() && item.symbolAfterDot() == X) {
             LRItem nextItem = item.advance();
-            nextItem.lookaheads().insert(item.lookaheads().begin(), item.lookaheads().end());
+            nextItem.lookaheads() |= item.lookaheads();
             nextItem.rehash();
-            next.addItem(nextItem);
+            if (!next.hasItem(nextItem)) {
+                next.addItem(nextItem);
+            }
         }
     }
     return closure(G, next);
 }
 
-unordered_set<Symbol> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
-    unordered_set<Symbol> result;
+bitset<256> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
+    bitset<256> result;
     bool all_nullable = true;
     for (Symbol X : seq) {
         if (G.terminals.count(X)) {
-            result.insert(X);
+            result.set(X);
             all_nullable = false;
             break;
         }
         if (G.nonterminals.count(X)) {
-            result.insert(G.firsts.at(X).begin(), G.firsts.at(X).end());
-            if (result.find(G.symMap.get(EPS)) == result.end()) {
+            for (auto s : G.firsts.at(X)) {
+                result.set(s);
+            }
+            if (result.test(G.symMap.get(EPS)) == false) {
                 all_nullable = false;
                 break;
             }
         }
     }
     if (all_nullable)
-        result.insert(G.symMap.get(EPS));
+        result.set(G.symMap.get(EPS));
     return result;
 } 
 
@@ -179,75 +192,85 @@ string& LRGenerator::getKey(const LRState& st) const {
     return PARSER_TYPE == CLR ? st.key():st.coreKey();
 }
 
+int LRGenerator::createState(LRState& gt, const string& gt_key, unordered_map<string,int>& seen) {
+    int ns_num = states.size();
+    gt.setStateNum(ns_num);
+    states.push_back(gt);
+    seen.insert({gt_key,ns_num});
+    if (debug_noise) {
+        cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
+    }
+    return ns_num + 1;
+}
+
+bool LRGenerator::mergedStates(int target, LRState& gt) {
+    if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
+        if (debug_noise) { cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl; }
+        return true;
+    }
+    return false;
+}
+
 void LRGenerator::generate_CFSM(Grammar& G, Symbol ss) {
+    int created = 1, merged = 0, pc = 0, pm = 0;
     LRState start;
     queue<int> fq;
     unordered_map<string,int> seen;
     LRItem first_item(G.productions[ss][0], 0); 
-    first_item.lookaheads().insert(G.symMap.get("$"));  
+    first_item.lookaheads().set(G.symMap.get("$"));  
     start.addItem(first_item);
     LRState I0 = closure(G, start);
     I0.setStateNum(0);
+    states.push_back(I0);
     fq.push(0);
     seen.insert({getKey(I0),I0.getStateNum()});
-    states.push_back(I0);
-    int created = 1;
-    int merged = 0;
+    auto last = std::chrono::steady_clock::now();
+    cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<flush;
     while (!fq.empty()) {
-        LRState curr = states[fq.front()]; fq.pop();
+        int stateIdx = fq.front(); fq.pop();
         unordered_set<Symbol> valid;
-        for (auto& item : curr.getItems()) {
+        for (auto& item : states[stateIdx].getItems()) {
             Symbol tmp = item.symbolAfterDot();
             if (tmp != -1)
                 valid.insert(tmp);
         }
         if (debug_noise) {
-            cout<<"Current state: I"<<curr.getStateNum()<<" \n";
+            cout<<"Current state: I"<<stateIdx<<" \n";
         }
         for (auto const & X : valid) {
-            LRState gt = lr_goto(G, curr, X);
+            LRState gt = lr_goto(G, states[stateIdx], X);
             if (gt.getItems().empty())
                 continue;
             int target;
             string gt_key = getKey(gt);
             auto seenIt = seen.find(gt_key);
             if (seenIt == seen.end()) {
-                int ns_num = states.size();
-                gt.setStateNum(ns_num);
-                fq.push(ns_num);
-                states.push_back(gt);
-                seen.insert({gt_key,ns_num});
-                target = ns_num;
-                if (debug_noise) {
-                    cout<<"\t + Created new state: I"<<gt.getStateNum()<<"\n";
-                }
-                created++;
+                created = createState(gt, gt_key, seen);
+                target = states.back().getStateNum();
+                fq.push(target);
             } else {
                 target = seen[gt_key];
-                if (PARSER_TYPE == LALR && states[target].mergeLookaheadsFrom(gt)) {
-                    fq.push(states[target].getStateNum()); 
-                    if (debug_noise) {
-                        cout<<"\t - Existing state: I"<<target<<" merged lookaheads"<<endl;
-                    }
+                if (mergedStates(target, gt)) {
+                    fq.push(target);
                     merged++;
                 }
             }
-            cout<<"\r States Created: "<<created<<", Merged: "<<merged<<flush;
-            if (!cfsm.hasEdge(curr.getStateNum(), target, X)) {
-                cfsm.addEdge(curr.getStateNum(), target, X);
-                if (debug_noise) {   
-                    cout<<"\t + Add edge from I"<<curr.getStateNum()<<" on "<<X<<" to I"<<target<<endl;                 
-                }
+            cfsm.addEdge(stateIdx, target, X);
+            auto nt = chrono::steady_clock::now();
+            auto et = chrono::duration<double, milli>(nt - last);
+            if ((et.count() > 250.0) && ((created > pc) || merged > pm)) {
+                cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<flush;
+                last = nt; pc = created; pm = merged;
             }
         }
         if (debug_noise) {
             cout<<"--------------------------\n";
         }
     }
-    cout<<endl;
+    cout<<"\r\t + States Created: "<<created<<", - Merged: "<<merged<<endl;
 }
 
-pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
+void LRGenerator::generate(Grammar& G, Symbol ss, ofstream& ofile) {
     NullableCalculator    nullable;
     FirstSetCalculator    firsts;
     FollowSetCalculator   follows;
@@ -261,14 +284,16 @@ pair<ActionTable, GoToTable> LRGenerator::generate(Grammar& G, Symbol ss, ofstre
     follows.compute(G, ss);
     cout<<"\t (3) Done."<<endl; 
     cout<<"[*] Building "<<(PARSER_TYPE == CLR ? "CLR":"LALR")<<" DFA"<<endl;
+    auto start = std::chrono::steady_clock::now();
     generate_CFSM(G, ss);
-    cout<<"[*] Completed with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
+    auto finish = std::chrono::steady_clock::now();
+    auto timing = std::chrono::duration<double, std::milli>(finish - start);
+    cout<<"[*] Completed in "<<timing.count()<<" ms. with "<<states.size()<<" LR states and "<<cfsm.E()<<" edges."<<endl;
     cout<<"[*] Generating Go To table"<<endl;
     GoToTable   goTab = make_goto_table(G);
     cout<<"[*] Generating Action table"<<endl;
     ActionTable actTab = make_action_table(G, ss);
     fileWriter.write(ofile, G, cfsm, goTab, actTab);
-    return make_pair(actTab, goTab);
 }
 
 LRGenerator::LRGenerator(bool noise, ParserType pt) {
@@ -281,11 +306,10 @@ vector<LRState>& LRGenerator::getStates() {
 }
 
 
-pair<ActionTable,GoToTable> LRGenerator::generate(Grammar& G, string outname) {
+void LRGenerator::generate(Grammar& G, string outname) {
     ofstream ofile(outname);
     cout<<"[*] Generating Parser..."<<endl;
-    auto ret = generate(G, G.startSym, ofile);
+    generate(G, G.startSym, ofile);
     ofile.close();
     cout<<"[*] Done."<<endl;
-    return ret;
 }

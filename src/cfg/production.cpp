@@ -53,7 +53,7 @@ bool SymbolString::operator!=(const SymbolString& ss) {
     return !(*this == ss);
 }
 
-Production::Production(int id, Symbol l, SymbolString r, string a) : pid(id), lhs(l), rhs(r), action(a), precOverride(-1) { }
+Production::Production(int id, Symbol l, SymbolString r, string a, Symbol po) : pid(id), lhs(l), rhs(r), action(a), precOverride(po) { }
 Production::Production(int id, Symbol l, SymbolString r) : pid(id), lhs(l), rhs(r), precOverride(-1) { }
 Production::Production() : pid(0), precOverride(-1) { }
 string Production::toString() {

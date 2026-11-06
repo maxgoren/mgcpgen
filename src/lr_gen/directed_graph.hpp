@@ -1,8 +1,8 @@
 #ifndef directed_graph_hpp
 #define directed_graph_hpp
 #include <iostream>
-#include <map>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 using namespace std;
 
 using Symbol = int;
@@ -17,11 +17,25 @@ struct Transition {
     bool operator==(const Transition& ot) const {
         return dest == ot.dest && edgeLabel == ot.edgeLabel;
     }
+    bool operator!=(const Transition& ot) const {
+        return !(*this==ot);
+    }
 };
+
+namespace std {
+    template <> struct hash<Transition> {
+        size_t operator()(const Transition& ot) const {
+            unsigned long h = 17;
+            h = h * 31 + ot.dest;
+            h = h * 31 + ot.edgeLabel;
+            return h;
+        }
+    };
+}
 
 class DirectedGraph {
     private:
-        map<int, set<Transition>> adjlist;
+        unordered_map<int, unordered_set<Transition>> adjlist;
         int edgecount;
     public:
         DirectedGraph() {
@@ -47,10 +61,12 @@ class DirectedGraph {
             return adjlist[s].find(Transition(t, X)) != adjlist[s].end();
         }
         void addEdge(int s, int t, Symbol X) {
-            adjlist[s].insert(Transition(t, X));
-            edgecount++;
+            if (!hasEdge(s, t, X)) {
+                adjlist[s].insert(Transition(t, X));
+                edgecount++;
+            }
         }
-        set<Transition>& adj(int v) {
+        unordered_set<Transition>& adj(int v) {
             return adjlist[v];
         }
         void print() {
