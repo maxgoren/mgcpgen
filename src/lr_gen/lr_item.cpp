@@ -32,7 +32,7 @@ size_t LRItem::hashCode() const {
 void LRItem::rehash() {
     size_t h1 = hash<int>()(production.pid);
     size_t h2 = hash<int>()(dotPosition);
-    hash_val = (h1 ^ (h2 << 1)) + (std::hash<std::bitset<256>>()(la_set));
+    hash_val = (h1 ^ (h2 << 1)) + (std::hash<std::bitset<MAX_LA_BITS>>()(la_set));
 }
 
 
@@ -53,10 +53,10 @@ Symbol LRItem::symbolAfterDot() {
 SymbolString LRItem::betaSymbols() {
     return production.rhs.subString(dotPosition + 1);
 }
-bitset<256> LRItem::lookaheads() const {
+bitset<MAX_LA_BITS> LRItem::lookaheads() const {
     return la_set;
 }
-bitset<256>& LRItem::lookaheads() {
+bitset<MAX_LA_BITS>& LRItem::lookaheads() {
     return la_set;
 }
 

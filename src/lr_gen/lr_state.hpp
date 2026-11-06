@@ -2,7 +2,6 @@
 #define lr_state_hpp
 #include <iostream>
 #include <unordered_map>
-#include <unordered_set>
 #include "lr_item.hpp"
 using namespace std;
 

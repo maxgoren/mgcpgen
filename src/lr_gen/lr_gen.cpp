@@ -113,7 +113,7 @@ ActionTable LRGenerator::make_action_table(Grammar& G, Symbol ss) {
 LRState LRGenerator::closure(Grammar& G, const LRState& state) {
     LRState ret;
     queue<LRItem> work;
-    bitset<256> betaFirst;
+    bitset<MAX_LA_BITS> betaFirst;
     for (const LRItem& i : state.getItems()) {
         work.push(i);
         ret.addItem(i);
@@ -163,8 +163,8 @@ LRState LRGenerator::lr_goto(Grammar& G, const LRState& state, Symbol X) {
     return closure(G, next);
 }
 
-bitset<256> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
-    bitset<256> result;
+bitset<MAX_LA_BITS> LRGenerator::firstFromSequence(Grammar& G, SymbolString seq) {
+    bitset<MAX_LA_BITS> result;
     bool all_nullable = true;
     for (Symbol X : seq) {
         if (G.terminals.count(X)) {

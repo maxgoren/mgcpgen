@@ -5,11 +5,13 @@
 #include "../../src/cfg/cfg.hpp"
 using namespace std;
 
+constexpr int MAX_LA_BITS = 512;
+
 class LRItem {
     private:
         Production production;
         int dotPosition;
-        bitset<256> la_set;
+        bitset<MAX_LA_BITS> la_set;
         size_t hash_val;
     public:
         LRItem();
@@ -20,8 +22,8 @@ class LRItem {
         Production getProduction() const;
         Symbol symbolAfterDot();
         SymbolString betaSymbols();
-        bitset<256> lookaheads() const;
-        bitset<256>& lookaheads();
+        bitset<MAX_LA_BITS> lookaheads() const;
+        bitset<MAX_LA_BITS>& lookaheads();
         bool complete() const;
         LRItem advance();
         int kernel() const;
